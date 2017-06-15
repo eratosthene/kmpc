@@ -1,0 +1,90 @@
+#:kivy 1.10.0
+
+<KmpcInterface>:
+    do_default_tab: False
+    TabbedPanelItem:
+        text: 'Now Playing'
+        BoxLayout:
+            orientation: 'vertical'
+            BoxLayout:
+                orientation: 'horizontal'
+                Image:
+                    allow_stretch: True
+                    source: 'test.jpg'
+                BoxLayout:
+                    orientation: 'vertical'
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Label:
+                            text_size: 0.5, None
+                            #size: self.texture_size
+                            id: current_song_label
+                            font_size: '20sp'
+                            text: 'SONG NAME'
+                        Label:
+                            id: current_artist_label
+                            font_size: '20sp'
+                            text: 'ARTIST NAME'
+                        Label:
+                            id: current_album_label
+                            font_size: '20sp'
+                            text: 'ALBUM NAME [YEAR]'
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint: (1,0.2)
+                        Label:
+                            text: 'Up Next:'
+                        Label:
+                            id: next_song_artist_label
+                            text: 'NEXT SONG NAME / NEXT SONG ARTIST'
+            BoxLayout:
+                size_hint: (1.0,0.1)
+                orientation: 'horizontal'
+                Label:
+                    id: current_track_time_label
+                    size_hint: (0.1,1)
+                    text: '0:00'
+                ProgressBar:
+                    id: current_track_progressbar
+                    max: '1000'
+                Label:
+                    id: current_track_totaltime_label
+                    size_hint: (0.1,1)
+                    text: '5:00'
+            BoxLayout:
+                size_hint: (1.0,0.1)
+                orientation: 'horizontal'
+                Label:
+                    id: current_playlist_track_number_label
+                    text: '1 of 10'
+            BoxLayout:
+                size_hint: (1.0,0.2)
+                orientation: 'horizontal'
+                Button:
+                    text: '<<'
+                Button:
+                    text: '|>'
+                Button:
+                    text: '>>'
+                Button:
+                    text: 'Repeat'
+                Button:
+                    text: 'Single'
+                Button:
+                    text: 'Shuffle'
+                Button:
+                    text: 'Consume'
+    TabbedPanelItem:
+        text: 'Playlist'
+        Label:
+            text: 'tab2 stuff'
+    TabbedPanelItem:
+        text: 'Library'
+        Label:
+            text: 'tab3 stuff'
+    TabbedPanelItem:
+        text: 'Config'
+        Label:
+            text: 'tab4 stuff'
+    TabbedPanelItem:
+        text: 'Debug'
