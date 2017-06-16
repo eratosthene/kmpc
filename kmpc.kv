@@ -16,8 +16,6 @@
                     BoxLayout:
                         orientation: 'vertical'
                         Label:
-                            text_size: 0.5, None
-                            #size: self.texture_size
                             id: current_song_label
                             font_size: '20sp'
                             text: 'SONG NAME'
@@ -36,7 +34,7 @@
                             text: 'Up Next:'
                         Label:
                             id: next_song_artist_label
-                            text: 'NEXT SONG NAME / NEXT SONG ARTIST'
+                            text: 'NEXT SONG ARTIST - NEXT SONG NAME'
             BoxLayout:
                 size_hint: (1.0,0.1)
                 orientation: 'horizontal'
@@ -61,27 +59,55 @@
                 size_hint: (1.0,0.2)
                 orientation: 'horizontal'
                 Button:
-                    text: '<<'
+                    id: prev_button
+                    text: 'Prev'
+                    on_press: root.prev_pressed()
+                ToggleButton:
+                    id: play_button
+                    text: 'Play'
+                    on_press: root.play_pressed()
                 Button:
-                    text: '|>'
-                Button:
-                    text: '>>'
-                Button:
+                    id: next_button
+                    text: 'Next'
+                    on_press: root.next_pressed()
+                ToggleButton:
+                    id: repeat_button
                     text: 'Repeat'
-                Button:
+                    on_press: root.repeat_pressed()
+                ToggleButton:
+                    id: single_button
                     text: 'Single'
-                Button:
+                    on_press: root.single_pressed()
+                ToggleButton:
+                    id: shuffle_button
                     text: 'Shuffle'
-                Button:
+                    on_press: root.shuffle_pressed()
+                ToggleButton:
+                    id: consume_button
                     text: 'Consume'
+                    on_press: root.consume_pressed()
     TabbedPanelItem:
         text: 'Playlist'
         Label:
             text: 'tab2 stuff'
     TabbedPanelItem:
         text: 'Library'
-        Label:
-            text: 'tab3 stuff'
+        TabbedPanel:
+            id: library_panel
+            do_default_tab: False
+            TabbedPanelItem:
+                text: 'Artists'
+                Button:
+                    text: 'Refresh'
+                    on_press: root.refresh_artists()
+            TabbedPanelItem:
+                text: 'Albums'
+            TabbedPanelItem:
+                text: 'Tracks'
+            TabbedPanelItem:
+                text: 'Playlists'
+            TabbedPanelItem:
+                text: 'Genres'
     TabbedPanelItem:
         text: 'Config'
         Label:
