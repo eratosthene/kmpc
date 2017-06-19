@@ -2,6 +2,10 @@
 
 <KmpcInterface>:
     do_default_tab: False
+    active_tab: None
+    file_browser_base: '/'
+    artist_browser_base: {"level":"root","base":"root","upto":None}
+    track_browser_base: {"level":"root","base":"root"}
     TabbedPanelItem:
         text: 'Now Playing'
         BoxLayout:
@@ -88,25 +92,50 @@
                     on_press: root.consume_pressed()
     TabbedPanelItem:
         text: 'Playlist'
-        Label:
-            text: 'tab2 stuff'
+        BoxLayout:
+            orientation: 'vertical'
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.1
+                Button:
+                    text: 'Clear'
+                    on_press: root.playlist_clear_pressed()
+                Button:
+                    text: 'Delete'
+                    on_press: root.playlist_delete_pressed()
+                Button:
+                    text: 'Move'
+                    on_press: root.playlist_move_pressed()
+                Button:
+                    text: 'Shuffle'
+                    on_press: root.playlist_shuffle_pressed()
+                Button:
+                    text: 'Swap'
+                    on_press: root.playlist_swap_pressed()
+            ScrollView:
+                id: playlist_sv
+                size_hint: (1,1)
+                do_scroll_x: False
     TabbedPanelItem:
         text: 'Library'
         TabbedPanel:
             id: library_panel
+            active_tab: None
             do_default_tab: False
             TabbedPanelItem:
-                text: 'Artists'
-                Button:
-                    text: 'Refresh'
-                    on_press: root.refresh_artists()
+                text: 'Files'
+				id: library_files_panel
             TabbedPanelItem:
+                id: library_artists_panel
                 text: 'Albums'
             TabbedPanelItem:
+                id: library_tracks_panel
                 text: 'Tracks'
             TabbedPanelItem:
+                id: library_playlists_panel
                 text: 'Playlists'
             TabbedPanelItem:
+                id: library_genres_panel
                 text: 'Genres'
     TabbedPanelItem:
         text: 'Config'
