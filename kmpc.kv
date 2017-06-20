@@ -21,7 +21,7 @@
     tab_width: self.width / 5
     active_tab: None
     file_browser_base: '/'
-    artist_browser_base: {"level":"root","base":"root","upto":None}
+    album_browser_base: {"level":"root","base":"root","upto":None}
     track_browser_base: {"level":"root","base":"root"}
     TabbedPanelItem:
         text: 'Now Playing'
@@ -29,8 +29,8 @@
             orientation: 'vertical'
             BoxLayout:
                 orientation: 'horizontal'
-                padding: '10px'
                 spacing: '10px'
+                padding: '10px'
                 AsyncImage:
                     id: album_cover_image
                     size_hint: (None,None)
@@ -192,7 +192,7 @@
                     text: 'Files'
                     id: library_files_panel
                 TabbedPanelItem:
-                    id: library_artists_panel
+                    id: library_albums_panel
                     text: 'Albums'
                 TabbedPanelItem:
                     id: library_tracks_panel
