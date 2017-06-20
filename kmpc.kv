@@ -1,7 +1,24 @@
 #:kivy 1.10.0
 
+<Widget>:
+    font_name: 'resources/Optima-Bold.ttf'
+    font_size: '14pt'
+
+<ScrollButton>:
+    size_hint_y: None
+    height: '0.5in'
+    text_size: self.size
+    halign: 'left'
+    valign: 'center'
+    padding_x: '10px'
+
+<ScrollBoxLayout>:
+    size_hint_y: None
+    height: '0.5in'
+
 <KmpcInterface>:
     do_default_tab: False
+    tab_width: self.width / 5
     active_tab: None
     file_browser_base: '/'
     artist_browser_base: {"level":"root","base":"root","upto":None}
@@ -12,83 +29,127 @@
             orientation: 'vertical'
             BoxLayout:
                 orientation: 'horizontal'
-                Image:
+                padding: '10px'
+                spacing: '10px'
+                AsyncImage:
+                    id: album_cover_image
+                    size_hint: (None,None)
                     allow_stretch: True
-                    source: 'test.jpg'
+                    source: 'resources/album.png'
+                    height: "300sp"
+                    width: "300sp"
                 BoxLayout:
+                    size_hint_x: 1
                     orientation: 'vertical'
                     BoxLayout:
                         orientation: 'vertical'
                         Label:
-                            id: current_song_label
-                            font_size: '20sp'
-                            text: 'SONG NAME'
-                        Label:
                             id: current_artist_label
-                            font_size: '20sp'
+                            font_size: '22pt'
                             text: 'ARTIST NAME'
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+                            halign: 'center'
+                        Label:
+                        Label:
+                            id: current_song_label
+                            font_size: '22pt'
+                            text: 'SONG NAME'
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+                            halign: 'center'
+                        Label:
                         Label:
                             id: current_album_label
-                            font_size: '20sp'
+                            font_size: '22pt'
                             text: 'ALBUM NAME [YEAR]'
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+                            halign: 'center'
                     BoxLayout:
                         orientation: 'vertical'
                         size_hint: (1,0.2)
                         Label:
+                            id: next_track_label
                             text: 'Up Next:'
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+                            halign: 'center'
                         Label:
                             id: next_song_artist_label
                             text: 'NEXT SONG ARTIST - NEXT SONG NAME'
+                            size_hint_y: None
+                            text_size: self.width, None
+                            height: self.texture_size[1]
+                            halign: 'center'
             BoxLayout:
-                size_hint: (1.0,0.1)
+                size_hint_y: None
                 orientation: 'horizontal'
                 Label:
                     id: current_track_time_label
-                    size_hint: (0.1,1)
+                    size_hint_x: 0.1
                     text: '0:00'
                 ProgressBar:
                     id: current_track_progressbar
                     max: '1000'
                 Label:
                     id: current_track_totaltime_label
-                    size_hint: (0.1,1)
+                    size_hint_x: 0.1
                     text: '5:00'
+            Label:
+                size_hint_y: None
+                padding_y: '10px'
+                size: self.texture_size
+                id: current_playlist_track_number_label
+                text: '1 of 10'
             BoxLayout:
-                size_hint: (1.0,0.1)
-                orientation: 'horizontal'
-                Label:
-                    id: current_playlist_track_number_label
-                    text: '1 of 10'
-            BoxLayout:
-                size_hint: (1.0,0.2)
+                size_hint: (1.0,0.15)
                 orientation: 'horizontal'
                 Button:
                     id: prev_button
-                    text: 'Prev'
+                    text: u"\uf049"
+                    font_name: 'resources/FontAwesome.ttf'
+                    font_size: '20pt'
                     on_press: root.prev_pressed()
                 ToggleButton:
                     id: play_button
-                    text: 'Play'
+                    text: u"\uf04b"
+                    font_name: 'resources/FontAwesome.ttf'
+                    font_size: '20pt'
                     on_press: root.play_pressed()
                 Button:
                     id: next_button
-                    text: 'Next'
+                    text: u"\uf050"
+                    font_name: 'resources/FontAwesome.ttf'
+                    font_size: '20pt'
                     on_press: root.next_pressed()
                 ToggleButton:
                     id: repeat_button
-                    text: 'Repeat'
+                    text: u"\uf079"
+                    font_name: 'resources/FontAwesome.ttf'
+                    font_size: '20pt'
                     on_press: root.repeat_pressed()
                 ToggleButton:
                     id: single_button
-                    text: 'Single'
+                    text: u"\uf192"
+                    font_name: 'resources/FontAwesome.ttf'
+                    font_size: '20pt'
                     on_press: root.single_pressed()
                 ToggleButton:
-                    id: shuffle_button
-                    text: 'Shuffle'
-                    on_press: root.shuffle_pressed()
+                    id: random_button
+                    text: u"\uf074"
+                    font_name: 'resources/FontAwesome.ttf'
+                    font_size: '20pt'
+                    on_press: root.random_pressed()
                 ToggleButton:
                     id: consume_button
-                    text: 'Consume'
+                    text: u"\uf147"
+                    font_name: 'resources/FontAwesome.ttf'
+                    font_size: '20pt'
                     on_press: root.consume_pressed()
     TabbedPanelItem:
         text: 'Playlist'
@@ -118,25 +179,39 @@
                 do_scroll_x: False
     TabbedPanelItem:
         text: 'Library'
-        TabbedPanel:
-            id: library_panel
-            active_tab: None
-            do_default_tab: False
-            TabbedPanelItem:
-                text: 'Files'
-				id: library_files_panel
-            TabbedPanelItem:
-                id: library_artists_panel
-                text: 'Albums'
-            TabbedPanelItem:
-                id: library_tracks_panel
-                text: 'Tracks'
-            TabbedPanelItem:
-                id: library_playlists_panel
-                text: 'Playlists'
-            TabbedPanelItem:
-                id: library_genres_panel
-                text: 'Genres'
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: '10px'
+            TabbedPanel:
+                tab_width: self.width / 5
+                id: library_panel
+                size_hint_x: '0.9'
+                active_tab: None
+                do_default_tab: False
+                TabbedPanelItem:
+                    text: 'Files'
+                    id: library_files_panel
+                TabbedPanelItem:
+                    id: library_artists_panel
+                    text: 'Albums'
+                TabbedPanelItem:
+                    id: library_tracks_panel
+                    text: 'Tracks'
+                TabbedPanelItem:
+                    id: library_playlists_panel
+                    text: 'Playlists'
+                TabbedPanelItem:
+                    id: library_genres_panel
+                    text: 'Genres'
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: '0.1'
+                Button:
+                    text: '+'
+                    on_press: root.browser_add(False)
+                Button:
+                    text: '!'
+                    on_press: root.browser_add(True)
     TabbedPanelItem:
         text: 'Config'
         Label:
