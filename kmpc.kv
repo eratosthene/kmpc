@@ -1,7 +1,7 @@
 #:kivy 1.10.0
 
 <Widget>:
-    font_name: 'resources/Optima-Bold.ttf'
+#    font_name: 'resources/Optima-Bold.ttf'
     font_size: '14pt'
 
 <ScrollButton>:
@@ -26,8 +26,20 @@
     TabbedPanelItem:
         text: 'Now Playing'
         BoxLayout:
+            canvas.before:
+                Color:
+                    rgba: 1,0,0,1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
             orientation: 'vertical'
             BoxLayout:
+                canvas.before:
+                    Color:
+                        rgba: 0,1,0,1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
                 orientation: 'horizontal'
                 spacing: '10px'
                 padding: '10px'
@@ -36,12 +48,24 @@
                     size_hint: (None,None)
                     allow_stretch: True
                     source: 'resources/album.png'
-                    height: "300sp"
-                    width: "300sp"
+                    height: "300dp"
+                    width: "300dp"
                 BoxLayout:
+                    canvas.before:
+                        Color:
+                            rgba: 0,0,1,1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
                     size_hint_x: 1
                     orientation: 'vertical'
                     BoxLayout:
+                        canvas.before:
+                            Color:
+                                rgba: 0,0,0.5,1
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
                         orientation: 'vertical'
                         Label:
                             id: current_artist_label
@@ -70,6 +94,12 @@
                             height: self.texture_size[1]
                             halign: 'center'
                     BoxLayout:
+                        canvas.before:
+                            Color:
+                                rgba: 0.5,0.5,1,1
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
                         orientation: 'vertical'
                         size_hint: (1,0.2)
                         Label:
@@ -87,19 +117,28 @@
                             height: self.texture_size[1]
                             halign: 'center'
             BoxLayout:
+                canvas.before:
+                    Color:
+                        rgba: 1,0.5,0.5,1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
                 size_hint_y: None
                 orientation: 'horizontal'
                 Label:
                     id: current_track_time_label
                     size_hint_x: 0.1
                     text: '0:00'
-                ProgressBar:
-                    id: current_track_progressbar
+                Slider:
+                    id: current_track_slider
+                    value_track: True
                     max: '1000'
+                    on_touch_move: if self.collide_point(*args[1].pos): root.current_track_slider_click()
+                    on_touch_up: if self.collide_point(*args[1].pos): root.current_track_slider_click()
                 Label:
                     id: current_track_totaltime_label
                     size_hint_x: 0.1
-                    text: '5:00'
+                    text: '0:00'
             Label:
                 size_hint_y: None
                 padding_y: '10px'
@@ -216,5 +255,3 @@
         text: 'Config'
         Label:
             text: 'tab4 stuff'
-    TabbedPanelItem:
-        text: 'Debug'

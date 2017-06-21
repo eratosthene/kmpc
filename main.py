@@ -108,6 +108,12 @@ class KmpcInterface(TabbedPanel):
     def mpd_connectionLost(self,protocol, reason):
         Logger.info('Application: Connection lost: %s' % reason)
 
+#    @inlineCallbacks
+    def current_track_slider_click(self):
+        curpos=int(self.ids.current_track_slider.value)
+        Logger.info('Application: current_track_slider_click('+str(curpos)+')')
+        self.mpd_protocol.seekcur(str(curpos))
+
     @inlineCallbacks
     def update_current_status(self):
         Logger.debug('Application: update_current_status()')
@@ -149,7 +155,7 @@ class KmpcInterface(TabbedPanel):
             if result['state'] == 'stop':
                 self.ids.current_track_time_label.text=''
                 self.ids.current_track_totaltime_label.text=''
-                self.ids.current_track_progressbar.value=0
+                self.ids.current_track_slider.value=0
                 self.ids.current_playlist_track_number_label.text=''
                 self.ids.current_song_label.text = 'Playback Stopped'
                 self.ids.current_artist_label.text = ''
@@ -162,8 +168,8 @@ class KmpcInterface(TabbedPanel):
                 tm,ts=divmod(int(t),60)
                 self.ids.current_track_time_label.text = "%02d:%02d" % (cm,cs)
                 self.ids.current_track_totaltime_label.text = "%02d:%02d" % (tm,ts)
-                self.ids.current_track_progressbar.max = int(t)
-                self.ids.current_track_progressbar.value = int(c)
+                self.ids.current_track_slider.max = int(t)
+                self.ids.current_track_slider.value = int(c)
                 # throws an exception if i don't do this
                 a=int(result['song'])+1
                 b=int(result['playlistlength'])
@@ -599,6 +605,7 @@ class KmpcApp(App):
             'height': 480
         })
         Config.read(self.get_application_config())
+        self.config=config
     def build(self):
         return KmpcInterface(self.config)
 
