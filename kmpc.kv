@@ -10,7 +10,7 @@
     text_size: self.size
     halign: 'left'
     valign: 'center'
-    padding_x: '10px'
+    padding_x: '10sp'
 
 <ScrollBoxLayout>:
     size_hint_y: None
@@ -18,7 +18,7 @@
 
 <KmpcInterface>:
     do_default_tab: False
-    tab_width: self.width / 5
+    tab_width: self.width / 4
     active_tab: None
     file_browser_base: '/'
     album_browser_base: {"level":"root","base":"root","upto":None}
@@ -41,15 +41,16 @@
                         pos: self.pos
                         size: self.size
                 orientation: 'horizontal'
-                spacing: '10px'
-                padding: '10px'
+                spacing: '10sp'
+                padding: '10sp'
+                size_hint: (1,1)
                 AsyncImage:
                     id: album_cover_image
                     size_hint: (None,None)
                     allow_stretch: True
                     source: 'resources/album.png'
-                    height: "300dp"
-                    width: "300dp"
+                    height: "300sp"
+                    width: "300sp"
                 BoxLayout:
                     canvas.before:
                         Color:
@@ -58,6 +59,7 @@
                             pos: self.pos
                             size: self.size
                     size_hint_x: 1
+                    size_hint_y: 1
                     orientation: 'vertical'
                     BoxLayout:
                         canvas.before:
@@ -123,30 +125,35 @@
                     Rectangle:
                         pos: self.pos
                         size: self.size
-                size_hint_y: None
+                size_hint_y: 0.15
                 orientation: 'horizontal'
                 Label:
                     id: current_track_time_label
-                    size_hint_x: 0.1
+                    size_hint: (0.1,1)
+                    valign: 'center'
+                    size: self.texture_size
                     text: '0:00'
                 Slider:
                     id: current_track_slider
+                    size_hint_y: 1
                     value_track: True
+                    valign: 'center'
                     max: '1000'
                     on_touch_move: if self.collide_point(*args[1].pos): root.current_track_slider_click()
                     on_touch_up: if self.collide_point(*args[1].pos): root.current_track_slider_click()
                 Label:
                     id: current_track_totaltime_label
-                    size_hint_x: 0.1
+                    size_hint: (0.1,1)
+                    valign: 'center'
+                    size: self.texture_size
                     text: '0:00'
             Label:
                 size_hint_y: None
-                padding_y: '10px'
                 size: self.texture_size
                 id: current_playlist_track_number_label
                 text: '1 of 10'
             BoxLayout:
-                size_hint: (1.0,0.15)
+                size_hint: (1,0.15)
                 orientation: 'horizontal'
                 Button:
                     id: prev_button
