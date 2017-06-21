@@ -1,8 +1,8 @@
 #:kivy 1.10.0
 
 <Widget>:
-    font_name: 'resources/Palatino Linotype.ttf'
-    font_size: '14pt'
+    font_name: 'resources/Palatino Linotype Bold.ttf'
+    font_size: '16pt'
 
 <ScrollButton>:
     size_hint_y: None
@@ -41,8 +41,8 @@
                         pos: self.pos
                         size: self.size
                 orientation: 'horizontal'
-                spacing: '10sp'
-                padding: '10sp'
+                spacing: '5sp'
+                padding: '5sp'
                 size_hint: (1,1)
                 AsyncImage:
                     id: album_cover_image
@@ -71,7 +71,7 @@
                         orientation: 'vertical'
                         Label:
                             id: current_artist_label
-                            font_size: '22pt'
+                            font_size: '20pt'
                             text: 'ARTIST NAME'
                             size_hint_y: None
                             text_size: self.width, None
@@ -80,7 +80,7 @@
                         Label:
                         Label:
                             id: current_song_label
-                            font_size: '22pt'
+                            font_size: '20pt'
                             text: 'SONG NAME'
                             size_hint_y: None
                             text_size: self.width, None
@@ -89,7 +89,7 @@
                         Label:
                         Label:
                             id: current_album_label
-                            font_size: '22pt'
+                            font_size: '20pt'
                             text: 'ALBUM NAME [YEAR]'
                             size_hint_y: None
                             text_size: self.width, None
