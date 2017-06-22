@@ -4,17 +4,38 @@
     font_name: 'resources/Palatino Linotype Bold.ttf'
     font_size: '16pt'
 
+<Button>:
+    background_normal: 'resources/button-normal.png'
+    background_down: 'resources/button-down.png'
+#    canvas.before:
+#        Rectangle:
+#            source: "resources/backdrop.png"
+#            size: self.size
+#            pos: self.pos
+#        Color:
+#            rgba: 0,1,0.2,0.2
+#        Rectangle:
+#            size: self.size
+#            pos: self.pos
+
 <ScrollButton>:
-    size_hint_y: None
-    height: '0.5in'
-    text_size: self.size
+    #size_hint_y: None
+    #height: '0.5in'
+    #text_size: self.size
     halign: 'left'
     valign: 'center'
     padding_x: '10sp'
+    padding_y: '10sp'
+    size_hint_y: None
+    size_hint_min_y: '0.5in'
+    text_size: self.width, None
+    height: self.texture_size[1]
+    #halign: 'center'
 
 <ScrollBoxLayout>:
     size_hint_y: None
-    height: '0.5in'
+    size_hint_min_y: '0.5in'
+#    height: '0.5in'
 
 <KmpcInterface>:
     do_default_tab: False
@@ -27,19 +48,17 @@
         text: 'Now Playing'
         BoxLayout:
             canvas.before:
-                Color:
-                    rgba: 1,0,0,1
                 Rectangle:
-                    pos: self.pos
+                    source: "resources/backdrop.png"
                     size: self.size
+                    pos: self.pos
+                Color:
+                    rgba: 0,0.2,1,0.2
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
             orientation: 'vertical'
             BoxLayout:
-                canvas.before:
-                    Color:
-                        rgba: 0,1,0,1
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
                 orientation: 'horizontal'
                 spacing: '5sp'
                 padding: '5sp'
@@ -52,22 +71,10 @@
                     height: "300sp"
                     width: "300sp"
                 BoxLayout:
-                    canvas.before:
-                        Color:
-                            rgba: 0,0,1,1
-                        Rectangle:
-                            pos: self.pos
-                            size: self.size
                     size_hint_x: 1
                     size_hint_y: 1
                     orientation: 'vertical'
                     BoxLayout:
-                        canvas.before:
-                            Color:
-                                rgba: 0,0,0.5,1
-                            Rectangle:
-                                pos: self.pos
-                                size: self.size
                         orientation: 'vertical'
                         Label:
                             id: current_artist_label
@@ -96,20 +103,16 @@
                             height: self.texture_size[1]
                             halign: 'center'
                     BoxLayout:
-                        canvas.before:
-                            Color:
-                                rgba: 0.5,0.5,1,1
-                            Rectangle:
-                                pos: self.pos
-                                size: self.size
                         orientation: 'vertical'
                         size_hint: (1,0.2)
+                        Label:
                         Label:
                             id: next_track_label
                             text: 'Up Next:'
                             size_hint_y: None
                             text_size: self.width, None
                             height: self.texture_size[1]
+                            font_size: '14pt'
                             halign: 'center'
                         Label:
                             id: next_song_artist_label
@@ -117,14 +120,9 @@
                             size_hint_y: None
                             text_size: self.width, None
                             height: self.texture_size[1]
+                            font_size: '14pt'
                             halign: 'center'
             BoxLayout:
-                canvas.before:
-                    Color:
-                        rgba: 1,0.5,0.5,1
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
                 size_hint_y: 0.15
                 orientation: 'horizontal'
                 Label:
@@ -200,6 +198,16 @@
     TabbedPanelItem:
         text: 'Playlist'
         BoxLayout:
+            canvas.before:
+                Rectangle:
+                    source: "resources/backdrop.png"
+                    size: self.size
+                    pos: self.pos
+                Color:
+                    rgba: 0,0.2,1,0.2
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
             orientation: 'vertical'
             BoxLayout:
                 orientation: 'horizontal'
@@ -226,6 +234,16 @@
     TabbedPanelItem:
         text: 'Library'
         BoxLayout:
+            canvas.before:
+                Rectangle:
+                    source: "resources/backdrop.png"
+                    size: self.size
+                    pos: self.pos
+                Color:
+                    rgba: 0,0.2,1,0.2
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
             orientation: 'horizontal'
             spacing: '10px'
             TabbedPanel:

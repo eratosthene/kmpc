@@ -14,6 +14,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.boxlayout import BoxLayout
 from kivy.logger import Logger
+from kivy.metrics import Metrics
 from mpd import MPDProtocol
 import os
 import traceback
@@ -568,10 +569,16 @@ class KmpcInterface(TabbedPanel):
             lbl = Label(text=str(int(row['pos'])+1),size_hint_x=None)
             btn = ScrollButton(text=row['artist']+' - '+row['title'])
             btn.plpos=row['pos']
+            btn.texture_update()
             bl.add_widget(chk)
             bl.add_widget(lbl)
             bl.add_widget(btn)
             layout.add_widget(bl)
+            bl.height=btn.height/16
+            if bl.height < kivy.metrics.inch(0.5):
+                bl.height = kivy.metrics.inch(0.5)
+            print 'bl.height '+format(bl.height)
+            print 'btn.height'+format(btn.height)
         self.ids.playlist_sv.add_widget(layout)
 
     def playlist_checkbox_pressed(self,checkbox,value):
@@ -610,5 +617,8 @@ class KmpcApp(App):
         return KmpcInterface(self.config)
 
 if __name__ == '__main__':
+    Logger.info("Metrics: density "+format(Metrics.density))
+    Logger.info("Metrics: dpi "+format(Metrics.dpi))
+    Logger.info("Metrics: fontscale "+format(Metrics.fontscale))
     KmpcApp().run()
 
