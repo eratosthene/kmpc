@@ -290,7 +290,7 @@ class KmpcInterface(TabbedPanel):
         base=self.file_browser_base
         (hbase,tbase)=os.path.split(base)
         Logger.info("Application: populate_file_browser, base=["+base+"], tbase=["+tbase+"]")
-        self.ids.library_files_panel.clear_widgets()
+        self.ids.library_files_sv.clear_widgets()
         layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
         layout.bind(minimum_height=layout.setter('height'))
         if base != '/':
@@ -335,9 +335,7 @@ class KmpcInterface(TabbedPanel):
                 bl.add_widget(chk)
                 bl.add_widget(btn)
                 layout.add_widget(bl)
-        sv=ScrollView(size_hint=(1,1),do_scroll_x=False)
-        sv.add_widget(layout)
-        self.ids.library_files_panel.add_widget(sv)
+        self.ids.library_files_sv.add_widget(layout)
 
     def file_browser_button(self,instance):
         Logger.debug('Application: file_browser_button('+instance.text+')')
@@ -351,7 +349,7 @@ class KmpcInterface(TabbedPanel):
         level=self.album_browser_base['level']
         upto=self.album_browser_base['upto']
         Logger.info("Application: populate_album_browser, base=["+base+"] level=["+level+"]")
-        self.ids.library_albums_panel.clear_widgets()
+        self.ids.library_albums_sv.clear_widgets()
         layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
         layout.bind(minimum_height=layout.setter('height'))
         if level == 'root':
@@ -422,9 +420,7 @@ class KmpcInterface(TabbedPanel):
                 bl.add_widget(chk)
                 bl.add_widget(btn)
                 layout.add_widget(bl)
-        sv=ScrollView(size_hint=(1,1),do_scroll_x=False)
-        sv.add_widget(layout)
-        self.ids.library_albums_panel.add_widget(sv)
+        self.ids.library_albums_sv.add_widget(layout)
 
     def album_browser_button(self,instance):
         Logger.debug('Application: album_browser_button('+instance.text+','+instance.base+','+instance.nextlevel+')')
@@ -440,7 +436,7 @@ class KmpcInterface(TabbedPanel):
         base=self.track_browser_base['base']
         level=self.track_browser_base['level']
         Logger.info("Application: populate_track_browser, base=["+base+"] level=["+level+"]")
-        self.ids.library_tracks_panel.clear_widgets()
+        self.ids.library_tracks_sv.clear_widgets()
         layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
         layout.bind(minimum_height=layout.setter('height'))
         if level == 'root':
@@ -484,9 +480,7 @@ class KmpcInterface(TabbedPanel):
                 bl.add_widget(chk)
                 bl.add_widget(btn)
                 layout.add_widget(bl)
-        sv=ScrollView(size_hint=(1,1),do_scroll_x=False)
-        sv.add_widget(layout)
-        self.ids.library_tracks_panel.add_widget(sv)
+        self.ids.library_tracks_sv.add_widget(layout)
 
     def track_browser_button(self,instance):
         Logger.debug("Application: track_browser_button("+instance.text+","+instance.base+","+instance.nextlevel+")")
@@ -501,7 +495,8 @@ class KmpcInterface(TabbedPanel):
     @inlineCallbacks
     def populate_playlist_browser(self):
         Logger.info("Application: populate_playlist_browser()")
-        self.ids.library_playlists_panel.clear_widgets()
+#        self.ids.library_playlists_panel.clear_widgets()
+        self.ids.library_playlists_sv.clear_widgets()
         layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
         layout.bind(minimum_height=layout.setter('height'))
         self.mpd_protocol.command_list_ok_begin()
@@ -510,11 +505,21 @@ class KmpcInterface(TabbedPanel):
         result=reslist[0]
         for row in result:
             Logger.debug("PlaylistBrowser: playlist found = "+row['playlist'])
-            btn = Button(text=row['playlist'],size_hint_y=None,height='50sp')
-            layout.add_widget(btn)
-        sv=ScrollView(size_hint=(1,1),do_scroll_x=False)
-        sv.add_widget(layout)
-        self.ids.library_playlists_panel.add_widget(sv)
+            bl = ScrollBoxLayout(orientation='horizontal')
+            chk = CheckBox(size_hint_x=None)
+            btn = ScrollButton(text=row['playlist'])
+            btn.texture_update()
+            bl.add_widget(chk)
+            bl.add_widget(btn)
+            layout.add_widget(bl)
+            Logger.debug("PlaylistBrowser: btn.height "+format(btn.height))
+            nh=kivy.metrics.sp((int(btn.height/Metrics.dpi/(Metrics.density*Metrics.density))*20))+kivy.metrics.sp(btn.padding_y)
+            Logger.debug("PlaylistBrowser: nh = "+str(nh))
+            if nh < kivy.metrics.sp(50):
+                nh = kivy.metrics.sp(50)
+            bl.height=nh
+            Logger.debug('PlaylistBrowser: bl.height '+format(bl.height))
+        self.ids.library_playlists_sv.add_widget(layout)
 
     def browser_checkbox_pressed(self,checkbox,value):
         Logger.debug("Application: browser_checkbox_pressed("+checkbox.base+","+format(checkbox.info)+")")
@@ -574,13 +579,13 @@ class KmpcInterface(TabbedPanel):
             bl.add_widget(lbl)
             bl.add_widget(btn)
             layout.add_widget(bl)
-            print str(row['pos'])+' btn.height '+format(btn.height)
-            nh=kivy.metrics.sp((int(btn.height/2000)*100)-20)
-            print "nh = "+str(nh)
+            Logger.debug("Playlist: "+str(row['pos'])+' btn.height '+format(btn.height))
+            nh=kivy.metrics.sp((int(btn.height/Metrics.dpi/(Metrics.density*Metrics.density))*20))+kivy.metrics.sp(btn.padding_y)
+            Logger.debug("Playlist: nh = "+str(nh))
             if nh < kivy.metrics.sp(50):
                 nh = kivy.metrics.sp(50)
             bl.height=nh
-            print 'bl.height '+format(bl.height)
+            Logger.debug('Playlist: bl.height '+format(bl.height))
         self.ids.playlist_sv.add_widget(layout)
 
     def playlist_checkbox_pressed(self,checkbox,value):

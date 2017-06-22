@@ -7,21 +7,24 @@
 <Button>:
     background_normal: 'resources/button-normal.png'
     background_down: 'resources/button-down.png'
-#    canvas.before:
-#        Rectangle:
-#            source: "resources/backdrop.png"
-#            size: self.size
-#            pos: self.pos
-#        Color:
-#            rgba: 0,1,0.2,0.2
-#        Rectangle:
-#            size: self.size
-#            pos: self.pos
+
+<BackdropBoxLayout@BoxLayout>:
+    canvas.before:
+        Rectangle:
+            source: "resources/backdrop.png"
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: 0,0.2,1,0.2
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<MediaButton@Button,MediaToggleButton@ToggleButton>:
+    font_name: 'resources/FontAwesome.ttf'
+    font_size: '24sp'
 
 <ScrollButton>:
-    #size_hint_y: None
-    #height: '0.5in'
-    #text_size: self.size
     halign: 'left'
     valign: 'center'
     padding_x: '10sp'
@@ -30,12 +33,35 @@
     size_hint_min_y: '50sp'
     text_size: self.width, None
     height: self.texture_size[1]
-    #halign: 'center'
 
 <ScrollBoxLayout>:
     size_hint_y: None
     size_hint_min_y: '50sp'
-#    height: '0.5in'
+
+<LibraryBoxLayout@BoxLayout>:
+    canvas.before:
+        Rectangle:
+            source: "resources/list-backdrop.png"
+            size: self.size
+            pos: self.pos
+
+<LibraryScrollView@ScrollView,PlaylistScrollView@ScrollView>:
+    size_hint: (1,1)
+    do_scroll_x: False
+
+<InfoLargeLabel@Label>:
+    font_size: '24sp'
+    size_hint_y: None
+    text_size: self.width, None
+    height: self.texture_size[1]
+    halign: 'center'
+
+<InfoSmallLabel@Label>:
+    font_size: '18sp'
+    size_hint_y: None
+    text_size: self.width, None
+    height: self.texture_size[1]
+    halign: 'center'
 
 <KmpcInterface>:
     do_default_tab: False
@@ -46,17 +72,7 @@
     track_browser_base: {"level":"root","base":"root"}
     TabbedPanelItem:
         text: 'Now Playing'
-        BoxLayout:
-            canvas.before:
-                Rectangle:
-                    source: "resources/backdrop.png"
-                    size: self.size
-                    pos: self.pos
-                Color:
-                    rgba: 0,0.2,1,0.2
-                Rectangle:
-                    size: self.size
-                    pos: self.pos
+        BackdropBoxLayout:
             orientation: 'vertical'
             BoxLayout:
                 orientation: 'horizontal'
@@ -74,49 +90,24 @@
                     size_hint_x: 1
                     size_hint_y: 1
                     orientation: 'vertical'
-                    Label:
+                    InfoLargeLabel:
                         id: current_artist_label
-                        font_size: '24sp'
                         text: 'ARTIST NAME'
-                        size_hint_y: None
-                        text_size: self.width, None
-                        height: self.texture_size[1]
-                        halign: 'center'
                     Label:
-                    Label:
+                    InfoLargeLabel:
                         id: current_song_label
-                        font_size: '24sp'
                         text: 'SONG NAME'
-                        size_hint_y: None
-                        text_size: self.width, None
-                        height: self.texture_size[1]
-                        halign: 'center'
                     Label:
-                    Label:
+                    InfoLargeLabel:
                         id: current_album_label
-                        font_size: '24sp'
                         text: 'ALBUM NAME [YEAR]'
-                        size_hint_y: None
-                        text_size: self.width, None
-                        height: self.texture_size[1]
-                        halign: 'center'
                     Label:
-                    Label:
+                    InfoSmallLabel:
                         id: next_track_label
                         text: 'Up Next:'
-                        size_hint_y: None
-                        text_size: self.width, None
-                        height: self.texture_size[1]
-                        font_size: '18sp'
-                        halign: 'center'
-                    Label:
+                    InfoSmallLabel:
                         id: next_song_artist_label
                         text: 'NEXT SONG ARTIST - NEXT SONG NAME'
-                        size_hint_y: None
-                        text_size: self.width, None
-                        height: self.texture_size[1]
-                        font_size: '18sp'
-                        halign: 'center'
             BoxLayout:
                 size_hint_y: 0.15
                 orientation: 'horizontal'
@@ -140,69 +131,64 @@
                     valign: 'center'
                     size: self.texture_size
                     text: '0:00'
-            Label:
-                size_hint_y: None
-                size: self.texture_size
-                id: current_playlist_track_number_label
-                text: '1 of 10'
+            BoxLayout:
+                size_hint_y: 0.1
+                orientation: 'horizontal'
+                Label:
+                    size_hint_x: 0.2
+                    padding_x: '10sp'
+                Label:
+                    size_hint_y: 1
+                    padding_x: '10sp'
+                    text_size: self.size
+                    id: current_playlist_track_number_label
+                    text: '1 of 10'
+                    halign: 'center'
+                    valign: 'middle'
+                Button:
+                    size_hint_y: 1
+                    size_hint_x: 0.2
+                    padding_x: '10sp'
+                    text_size: self.size
+                    id: current_song_stars
+                    font_name: 'resources/FontAwesome.ttf'
+                    text: u"\uf005\uf005\uf123\uf006\uf006"
+                    halign: 'center'
+                    valign: 'middle'
             BoxLayout:
                 size_hint: (1,0.15)
                 orientation: 'horizontal'
-                Button:
+                MediaButton:
                     id: prev_button
                     text: u"\uf049"
-                    font_name: 'resources/FontAwesome.ttf'
-                    font_size: '24sp'
                     on_press: root.prev_pressed()
-                ToggleButton:
+                MediaToggleButton:
                     id: play_button
                     text: u"\uf04b"
-                    font_name: 'resources/FontAwesome.ttf'
-                    font_size: '24sp'
                     on_press: root.play_pressed()
-                Button:
+                MediaButton:
                     id: next_button
                     text: u"\uf050"
-                    font_name: 'resources/FontAwesome.ttf'
-                    font_size: '24sp'
                     on_press: root.next_pressed()
-                ToggleButton:
+                MediaToggleButton:
                     id: repeat_button
                     text: u"\uf079"
-                    font_name: 'resources/FontAwesome.ttf'
-                    font_size: '24sp'
                     on_press: root.repeat_pressed()
-                ToggleButton:
+                MediaToggleButton:
                     id: single_button
                     text: u"\uf192"
-                    font_name: 'resources/FontAwesome.ttf'
-                    font_size: '24sp'
                     on_press: root.single_pressed()
-                ToggleButton:
+                MediaToggleButton:
                     id: random_button
                     text: u"\uf074"
-                    font_name: 'resources/FontAwesome.ttf'
-                    font_size: '24sp'
                     on_press: root.random_pressed()
-                ToggleButton:
+                MediaToggleButton:
                     id: consume_button
                     text: u"\uf147"
-                    font_name: 'resources/FontAwesome.ttf'
-                    font_size: '24sp'
                     on_press: root.consume_pressed()
     TabbedPanelItem:
         text: 'Playlist'
-        BoxLayout:
-            canvas.before:
-                Rectangle:
-                    source: "resources/backdrop.png"
-                    size: self.size
-                    pos: self.pos
-                Color:
-                    rgba: 0,0.2,1,0.2
-                Rectangle:
-                    size: self.size
-                    pos: self.pos
+        BackdropBoxLayout:
             orientation: 'vertical'
             BoxLayout:
                 orientation: 'horizontal'
@@ -222,46 +208,39 @@
                 Button:
                     text: 'Swap'
                     on_press: root.playlist_swap_pressed()
-            ScrollView:
+            PlaylistScrollView:
                 id: playlist_sv
-                size_hint: (1,1)
-                do_scroll_x: False
     TabbedPanelItem:
         text: 'Library'
-        BoxLayout:
-            canvas.before:
-                Rectangle:
-                    source: "resources/backdrop.png"
-                    size: self.size
-                    pos: self.pos
-                Color:
-                    rgba: 0,0.2,1,0.2
-                Rectangle:
-                    size: self.size
-                    pos: self.pos
+        BackdropBoxLayout:
             orientation: 'horizontal'
             spacing: '10px'
             TabbedPanel:
-                tab_width: self.width / 5
+                tab_width: self.width / 4
                 id: library_panel
                 size_hint_x: '0.9'
                 active_tab: None
                 do_default_tab: False
                 TabbedPanelItem:
                     text: 'Files'
-                    id: library_files_panel
+                    LibraryBoxLayout:
+                        LibraryScrollView:
+                            id: library_files_sv
                 TabbedPanelItem:
-                    id: library_albums_panel
                     text: 'Albums'
+                    LibraryBoxLayout:
+                        LibraryScrollView:
+                            id: library_albums_sv
                 TabbedPanelItem:
-                    id: library_tracks_panel
                     text: 'Tracks'
+                    LibraryBoxLayout:
+                        LibraryScrollView:
+                            id: library_tracks_sv
                 TabbedPanelItem:
-                    id: library_playlists_panel
                     text: 'Playlists'
-                TabbedPanelItem:
-                    id: library_genres_panel
-                    text: 'Genres'
+                    LibraryBoxLayout:
+                        LibraryScrollView:
+                            id: library_playlists_sv
             BoxLayout:
                 orientation: 'vertical'
                 size_hint_x: '0.1'
