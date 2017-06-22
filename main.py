@@ -297,13 +297,13 @@ class KmpcInterface(TabbedPanel):
             (b1,b2)=os.path.split(hbase)
             if b2 == '':
                 b2 = 'root'
-            btn = Button(text=".. ("+b2+")",size_hint_y=None,height='0.5in')
+            btn = Button(text=".. ("+b2+")",size_hint_y=None,height='50sp')
             btn.base=os.path.normpath(base+'/..')
             if btn.base == '.':
                 btn.base = '/'
             btn.bind(on_press=self.file_browser_button)
             layout.add_widget(btn)
-            lbl = Label(text=tbase,size_hint_y=None,height='0.5in')
+            lbl = Label(text=tbase,size_hint_y=None,height='50sp')
             layout.add_widget(lbl)
         self.mpd_protocol.command_list_ok_begin()
         self.mpd_protocol.lsinfo(base)
@@ -374,12 +374,12 @@ class KmpcInterface(TabbedPanel):
                 bl.add_widget(btn)
                 layout.add_widget(bl)
         elif level == "artist":
-            btn = Button(text=".. (root)",size_hint_y=None,height='0.5in')
+            btn = Button(text=".. (root)",size_hint_y=None,height='50sp')
             btn.base = upto
             btn.nextlevel = 'root'
             btn.bind(on_press=self.album_browser_button)
             layout.add_widget(btn)
-            lbl = Label(text=base,size_hint_y=None,height='0.5in')
+            lbl = Label(text=base,size_hint_y=None,height='50sp')
             layout.add_widget(lbl)
             self.mpd_protocol.command_list_ok_begin()
             self.mpd_protocol.list('album','albumartistsort',base)
@@ -387,7 +387,7 @@ class KmpcInterface(TabbedPanel):
             result=reslist[0]
             for row in result:
                 Logger.debug('AlbumBrowser: album found = '+row)
-                btn = ScrollButton(text=row,size_hint_y=None,height='0.5in')
+                btn = ScrollButton(text=row,size_hint_y=None)
                 btn.base = row
                 btn.nextlevel = 'album'
                 btn.bind(on_press=self.album_browser_button)
@@ -400,12 +400,12 @@ class KmpcInterface(TabbedPanel):
                 bl.add_widget(btn)
                 layout.add_widget(bl)
         elif level == "album":
-            btn = Button(text=".. ("+upto+")",size_hint_y=None,height='0.5in')
+            btn = Button(text=".. ("+upto+")",size_hint_y=None,height='50sp')
             btn.base = upto
             btn.nextlevel = 'artist'
             btn.bind(on_press=self.album_browser_button)
             layout.add_widget(btn)
-            lbl = Label(text=base,size_hint_y=None,height='0.5in')
+            lbl = Label(text=base,size_hint_y=None,height='50sp')
             layout.add_widget(lbl)
             self.mpd_protocol.command_list_ok_begin()
             self.mpd_protocol.find('album',base,'albumartistsort',upto)
@@ -413,7 +413,7 @@ class KmpcInterface(TabbedPanel):
             result=reslist[0]
             for row in result:
                 Logger.debug("AlbumBrowser: track found = "+row['file'])
-                btn = ScrollButton(text=formatsong(row),size_hint_y=None,height='0.5in')
+                btn = ScrollButton(text=formatsong(row),size_hint_y=None)
                 bl = ScrollBoxLayout(orientation='horizontal')
                 chk = CheckBox(size_hint_x=None)
                 chk.base = row['file']
@@ -463,11 +463,11 @@ class KmpcInterface(TabbedPanel):
                 bl.add_widget(btn)
                 layout.add_widget(bl)
         elif level == "artist":
-            btn = Button(text=".. (root)",size_hint_y=None,height='0.5in')
+            btn = Button(text=".. (root)",size_hint_y=None,height='50sp')
             btn.base = 'root'
             btn.bind(on_press=self.track_browser_button)
             layout.add_widget(btn)
-            lbl = Label(text=base,size_hint_y=None,height='0.5in')
+            lbl = Label(text=base,size_hint_y=None,height='50sp')
             layout.add_widget(lbl)
             self.mpd_protocol.command_list_ok_begin()
             self.mpd_protocol.list('title','artistsort',base)
@@ -510,7 +510,7 @@ class KmpcInterface(TabbedPanel):
         result=reslist[0]
         for row in result:
             Logger.debug("PlaylistBrowser: playlist found = "+row['playlist'])
-            btn = Button(text=row['playlist'],size_hint_y=None,height='0.5in')
+            btn = Button(text=row['playlist'],size_hint_y=None,height='50sp')
             layout.add_widget(btn)
         sv=ScrollView(size_hint=(1,1),do_scroll_x=False)
         sv.add_widget(layout)
@@ -566,7 +566,7 @@ class KmpcInterface(TabbedPanel):
             chk = CheckBox(size_hint_x=None)
             chk.plpos=row['pos']
             chk.bind(active=self.playlist_checkbox_pressed)
-            lbl = Label(text=str(int(row['pos'])+1),size_hint_x=None)
+            lbl = Label(text=str(int(row['pos'])+1),size_hint_x=None,height='50sp')
             btn = ScrollButton(text=row['artist']+' - '+row['title'])
             btn.plpos=row['pos']
             btn.texture_update()
@@ -574,11 +574,13 @@ class KmpcInterface(TabbedPanel):
             bl.add_widget(lbl)
             bl.add_widget(btn)
             layout.add_widget(bl)
-            bl.height=btn.height/16
-            if bl.height < kivy.metrics.inch(0.5):
-                bl.height = kivy.metrics.inch(0.5)
+            print str(row['pos'])+' btn.height '+format(btn.height)
+            nh=kivy.metrics.sp((int(btn.height/2000)*100)-20)
+            print "nh = "+str(nh)
+            if nh < kivy.metrics.sp(50):
+                nh = kivy.metrics.sp(50)
+            bl.height=nh
             print 'bl.height '+format(bl.height)
-            print 'btn.height'+format(btn.height)
         self.ids.playlist_sv.add_widget(layout)
 
     def playlist_checkbox_pressed(self,checkbox,value):
@@ -620,5 +622,6 @@ if __name__ == '__main__':
     Logger.info("Metrics: density "+format(Metrics.density))
     Logger.info("Metrics: dpi "+format(Metrics.dpi))
     Logger.info("Metrics: fontscale "+format(Metrics.fontscale))
+    Logger.info("Metrics: 1 sp = "+format(kivy.metrics.sp(1)))
     KmpcApp().run()
 
