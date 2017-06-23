@@ -39,32 +39,7 @@ def formatsong(rec):
     song+='%02d' % int(t1)+' '+rec['title']
     return song
 
-class MPDFactoryProtocol(MPDProtocol):
-    def connectionMade(self):
-        if callable(self.factory.connectionMade):
-            self.factory.connectionMade(self)
-    def connectionLost(self, reason):
-        if callable(self.factory.connectionLost):
-            self.factory.connectionLost(self, reason)
-
-class MPDIdleHandler(object):
-    def __init__(self, protocol):
-        self.protocol = protocol
-
-    def __call__(self, result):
-        print('Subsystems: {}'.format(list(result)))
-
-class MPDClientFactory(protocol.ReconnectingClientFactory):
-    protocol = MPDFactoryProtocol
-    connectionMade = None
-    connectionLost = None
-
-    def buildProtocol(self, addr):
-        Logger.debug('MPDClientFactory: buildProtocol()')
-        protocol = self.protocol()
-        protocol.factory = self
-        protocol.idle_result = MPDIdleHandler(protocol)
-        return protocol
+from mpdfactory import MPDFactoryProtocol,MPDIdleHandler,MPDClientFactory
 
 class KmpcInterface(TabbedPanel):
 
@@ -81,21 +56,24 @@ class KmpcInterface(TabbedPanel):
         self.ids.library_panel.bind(current_tab=self.library_tab_changed)
         self.mpd_status={'state':'stop','repeat':0,'single':0,'random':0,'consume':0,'curpos':0}
         self.update_slider=True
+        self.currsong=None
+        self.nextsong=None
 
     def mpd_connectionMade(self,protocol):
         self.mpd_protocol = protocol
         Logger.info('Application: Connected to mpd server host='+self.config.get('mpd','host')+' port='+self.config.get('mpd','port'))
         # start the interface update task after mpd connection
-        self.status_task=task.LoopingCall(self.update_current_status)
+        self.status_task=task.LoopingCall(self.mpd_protocol.status)
         self.status_task.start(1.0)
 
     def main_tab_changed(self,obj,value):
         self.active_tab = value.text
         Logger.info("Application: Changed active tab to "+self.active_tab)
         if self.active_tab == 'Now Playing':
-            pass
+            if 'mpd_protocol' in locals():
+                self.mpd_protocol.status()
         elif self.active_tab == 'Playlist':
-            self.populate_playlist()
+            self.mpd_protocol.playlistinfo().addCallback(self.populate_playlist).addErrback(self.handle_mpd_error)
         elif self.active_tab == 'Library':
             if self.ids.library_panel.active_tab is None:
                 self.ids.library_panel.active_tab = 'Files'
@@ -128,45 +106,50 @@ class KmpcInterface(TabbedPanel):
         Logger.info('Application: current_track_slider_move()')
         self.update_slider=False
 
-    @inlineCallbacks
-    def update_current_status(self):
+    def handle_mpd_error(self,result):
+        Logger.error('Application: MPDIdleHandler Callback error: {}'.format(result))
+
+    def update_mpd_status(self,result):
+        self.mpd_status['state']=result['state']
+        self.mpd_status['repeat']=result['repeat']
+        self.mpd_status['single']=result['single']
+        self.mpd_status['random']=result['random']
+        self.mpd_status['consume']=result['consume']
+        if self.mpd_status['state'] == 'stop':
+            self.currsong=None
+            self.nextsong=None
+        else:
+            self.currsong=result['song']
+            # save the next song for later use
+            if result['nextsong']:
+                self.nextsong=result['nextsong']
+            else:
+                self.nextsong=None
         if self.active_tab == 'Now Playing':
-            Logger.debug('NowPlaying: update_current_status()')
-            self.mpd_protocol.command_list_ok_begin()
-            self.mpd_protocol.status()
-            self.mpd_protocol.currentsong()
-            reslist=yield self.mpd_protocol.command_list_end()
-            # first result is status command
-            result=reslist[0]
-            Logger.debug('StatusTask: status = '+format(result))
-            self.mpd_status['state']=result['state']
-            self.mpd_status['repeat']=int(result['repeat'])
-            self.mpd_status['single']=int(result['single'])
-            self.mpd_status['random']=int(result['random'])
-            self.mpd_status['consume']=int(result['consume'])
-            if int(result['repeat']):
+            Logger.debug('NowPlaying: update_mpd_status()')
+            if int(self.mpd_status['repeat']):
                 self.ids.repeat_button.state='down'
             else:
                 self.ids.repeat_button.state='normal'
-            if int(result['single']):
+            if int(self.mpd_status['single']):
                 self.ids.single_button.state='down'
             else:
                 self.ids.single_button.state='normal'
-            if int(result['random']):
+            if int(self.mpd_status['random']):
                 self.ids.random_button.state='down'
             else:
                 self.ids.random_button.state='normal'
-            if int(result['consume']):
+            if int(self.mpd_status['consume']):
                 self.ids.consume_button.state='down'
             else:
                 self.ids.consume_button.state='normal'
-            if result['state']=='pause' or result['state']=='stop':
+            if self.mpd_status['state']=='pause' or self.mpd_status['state']=='stop':
                 self.ids.play_button.state='normal'
                 self.ids.play_button.text=u"\uf04b"
             else:
                 self.ids.play_button.state='down'
                 self.ids.play_button.text=u"\uf04c"
-            if result['state'] == 'stop':
+            if self.mpd_status['state'] == 'stop':
                 self.ids.current_track_time_label.text=''
                 self.ids.current_track_totaltime_label.text=''
                 self.ids.current_track_slider.value=0
@@ -177,6 +160,7 @@ class KmpcInterface(TabbedPanel):
                 self.ids.next_track_label.text = ''
                 self.ids.next_song_artist_label.text = ''
             else:
+                # mpd returns {elapsed seconds}:{total seconds}, the following splits each to minute:second
                 c,t=result['time'].split(":")
                 cm,cs=divmod(int(c),60)
                 tm,ts=divmod(int(t),60)
@@ -190,42 +174,36 @@ class KmpcInterface(TabbedPanel):
                 a=int(result['song'])+1
                 b=int(result['playlistlength'])
                 self.ids.current_playlist_track_number_label.text = "%d of %d" % (a,b)
-                # save the next song for later use
-                if result['nextsong']:
-                    ns=result['nextsong']
-                else:
-                    ns=None
-                # second result is currentsong command
-                result=reslist[1]
-                Logger.debug('StatusTask: currentsong = '+format(result))
+        elif self.active_tab == 'Playlist':
+            Logger.debug('Playlist: update_mpd_status()')
+            sv=self.ids.playlist_sv
+            if len(list(sv.children)) > 0:
+                gl=sv.children[0]
+                for sl in gl.children:
+                    btn=sl.children[0]
+                    if btn.plpos==self.currsong:
+                        btn.background_color=(2,2,2,1)
+                    else:
+                        btn.background_color=(1,1,1,1)
+
+    def update_mpd_currentsong(self,result):
+        if self.active_tab == 'Now Playing':
+            Logger.debug('NowPlaying: update_mpd_currentsong()')
+            if self.mpd_status['state'] != 'stop':
                 self.ids.current_song_label.text = result['title']
                 self.ids.current_artist_label.text = result['artist']
                 self.ids.current_album_label.text = result['album']
-                if ns:
-                    #not sure if command list is needed, but it works
-                    self.mpd_protocol.command_list_ok_begin()
-                    # get info about next song
-                    self.mpd_protocol.playlistinfo(ns)
-                    reslist=yield self.mpd_protocol.command_list_end()
-                    result=reslist[0][0]
-                    Logger.debug('StatusTask: nextsong = '+format(result))
-                    self.ids.next_track_label.text = 'Up Next:'
-                    self.ids.next_song_artist_label.text = result['artist']+' - '+result['title']
-                else:
-                    self.ids.next_track_label.text = ''
-                    self.ids.next_song_artist_label.text = ''
-        elif self.active_tab == 'Playlist':
-            Logger.debug('Playlist: update_current_status()')
-            self.mpd_protocol.command_list_ok_begin()
-            self.mpd_protocol.status()
-            reslist=yield self.mpd_protocol.command_list_end()
-            result=reslist[0]
-            self.playlist_update_current_track(result['song'])
+
+    def update_mpd_nextsong(self,result):
+        if self.active_tab == 'Now Playing':
+            Logger.debug('NowPlaying: update_mpd_nextsong()')
+            self.ids.next_track_label.text = 'Up Next:'
+            for obj in result:
+                self.ids.next_song_artist_label.text = obj['artist']+' - '+obj['title']
 
     def prev_pressed(self):
         Logger.debug('Application: prev_pressed()')
         self.mpd_protocol.previous()
-        self.update_current_status()
 
     def play_pressed(self):
         Logger.debug('Application: play_pressed()')
@@ -233,32 +211,26 @@ class KmpcInterface(TabbedPanel):
             self.mpd_protocol.pause()
         else:
             self.mpd_protocol.play()
-        self.update_current_status()
 
     def next_pressed(self):
         Logger.debug('Application: next_pressed()')
         self.mpd_protocol.next()
-        self.update_current_status()
 
     def repeat_pressed(self):
         Logger.debug('Application: repeat_pressed()')
         self.mpd_protocol.repeat(str(1-self.mpd_status['repeat']))
-        self.update_current_status()
 
     def single_pressed(self):
         Logger.debug('Application: single_pressed()')
         self.mpd_protocol.single(str(1-self.mpd_status['single']))
-        self.update_current_status()
 
     def random_pressed(self):
         Logger.debug('Application: random_pressed()')
         self.mpd_protocol.random(str(1-self.mpd_status['random']))
-        self.update_current_status()
 
     def consume_pressed(self):
         Logger.debug('Application: consume_pressed()')
         self.mpd_protocol.consume(str(1-self.mpd_status['consume']))
-        self.update_current_status()
 
     @inlineCallbacks
     def browser_add(self,clearfirst):
@@ -566,42 +538,34 @@ class KmpcInterface(TabbedPanel):
     def playlist_clear_pressed(self):
         Logger.info("Playlist: clear")
         self.mpd_protocol.clear()
-        self.populate_playlist()
+        self.mpd_protocol.playlistinfo().addCallback(self.populate_playlist).addErrback(self.handle_mpd_error)
 
     def playlist_delete_pressed(self):
         Logger.info("Playlist: delete")
         for pos in self.playlist_marked:
             Logger.debug("Playlist: deleting pos "+pos)
             self.mpd_protocol.delete(pos)
-        self.populate_playlist()
+        self.mpd_protocol.playlistinfo().addCallback(self.populate_playlist).addErrback(self.handle_mpd_error)
 
     def playlist_move_pressed(self):
         Logger.info("Playlist: move")
-        self.populate_playlist()
+        self.mpd_protocol.playlistinfo().addCallback(self.populate_playlist).addErrback(self.handle_mpd_error)
 
     def playlist_shuffle_pressed(self):
         Logger.info("Playlist: shuffle")
         self.mpd_protocol.shuffle()
-        self.populate_playlist()
+        self.mpd_protocol.playlistinfo().addCallback(self.populate_playlist).addErrback(self.handle_mpd_error)
 
     def playlist_swap_pressed(self):
         Logger.info("Playlist: swap")
-        self.populate_playlist()
+        self.mpd_protocol.playlistinfo().addCallback(self.populate_playlist).addErrback(self.handle_mpd_error)
 
-    @inlineCallbacks
-    def populate_playlist(self):
+    def populate_playlist(self,result):
         Logger.info("Application: populate_playlist()")
         self.playlist_marked={}
         self.ids.playlist_sv.clear_widgets()
         layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
         layout.bind(minimum_height=layout.setter('height'))
-        self.mpd_protocol.command_list_ok_begin()
-        self.mpd_protocol.status()
-        self.mpd_protocol.playlistinfo()
-        reslist=yield self.mpd_protocol.command_list_end()
-        result=reslist[0]
-        curpos=result['song']
-        result=reslist[1]
         for row in result:
             Logger.debug("Playlist: row "+row['pos']+" found = "+row['title'])
             bl = ScrollBoxLayout(orientation='horizontal')
@@ -625,19 +589,6 @@ class KmpcInterface(TabbedPanel):
             bl.height=nh
             Logger.debug('Playlist: bl.height '+format(bl.height))
         self.ids.playlist_sv.add_widget(layout)
-        self.playlist_update_current_track(curpos)
-
-    def playlist_update_current_track(self,pos):
-        Logger.debug("Playlist: playlist_update_current_track("+pos+")")
-        sv=self.ids.playlist_sv
-        gl=sv.children[0]
-        for sl in gl.children:
-            btn=sl.children[0]
-            if btn.plpos==pos:
-                btn.background_color=(2,2,2,1)
-            else:
-                btn.background_color=(1,1,1,1)
-
 
     def playlist_button_pressed(self,btn):
         Logger.debug("Application: playlist_button_pressed("+str(btn.plpos)+")")
@@ -655,9 +606,6 @@ class ScrollButton(Button):
     pass
 
 class ScrollBoxLayout(BoxLayout):
-    pass
-
-class ScrollSelectedBoxLayout(BoxLayout):
     pass
 
 class KmpcApp(App):
