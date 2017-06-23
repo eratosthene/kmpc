@@ -1,4 +1,6 @@
 #:kivy 1.10.0
+#:import ConfigTabbedPanelItem configpanel.ConfigTabbedPanelItem
+#:import PlaylistTabbedPanelItem playlistpanel.PlaylistTabbedPanelItem
 
 <Widget>:
     font_name: 'resources/Palatino Linotype Bold.ttf'
@@ -62,6 +64,36 @@
     text_size: self.width, None
     height: self.texture_size[1]
     halign: 'center'
+
+<ConfigTabbedPanelItem>:
+    text: 'Config'
+    Label:
+        text: 'tab4 stuff'
+
+<PlaylistTabbedPanelItem>:
+    text: 'Playlist'
+    BackdropBoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.1
+            Button:
+                text: 'Clear'
+#                on_press: root.playlist_clear_pressed()
+            Button:
+                text: 'Delete'
+#                on_press: root.playlist_delete_pressed()
+            Button:
+                text: 'Move'
+#                on_press: root.playlist_move_pressed()
+            Button:
+                text: 'Shuffle'
+#                on_press: root.playlist_shuffle_pressed()
+            Button:
+                text: 'Swap'
+#                on_press: root.playlist_swap_pressed()
+        PlaylistScrollView:
+            id: playlist_sv
 
 <KmpcInterface>:
     do_default_tab: False
@@ -186,30 +218,8 @@
                     id: consume_button
                     text: u"\uf147"
                     on_press: root.consume_pressed()
-    TabbedPanelItem:
-        text: 'Playlist'
-        BackdropBoxLayout:
-            orientation: 'vertical'
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint_y: 0.1
-                Button:
-                    text: 'Clear'
-                    on_press: root.playlist_clear_pressed()
-                Button:
-                    text: 'Delete'
-                    on_press: root.playlist_delete_pressed()
-                Button:
-                    text: 'Move'
-                    on_press: root.playlist_move_pressed()
-                Button:
-                    text: 'Shuffle'
-                    on_press: root.playlist_shuffle_pressed()
-                Button:
-                    text: 'Swap'
-                    on_press: root.playlist_swap_pressed()
-            PlaylistScrollView:
-                id: playlist_sv
+    PlaylistTabbedPanelItem:
+        id: playlist_tab
     TabbedPanelItem:
         text: 'Library'
         BackdropBoxLayout:
@@ -250,7 +260,4 @@
                 Button:
                     text: '!'
                     on_press: root.browser_add(True)
-    TabbedPanelItem:
-        text: 'Config'
-        Label:
-            text: 'tab4 stuff'
+    ConfigTabbedPanelItem:

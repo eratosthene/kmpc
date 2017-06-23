@@ -23,6 +23,7 @@ class MPDIdleHandler(object):
         app=App.get_running_app()
         # update everything 'status' can tell us
         self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
+        self.protocol.status().addCallback(app.root.ids.playlist_tab.update_mpd_status).addErrback(app.root.ids.playlist_tab.handle_mpd_error)
 
        # update everything 'currentsong' can tell us
         self.protocol.currentsong().addCallback(app.root.update_mpd_currentsong).addErrback(app.root.handle_mpd_error)

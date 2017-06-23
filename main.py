@@ -40,6 +40,8 @@ def formatsong(rec):
     return song
 
 from mpdfactory import MPDFactoryProtocol,MPDIdleHandler,MPDClientFactory
+from extra import ScrollButton,ScrollBoxLayout
+from playlistpanel import PlaylistTabbedPanelItem
 
 class KmpcInterface(TabbedPanel):
 
@@ -60,20 +62,21 @@ class KmpcInterface(TabbedPanel):
         self.nextsong=None
 
     def mpd_connectionMade(self,protocol):
-        self.mpd_protocol = protocol
+        self.protocol = protocol
+        self.ids.playlist_tab.protocol=protocol
         Logger.info('Application: Connected to mpd server host='+self.config.get('mpd','host')+' port='+self.config.get('mpd','port'))
         # start the interface update task after mpd connection
-        self.status_task=task.LoopingCall(self.mpd_protocol.status)
+        self.status_task=task.LoopingCall(self.protocol.status)
         self.status_task.start(1.0)
 
     def main_tab_changed(self,obj,value):
         self.active_tab = value.text
         Logger.info("Application: Changed active tab to "+self.active_tab)
         if self.active_tab == 'Now Playing':
-            if 'mpd_protocol' in locals():
-                self.mpd_protocol.status()
+            if 'protocol' in locals():
+                self.protocol.status()
         elif self.active_tab == 'Playlist':
-            self.mpd_protocol.playlistinfo().addCallback(self.populate_playlist).addErrback(self.handle_mpd_error)
+            self.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.handle_mpd_error)
         elif self.active_tab == 'Library':
             if self.ids.library_panel.active_tab is None:
                 self.ids.library_panel.active_tab = 'Files'
@@ -99,7 +102,7 @@ class KmpcInterface(TabbedPanel):
         curpos=int(self.ids.current_track_slider.value)
         Logger.info('Application: current_track_slider_up('+str(curpos)+')')
         self.update_slider=False
-        self.mpd_protocol.seekcur(str(curpos))
+        self.protocol.seekcur(str(curpos))
         self.update_slider=True
 
     def current_track_slider_move(self):
@@ -110,6 +113,7 @@ class KmpcInterface(TabbedPanel):
         Logger.error('Application: MPDIdleHandler Callback error: {}'.format(result))
 
     def update_mpd_status(self,result):
+        Logger.debug('NowPlaying: update_mpd_status()')
         self.mpd_status['state']=result['state']
         self.mpd_status['repeat']=result['repeat']
         self.mpd_status['single']=result['single']
@@ -125,74 +129,60 @@ class KmpcInterface(TabbedPanel):
                 self.nextsong=result['nextsong']
             else:
                 self.nextsong=None
-        if self.active_tab == 'Now Playing':
-            Logger.debug('NowPlaying: update_mpd_status()')
-            if int(self.mpd_status['repeat']):
-                self.ids.repeat_button.state='down'
-            else:
-                self.ids.repeat_button.state='normal'
-            if int(self.mpd_status['single']):
-                self.ids.single_button.state='down'
-            else:
-                self.ids.single_button.state='normal'
-            if int(self.mpd_status['random']):
-                self.ids.random_button.state='down'
-            else:
-                self.ids.random_button.state='normal'
-            if int(self.mpd_status['consume']):
-                self.ids.consume_button.state='down'
-            else:
-                self.ids.consume_button.state='normal'
-            if self.mpd_status['state']=='pause' or self.mpd_status['state']=='stop':
-                self.ids.play_button.state='normal'
-                self.ids.play_button.text=u"\uf04b"
-            else:
-                self.ids.play_button.state='down'
-                self.ids.play_button.text=u"\uf04c"
-            if self.mpd_status['state'] == 'stop':
-                self.ids.current_track_time_label.text=''
-                self.ids.current_track_totaltime_label.text=''
-                self.ids.current_track_slider.value=0
-                self.ids.current_playlist_track_number_label.text=''
-                self.ids.current_song_label.text = 'Playback Stopped'
-                self.ids.current_artist_label.text = ''
-                self.ids.current_album_label.text = ''
-                self.ids.next_track_label.text = ''
-                self.ids.next_song_artist_label.text = ''
-            else:
-                # mpd returns {elapsed seconds}:{total seconds}, the following splits each to minute:second
-                c,t=result['time'].split(":")
-                cm,cs=divmod(int(c),60)
-                tm,ts=divmod(int(t),60)
-                self.ids.current_track_time_label.text = "%02d:%02d" % (cm,cs)
-                self.ids.current_track_totaltime_label.text = "%02d:%02d" % (tm,ts)
-                self.ids.current_track_slider.max = int(t)
-                self.mpd_status['curpos']=int(c)
-                if self.update_slider:
-                    self.ids.current_track_slider.value = int(c)
-                # throws an exception if i don't do this
-                a=int(result['song'])+1
-                b=int(result['playlistlength'])
-                self.ids.current_playlist_track_number_label.text = "%d of %d" % (a,b)
-        elif self.active_tab == 'Playlist':
-            Logger.debug('Playlist: update_mpd_status()')
-            sv=self.ids.playlist_sv
-            if len(list(sv.children)) > 0:
-                gl=sv.children[0]
-                for sl in gl.children:
-                    btn=sl.children[0]
-                    if btn.plpos==self.currsong:
-                        btn.background_color=(2,2,2,1)
-                    else:
-                        btn.background_color=(1,1,1,1)
+        if int(self.mpd_status['repeat']):
+            self.ids.repeat_button.state='down'
+        else:
+            self.ids.repeat_button.state='normal'
+        if int(self.mpd_status['single']):
+            self.ids.single_button.state='down'
+        else:
+            self.ids.single_button.state='normal'
+        if int(self.mpd_status['random']):
+            self.ids.random_button.state='down'
+        else:
+            self.ids.random_button.state='normal'
+        if int(self.mpd_status['consume']):
+            self.ids.consume_button.state='down'
+        else:
+            self.ids.consume_button.state='normal'
+        if self.mpd_status['state']=='pause' or self.mpd_status['state']=='stop':
+            self.ids.play_button.state='normal'
+            self.ids.play_button.text=u"\uf04b"
+        else:
+            self.ids.play_button.state='down'
+            self.ids.play_button.text=u"\uf04c"
+        if self.mpd_status['state'] == 'stop':
+            self.ids.current_track_time_label.text=''
+            self.ids.current_track_totaltime_label.text=''
+            self.ids.current_track_slider.value=0
+            self.ids.current_playlist_track_number_label.text=''
+            self.ids.current_song_label.text = 'Playback Stopped'
+            self.ids.current_artist_label.text = ''
+            self.ids.current_album_label.text = ''
+            self.ids.next_track_label.text = ''
+            self.ids.next_song_artist_label.text = ''
+        else:
+            # mpd returns {elapsed seconds}:{total seconds}, the following splits each to minute:second
+            c,t=result['time'].split(":")
+            cm,cs=divmod(int(c),60)
+            tm,ts=divmod(int(t),60)
+            self.ids.current_track_time_label.text = "%02d:%02d" % (cm,cs)
+            self.ids.current_track_totaltime_label.text = "%02d:%02d" % (tm,ts)
+            self.ids.current_track_slider.max = int(t)
+            self.mpd_status['curpos']=int(c)
+            if self.update_slider:
+                self.ids.current_track_slider.value = int(c)
+            # throws an exception if i don't do this
+            a=int(result['song'])+1
+            b=int(result['playlistlength'])
+            self.ids.current_playlist_track_number_label.text = "%d of %d" % (a,b)
 
     def update_mpd_currentsong(self,result):
-        if self.active_tab == 'Now Playing':
-            Logger.debug('NowPlaying: update_mpd_currentsong()')
-            if self.mpd_status['state'] != 'stop':
-                self.ids.current_song_label.text = result['title']
-                self.ids.current_artist_label.text = result['artist']
-                self.ids.current_album_label.text = result['album']
+        Logger.debug('NowPlaying: update_mpd_currentsong()')
+        if self.mpd_status['state'] != 'stop':
+            self.ids.current_song_label.text = result['title']
+            self.ids.current_artist_label.text = result['artist']
+            self.ids.current_album_label.text = result['album']
 
     def update_mpd_nextsong(self,result):
         if self.active_tab == 'Now Playing':
@@ -203,78 +193,78 @@ class KmpcInterface(TabbedPanel):
 
     def prev_pressed(self):
         Logger.debug('Application: prev_pressed()')
-        self.mpd_protocol.previous()
+        self.protocol.previous()
 
     def play_pressed(self):
         Logger.debug('Application: play_pressed()')
         if self.ids.play_button.state == 'normal' and self.mpd_status['state'] != 'stop':
-            self.mpd_protocol.pause()
+            self.protocol.pause()
         else:
-            self.mpd_protocol.play()
+            self.protocol.play()
 
     def next_pressed(self):
         Logger.debug('Application: next_pressed()')
-        self.mpd_protocol.next()
+        self.protocol.next()
 
     def repeat_pressed(self):
         Logger.debug('Application: repeat_pressed()')
-        self.mpd_protocol.repeat(str(1-self.mpd_status['repeat']))
+        self.protocol.repeat(str(1-int(self.mpd_status['repeat'])))
 
     def single_pressed(self):
         Logger.debug('Application: single_pressed()')
-        self.mpd_protocol.single(str(1-self.mpd_status['single']))
+        self.protocol.single(str(1-int(self.mpd_status['single'])))
 
     def random_pressed(self):
         Logger.debug('Application: random_pressed()')
-        self.mpd_protocol.random(str(1-self.mpd_status['random']))
+        self.protocol.random(str(1-int(self.mpd_status['random'])))
 
     def consume_pressed(self):
         Logger.debug('Application: consume_pressed()')
-        self.mpd_protocol.consume(str(1-self.mpd_status['consume']))
+        self.protocol.consume(str(1-int(self.mpd_status['consume'])))
 
     @inlineCallbacks
     def browser_add(self,clearfirst):
         Logger.debug('Application: browser_add('+str(clearfirst)+')')
         if clearfirst:
             Logger.info('Browser: Clearing playlist')
-            self.mpd_protocol.clear()
+            self.protocol.clear()
         for row in self.browser_marked:
             mtype=self.browser_marked[row]['type']
             Logger.info("Browser: Adding "+mtype+" '"+row+"' to current playlist")
             if mtype == 'uri':
-                self.mpd_protocol.add(row)
+                self.protocol.add(row)
             elif mtype == 'albumartistsort':
-                self.mpd_protocol.command_list_ok_begin()
-                self.mpd_protocol.find(mtype,row)
-                reslist=yield self.mpd_protocol.command_list_end()
+                self.protocol.command_list_ok_begin()
+                self.protocol.find(mtype,row)
+                reslist=yield self.protocol.command_list_end()
                 result=reslist[0]
                 Logger.debug("Browser: find("+mtype+","+row+") = "+format(result))
                 for rrow in result:
-                    self.mpd_protocol.add(rrow['file'])
+                    self.protocol.add(rrow['file'])
             elif mtype == 'album':
-                self.mpd_protocol.command_list_ok_begin()
-                self.mpd_protocol.find(mtype,row,'albumartistsort',self.browser_marked[row]['albumartistsort'])
-                reslist=yield self.mpd_protocol.command_list_end()
+                self.protocol.command_list_ok_begin()
+                self.protocol.find(mtype,row,'albumartistsort',self.browser_marked[row]['albumartistsort'])
+                reslist=yield self.protocol.command_list_end()
                 result=reslist[0]
                 Logger.debug("Browser: find("+mtype+","+row+",albumartistsort,"+self.browser_marked[row]['albumartistsort']+") = "+format(result))
                 for rrow in result:
-                    self.mpd_protocol.add(rrow['file'])
+                    self.protocol.add(rrow['file'])
             elif mtype == 'artistsort':
-                self.mpd_protocol.command_list_ok_begin()
-                self.mpd_protocol.find(mtype,row)
-                reslist=yield self.mpd_protocol.command_list_end()
+                self.protocol.command_list_ok_begin()
+                self.protocol.find(mtype,row)
+                reslist=yield self.protocol.command_list_end()
                 result=reslist[0]
                 Logger.debug("Browser: find("+mtype+","+row+") = "+format(result))
                 for rrow in result:
-                    self.mpd_protocol.add(rrow['file'])
+                    self.protocol.add(rrow['file'])
             elif mtype == 'title':
-                self.mpd_protocol.command_list_ok_begin()
-                self.mpd_protocol.find('artistsort',self.browser_marked[row]['artistsort'],mtype,row)
-                reslist=yield self.mpd_protocol.command_list_end()
+                self.protocol.command_list_ok_begin()
+                self.protocol.find('artistsort',self.browser_marked[row]['artistsort'],mtype,row)
+                reslist=yield self.protocol.command_list_end()
                 result=reslist[0]
                 Logger.debug("Browser: find(artistsort,"+self.browser_marked[row]['artistsort']+","+mtype+","+row+") = "+format(result))
                 if result:
-                    self.mpd_protocol.add(result[0]['file'])
+                    self.protocol.add(result[0]['file'])
             else:
                 Logger.warning("Browser: "+mtype+' not implemented')
 
@@ -299,9 +289,9 @@ class KmpcInterface(TabbedPanel):
             layout.add_widget(btn)
             lbl = Label(text=tbase,size_hint_y=None,height='50sp')
             layout.add_widget(lbl)
-        self.mpd_protocol.command_list_ok_begin()
-        self.mpd_protocol.lsinfo(base)
-        reslist=yield self.mpd_protocol.command_list_end()
+        self.protocol.command_list_ok_begin()
+        self.protocol.lsinfo(base)
+        reslist=yield self.protocol.command_list_end()
         result=reslist[0]
         pos=0
         for row in result:
@@ -344,9 +334,9 @@ class KmpcInterface(TabbedPanel):
             self.file_browser_base=instance.base
             self.populate_file_browser()
         else:
-            self.mpd_protocol.clear()
-            self.mpd_protocol.add(instance.base)
-            self.mpd_protocol.play(str(instance.plpos))
+            self.protocol.clear()
+            self.protocol.add(instance.base)
+            self.protocol.play(str(instance.plpos))
 
     @inlineCallbacks
     def populate_album_browser(self):
@@ -359,9 +349,9 @@ class KmpcInterface(TabbedPanel):
         layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
         layout.bind(minimum_height=layout.setter('height'))
         if level == 'root':
-            self.mpd_protocol.command_list_ok_begin()
-            self.mpd_protocol.list('albumartistsort')
-            reslist=yield self.mpd_protocol.command_list_end()
+            self.protocol.command_list_ok_begin()
+            self.protocol.list('albumartistsort')
+            reslist=yield self.protocol.command_list_end()
             result=reslist[0]
             for row in result:
                 Logger.debug("AlbumBrowser: artist found = "+row)
@@ -385,9 +375,9 @@ class KmpcInterface(TabbedPanel):
             layout.add_widget(btn)
             lbl = Label(text=base,size_hint_y=None,height='50sp')
             layout.add_widget(lbl)
-            self.mpd_protocol.command_list_ok_begin()
-            self.mpd_protocol.list('album','albumartistsort',base)
-            reslist=yield self.mpd_protocol.command_list_end()
+            self.protocol.command_list_ok_begin()
+            self.protocol.list('album','albumartistsort',base)
+            reslist=yield self.protocol.command_list_end()
             result=reslist[0]
             for row in result:
                 Logger.debug('AlbumBrowser: album found = '+row)
@@ -411,9 +401,9 @@ class KmpcInterface(TabbedPanel):
             layout.add_widget(btn)
             lbl = Label(text=base,size_hint_y=None,height='50sp')
             layout.add_widget(lbl)
-            self.mpd_protocol.command_list_ok_begin()
-            self.mpd_protocol.find('album',base,'albumartistsort',upto)
-            reslist=yield self.mpd_protocol.command_list_end()
+            self.protocol.command_list_ok_begin()
+            self.protocol.find('album',base,'albumartistsort',upto)
+            reslist=yield self.protocol.command_list_end()
             result=reslist[0]
             for row in result:
                 Logger.debug("AlbumBrowser: track found = "+row['file'])
@@ -446,9 +436,9 @@ class KmpcInterface(TabbedPanel):
         layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
         layout.bind(minimum_height=layout.setter('height'))
         if level == 'root':
-            self.mpd_protocol.command_list_ok_begin()
-            self.mpd_protocol.list('artistsort')
-            reslist=yield self.mpd_protocol.command_list_end()
+            self.protocol.command_list_ok_begin()
+            self.protocol.list('artistsort')
+            reslist=yield self.protocol.command_list_end()
             result=reslist[0]
             for row in result:
                 Logger.debug("TrackBrowser: artist found = "+row)
@@ -471,9 +461,9 @@ class KmpcInterface(TabbedPanel):
             layout.add_widget(btn)
             lbl = Label(text=base,size_hint_y=None,height='50sp')
             layout.add_widget(lbl)
-            self.mpd_protocol.command_list_ok_begin()
-            self.mpd_protocol.list('title','artistsort',base)
-            reslist=yield self.mpd_protocol.command_list_end()
+            self.protocol.command_list_ok_begin()
+            self.protocol.list('title','artistsort',base)
+            reslist=yield self.protocol.command_list_end()
             result=reslist[0]
             for row in result:
                 Logger.debug("TrackBrowser: track found = "+row)
@@ -505,9 +495,9 @@ class KmpcInterface(TabbedPanel):
         self.ids.library_playlists_sv.clear_widgets()
         layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
         layout.bind(minimum_height=layout.setter('height'))
-        self.mpd_protocol.command_list_ok_begin()
-        self.mpd_protocol.listplaylists()
-        reslist=yield self.mpd_protocol.command_list_end()
+        self.protocol.command_list_ok_begin()
+        self.protocol.listplaylists()
+        reslist=yield self.protocol.command_list_end()
         result=reslist[0]
         for row in result:
             Logger.debug("PlaylistBrowser: playlist found = "+row['playlist'])
@@ -534,79 +524,6 @@ class KmpcInterface(TabbedPanel):
         else:
             if checkbox.base in self.browser_marked:
                 del self.browser_marked[checkbox.base]
-
-    def playlist_clear_pressed(self):
-        Logger.info("Playlist: clear")
-        self.mpd_protocol.clear()
-        self.mpd_protocol.playlistinfo().addCallback(self.populate_playlist).addErrback(self.handle_mpd_error)
-
-    def playlist_delete_pressed(self):
-        Logger.info("Playlist: delete")
-        for pos in self.playlist_marked:
-            Logger.debug("Playlist: deleting pos "+pos)
-            self.mpd_protocol.delete(pos)
-        self.mpd_protocol.playlistinfo().addCallback(self.populate_playlist).addErrback(self.handle_mpd_error)
-
-    def playlist_move_pressed(self):
-        Logger.info("Playlist: move")
-        self.mpd_protocol.playlistinfo().addCallback(self.populate_playlist).addErrback(self.handle_mpd_error)
-
-    def playlist_shuffle_pressed(self):
-        Logger.info("Playlist: shuffle")
-        self.mpd_protocol.shuffle()
-        self.mpd_protocol.playlistinfo().addCallback(self.populate_playlist).addErrback(self.handle_mpd_error)
-
-    def playlist_swap_pressed(self):
-        Logger.info("Playlist: swap")
-        self.mpd_protocol.playlistinfo().addCallback(self.populate_playlist).addErrback(self.handle_mpd_error)
-
-    def populate_playlist(self,result):
-        Logger.info("Application: populate_playlist()")
-        self.playlist_marked={}
-        self.ids.playlist_sv.clear_widgets()
-        layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
-        layout.bind(minimum_height=layout.setter('height'))
-        for row in result:
-            Logger.debug("Playlist: row "+row['pos']+" found = "+row['title'])
-            bl = ScrollBoxLayout(orientation='horizontal')
-            chk = CheckBox(size_hint_x=None)
-            chk.plpos=row['pos']
-            chk.bind(active=self.playlist_checkbox_pressed)
-            lbl = Label(text=str(int(row['pos'])+1),size_hint_x=None,height='50sp')
-            btn = ScrollButton(text=row['artist']+' - '+row['title'])
-            btn.plpos=row['pos']
-            btn.bind(on_press=self.playlist_button_pressed)
-            btn.texture_update()
-            bl.add_widget(chk)
-            bl.add_widget(lbl)
-            bl.add_widget(btn)
-            layout.add_widget(bl)
-            Logger.debug("Playlist: "+str(row['pos'])+' btn.height '+format(btn.height))
-            nh=kivy.metrics.sp((int(btn.height/Metrics.dpi/(Metrics.density*Metrics.density))*20))+kivy.metrics.sp(btn.padding_y)
-            Logger.debug("Playlist: nh = "+str(nh))
-            if nh < kivy.metrics.sp(50):
-                nh = kivy.metrics.sp(50)
-            bl.height=nh
-            Logger.debug('Playlist: bl.height '+format(bl.height))
-        self.ids.playlist_sv.add_widget(layout)
-
-    def playlist_button_pressed(self,btn):
-        Logger.debug("Application: playlist_button_pressed("+str(btn.plpos)+")")
-        self.mpd_protocol.play(btn.plpos)
-
-    def playlist_checkbox_pressed(self,checkbox,value):
-        Logger.debug("Application: playlist_checkbox_pressed("+format(checkbox.plpos)+")")
-        if value:
-            self.playlist_marked[checkbox.plpos]=True
-        else:
-            if checkbox.plpos in self.playlist_marked:
-                del self.playlist_marked[checkbox.plpos]
-
-class ScrollButton(Button):
-    pass
-
-class ScrollBoxLayout(BoxLayout):
-    pass
 
 class KmpcApp(App):
     def build_config(self,config):
