@@ -95,4 +95,4 @@ class PlaylistTabbedPanelItem(TabbedPanelItem):
                     btn.background_color=(1,1,1,1)
 
     def handle_mpd_error(self,result):
-        Logger.error('Application: MPDIdleHandler Callback error: {}'.format(result))
+        Logger.error('Playlist: MPDIdleHandler Callback error: {}'.format(result))

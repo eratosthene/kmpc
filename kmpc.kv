@@ -1,6 +1,7 @@
 #:kivy 1.10.0
 #:import ConfigTabbedPanelItem configpanel.ConfigTabbedPanelItem
 #:import PlaylistTabbedPanelItem playlistpanel.PlaylistTabbedPanelItem
+#:import LibraryTabbedPanelItem librarypanel.LibraryTabbedPanelItem
 
 <Widget>:
     font_name: 'resources/Palatino Linotype Bold.ttf'
@@ -95,13 +96,50 @@
         PlaylistScrollView:
             id: playlist_sv
 
+<LibraryTabbedPanelItem>:
+    text: 'Library'
+    BackdropBoxLayout:
+        orientation: 'horizontal'
+        spacing: '10px'
+        TabbedPanel:
+            tab_width: self.width / 4
+            id: library_panel
+            size_hint_x: '0.9'
+            active_tab: None
+            do_default_tab: False
+            TabbedPanelItem:
+                text: 'Files'
+                LibraryBoxLayout:
+                    LibraryScrollView:
+                        id: library_files_sv
+            TabbedPanelItem:
+                text: 'Albums'
+                LibraryBoxLayout:
+                    LibraryScrollView:
+                        id: library_albums_sv
+            TabbedPanelItem:
+                text: 'Tracks'
+                LibraryBoxLayout:
+                    LibraryScrollView:
+                        id: library_tracks_sv
+            TabbedPanelItem:
+                text: 'Playlists'
+                LibraryBoxLayout:
+                    LibraryScrollView:
+                        id: library_playlists_sv
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: '0.1'
+            Button:
+                text: '+'
+                on_press: root.browser_add(False)
+            Button:
+                text: '!'
+                on_press: root.browser_add(True)
 <KmpcInterface>:
     do_default_tab: False
     tab_width: self.width / 4
     active_tab: None
-    file_browser_base: '/'
-    album_browser_base: {"level":"root","base":"root","upto":None}
-    track_browser_base: {"level":"root","base":"root"}
     TabbedPanelItem:
         text: 'Now Playing'
         BackdropBoxLayout:
@@ -220,44 +258,6 @@
                     on_press: root.consume_pressed()
     PlaylistTabbedPanelItem:
         id: playlist_tab
-    TabbedPanelItem:
-        text: 'Library'
-        BackdropBoxLayout:
-            orientation: 'horizontal'
-            spacing: '10px'
-            TabbedPanel:
-                tab_width: self.width / 4
-                id: library_panel
-                size_hint_x: '0.9'
-                active_tab: None
-                do_default_tab: False
-                TabbedPanelItem:
-                    text: 'Files'
-                    LibraryBoxLayout:
-                        LibraryScrollView:
-                            id: library_files_sv
-                TabbedPanelItem:
-                    text: 'Albums'
-                    LibraryBoxLayout:
-                        LibraryScrollView:
-                            id: library_albums_sv
-                TabbedPanelItem:
-                    text: 'Tracks'
-                    LibraryBoxLayout:
-                        LibraryScrollView:
-                            id: library_tracks_sv
-                TabbedPanelItem:
-                    text: 'Playlists'
-                    LibraryBoxLayout:
-                        LibraryScrollView:
-                            id: library_playlists_sv
-            BoxLayout:
-                orientation: 'vertical'
-                size_hint_x: '0.1'
-                Button:
-                    text: '+'
-                    on_press: root.browser_add(False)
-                Button:
-                    text: '!'
-                    on_press: root.browser_add(True)
+    LibraryTabbedPanelItem:
+        id: library_tab
     ConfigTabbedPanelItem:
