@@ -39,7 +39,7 @@ def formatsong(rec):
     song+='%02d' % int(t1)+' '+rec['title']
     return song
 
-from mpdfactory import MPDFactoryProtocol,MPDIdleHandler,MPDClientFactory
+from mpdfactory import MPDClientFactory
 from extra import ScrollButton,ScrollBoxLayout
 from playlistpanel import PlaylistTabbedPanelItem
 
@@ -76,8 +76,10 @@ class KmpcInterface(TabbedPanel):
             if 'protocol' in locals():
                 self.protocol.status()
         elif self.active_tab == 'Playlist':
+            pass
             self.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.handle_mpd_error)
         elif self.active_tab == 'Library':
+            pass
             if self.ids.library_panel.active_tab is None:
                 self.ids.library_panel.active_tab = 'Files'
                 self.populate_file_browser()
@@ -111,6 +113,9 @@ class KmpcInterface(TabbedPanel):
 
     def handle_mpd_error(self,result):
         Logger.error('Application: MPDIdleHandler Callback error: {}'.format(result))
+
+    def testprint(self,result):
+        print format(result)
 
     def update_mpd_status(self,result):
         Logger.debug('NowPlaying: update_mpd_status()')
@@ -185,11 +190,10 @@ class KmpcInterface(TabbedPanel):
             self.ids.current_album_label.text = result['album']
 
     def update_mpd_nextsong(self,result):
-        if self.active_tab == 'Now Playing':
-            Logger.debug('NowPlaying: update_mpd_nextsong()')
-            self.ids.next_track_label.text = 'Up Next:'
-            for obj in result:
-                self.ids.next_song_artist_label.text = obj['artist']+' - '+obj['title']
+        Logger.debug('NowPlaying: update_mpd_nextsong()')
+        self.ids.next_track_label.text = 'Up Next:'
+        for obj in result:
+            self.ids.next_song_artist_label.text = obj['artist']+' - '+obj['title']
 
     def prev_pressed(self):
         Logger.debug('Application: prev_pressed()')
@@ -197,10 +201,10 @@ class KmpcInterface(TabbedPanel):
 
     def play_pressed(self):
         Logger.debug('Application: play_pressed()')
-        if self.ids.play_button.state == 'normal' and self.mpd_status['state'] != 'stop':
-            self.protocol.pause()
+        if self.mpd_status['state'] == 'play':
+            self.protocol.pause().addCallback(self.testprint).addErrback(self.handle_mpd_error)
         else:
-            self.protocol.play()
+            self.protocol.play().addCallback(self.testprint).addErrback(self.handle_mpd_error)
 
     def next_pressed(self):
         Logger.debug('Application: next_pressed()')

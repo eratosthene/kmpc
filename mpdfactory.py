@@ -1,6 +1,7 @@
 import kivy
 kivy.require('1.10.0')
 from kivy.app import App
+from kivy.logger import Logger
 from mpd import MPDProtocol
 from twisted.internet import protocol
 
@@ -13,6 +14,7 @@ class MPDFactoryProtocol(MPDProtocol):
             self.factory.connectionLost(self, reason)
 
 class MPDIdleHandler(object):
+
     def __init__(self, protocol):
         self.protocol = protocol
 
@@ -21,14 +23,15 @@ class MPDIdleHandler(object):
             Logger.info('MPDIdleHandler: Changed '+format(s))
 
         app=App.get_running_app()
+
         # update everything 'status' can tell us
         self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
         self.protocol.status().addCallback(app.root.ids.playlist_tab.update_mpd_status).addErrback(app.root.ids.playlist_tab.handle_mpd_error)
 
-       # update everything 'currentsong' can tell us
+        # update everything 'currentsong' can tell us
         self.protocol.currentsong().addCallback(app.root.update_mpd_currentsong).addErrback(app.root.handle_mpd_error)
 
-      # if 'status' said there is a next track, update that too
+        # if 'status' said there is a next track, update that too
         if app.root.nextsong:
             self.protocol.playlistinfo(app.root.nextsong).addCallback(app.root.update_mpd_nextsong).addErrback(app.root.handle_mpd_error)
         else:
@@ -41,7 +44,14 @@ class MPDClientFactory(protocol.ReconnectingClientFactory):
     connectionLost = None
 
     def buildProtocol(self, addr):
+        Logger.debug('MPDClientFactory: buildProtocol')
         protocol = self.protocol()
         protocol.factory = self
         protocol.idle_result = MPDIdleHandler(protocol)
         return protocol
+
+    def clientConnectionFailed(self, connector, reason):
+        Logger.error('Connection failed - goodbye!: '+format(reason))
+
+    def clientConnectionLost(self, connector, reason):
+        Logger.error('Connection lost - goodbye!: '+format(reason))
