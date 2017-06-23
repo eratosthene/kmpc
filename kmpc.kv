@@ -38,6 +38,16 @@
     size_hint_y: None
     size_hint_min_y: '50sp'
 
+<ScrollSelectedBoxLayout>:
+    size_hint_y: None
+    size_hint_min_y: '50sp'
+    canvas.before:
+        Color:
+            rgba: 1,1,0,0.5
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
 <LibraryBoxLayout@BoxLayout>:
     canvas.before:
         Rectangle:
@@ -123,8 +133,8 @@
                     value_track: True
                     valign: 'center'
                     max: '1000'
-                    on_touch_move: if self.collide_point(*args[1].pos): root.current_track_slider_click()
-                    on_touch_up: if self.collide_point(*args[1].pos): root.current_track_slider_click()
+                    on_touch_move: if self.collide_point(*args[1].pos): root.current_track_slider_move()
+                    on_touch_up: if self.collide_point(*args[1].pos): root.current_track_slider_up()
                 Label:
                     id: current_track_totaltime_label
                     size_hint: (0.1,1)

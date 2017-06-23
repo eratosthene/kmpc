@@ -15,6 +15,7 @@ from kivy.uix.checkbox import CheckBox
 from kivy.uix.boxlayout import BoxLayout
 from kivy.logger import Logger
 from kivy.metrics import Metrics
+from kivy.graphics import Color,Rectangle
 from mpd import MPDProtocol
 import os
 import traceback
@@ -46,6 +47,13 @@ class MPDFactoryProtocol(MPDProtocol):
         if callable(self.factory.connectionLost):
             self.factory.connectionLost(self, reason)
 
+class MPDIdleHandler(object):
+    def __init__(self, protocol):
+        self.protocol = protocol
+
+    def __call__(self, result):
+        print('Subsystems: {}'.format(list(result)))
+
 class MPDClientFactory(protocol.ReconnectingClientFactory):
     protocol = MPDFactoryProtocol
     connectionMade = None
@@ -55,6 +63,7 @@ class MPDClientFactory(protocol.ReconnectingClientFactory):
         Logger.debug('MPDClientFactory: buildProtocol()')
         protocol = self.protocol()
         protocol.factory = self
+        protocol.idle_result = MPDIdleHandler(protocol)
         return protocol
 
 class KmpcInterface(TabbedPanel):
@@ -70,7 +79,8 @@ class KmpcInterface(TabbedPanel):
         # bind callbacks for tab changes
         self.bind(current_tab=self.main_tab_changed)
         self.ids.library_panel.bind(current_tab=self.library_tab_changed)
-        self.mpd_status={'state':'stop','repeat':0,'single':0,'random':0,'consume':0}
+        self.mpd_status={'state':'stop','repeat':0,'single':0,'random':0,'consume':0,'curpos':0}
+        self.update_slider=True
 
     def mpd_connectionMade(self,protocol):
         self.mpd_protocol = protocol
@@ -103,22 +113,25 @@ class KmpcInterface(TabbedPanel):
             self.populate_track_browser()
         elif tabname == 'Playlists':
             self.populate_playlist_browser()
-        elif tabname == 'Genres':
-            pass
 
     def mpd_connectionLost(self,protocol, reason):
         Logger.info('Application: Connection lost: %s' % reason)
 
-#    @inlineCallbacks
-    def current_track_slider_click(self):
+    def current_track_slider_up(self):
         curpos=int(self.ids.current_track_slider.value)
-        Logger.info('Application: current_track_slider_click('+str(curpos)+')')
+        Logger.info('Application: current_track_slider_up('+str(curpos)+')')
+        self.update_slider=False
         self.mpd_protocol.seekcur(str(curpos))
+        self.update_slider=True
+
+    def current_track_slider_move(self):
+        Logger.info('Application: current_track_slider_move()')
+        self.update_slider=False
 
     @inlineCallbacks
     def update_current_status(self):
-        Logger.debug('Application: update_current_status()')
         if self.active_tab == 'Now Playing':
+            Logger.debug('NowPlaying: update_current_status()')
             self.mpd_protocol.command_list_ok_begin()
             self.mpd_protocol.status()
             self.mpd_protocol.currentsong()
@@ -170,7 +183,9 @@ class KmpcInterface(TabbedPanel):
                 self.ids.current_track_time_label.text = "%02d:%02d" % (cm,cs)
                 self.ids.current_track_totaltime_label.text = "%02d:%02d" % (tm,ts)
                 self.ids.current_track_slider.max = int(t)
-                self.ids.current_track_slider.value = int(c)
+                self.mpd_status['curpos']=int(c)
+                if self.update_slider:
+                    self.ids.current_track_slider.value = int(c)
                 # throws an exception if i don't do this
                 a=int(result['song'])+1
                 b=int(result['playlistlength'])
@@ -199,6 +214,13 @@ class KmpcInterface(TabbedPanel):
                 else:
                     self.ids.next_track_label.text = ''
                     self.ids.next_song_artist_label.text = ''
+        elif self.active_tab == 'Playlist':
+            Logger.debug('Playlist: update_current_status()')
+            self.mpd_protocol.command_list_ok_begin()
+            self.mpd_protocol.status()
+            reslist=yield self.mpd_protocol.command_list_end()
+            result=reslist[0]
+            self.playlist_update_current_track(result['song'])
 
     def prev_pressed(self):
         Logger.debug('Application: prev_pressed()')
@@ -309,12 +331,14 @@ class KmpcInterface(TabbedPanel):
         self.mpd_protocol.lsinfo(base)
         reslist=yield self.mpd_protocol.command_list_end()
         result=reslist[0]
+        pos=0
         for row in result:
             if 'directory' in row:
                 Logger.debug("FileBrowser: directory found: ["+row['directory']+"]")
                 (b1,b2)=os.path.split(row['directory'])
                 btn = ScrollButton(text=b2)
                 btn.base = row['directory']
+                btn.repopulate = True
                 btn.bind(on_press=self.file_browser_button)
                 bl = ScrollBoxLayout(orientation='horizontal')
                 chk = CheckBox(size_hint_x=None)
@@ -327,6 +351,10 @@ class KmpcInterface(TabbedPanel):
             elif 'file' in row:
                 Logger.debug("FileBrowser: file found: ["+row['file']+"]")
                 btn = ScrollButton(text=formatsong(row))
+                btn.base=os.path.normpath(base)
+                btn.repopulate = False
+                btn.plpos=pos
+                btn.bind(on_press=self.file_browser_button)
                 bl = ScrollBoxLayout(orientation='horizontal')
                 chk = CheckBox(size_hint_x=None)
                 chk.base = row['file']
@@ -335,12 +363,18 @@ class KmpcInterface(TabbedPanel):
                 bl.add_widget(chk)
                 bl.add_widget(btn)
                 layout.add_widget(bl)
+            pos+=1
         self.ids.library_files_sv.add_widget(layout)
 
     def file_browser_button(self,instance):
         Logger.debug('Application: file_browser_button('+instance.text+')')
-        self.file_browser_base=instance.base
-        self.populate_file_browser()
+        if instance.repopulate:
+            self.file_browser_base=instance.base
+            self.populate_file_browser()
+        else:
+            self.mpd_protocol.clear()
+            self.mpd_protocol.add(instance.base)
+            self.mpd_protocol.play(str(instance.plpos))
 
     @inlineCallbacks
     def populate_album_browser(self):
@@ -562,9 +596,12 @@ class KmpcInterface(TabbedPanel):
         layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
         layout.bind(minimum_height=layout.setter('height'))
         self.mpd_protocol.command_list_ok_begin()
+        self.mpd_protocol.status()
         self.mpd_protocol.playlistinfo()
         reslist=yield self.mpd_protocol.command_list_end()
         result=reslist[0]
+        curpos=result['song']
+        result=reslist[1]
         for row in result:
             Logger.debug("Playlist: row "+row['pos']+" found = "+row['title'])
             bl = ScrollBoxLayout(orientation='horizontal')
@@ -574,6 +611,7 @@ class KmpcInterface(TabbedPanel):
             lbl = Label(text=str(int(row['pos'])+1),size_hint_x=None,height='50sp')
             btn = ScrollButton(text=row['artist']+' - '+row['title'])
             btn.plpos=row['pos']
+            btn.bind(on_press=self.playlist_button_pressed)
             btn.texture_update()
             bl.add_widget(chk)
             bl.add_widget(lbl)
@@ -587,6 +625,23 @@ class KmpcInterface(TabbedPanel):
             bl.height=nh
             Logger.debug('Playlist: bl.height '+format(bl.height))
         self.ids.playlist_sv.add_widget(layout)
+        self.playlist_update_current_track(curpos)
+
+    def playlist_update_current_track(self,pos):
+        Logger.debug("Playlist: playlist_update_current_track("+pos+")")
+        sv=self.ids.playlist_sv
+        gl=sv.children[0]
+        for sl in gl.children:
+            btn=sl.children[0]
+            if btn.plpos==pos:
+                btn.background_color=(2,2,2,1)
+            else:
+                btn.background_color=(1,1,1,1)
+
+
+    def playlist_button_pressed(self,btn):
+        Logger.debug("Application: playlist_button_pressed("+str(btn.plpos)+")")
+        self.mpd_protocol.play(btn.plpos)
 
     def playlist_checkbox_pressed(self,checkbox,value):
         Logger.debug("Application: playlist_checkbox_pressed("+format(checkbox.plpos)+")")
@@ -600,6 +655,9 @@ class ScrollButton(Button):
     pass
 
 class ScrollBoxLayout(BoxLayout):
+    pass
+
+class ScrollSelectedBoxLayout(BoxLayout):
     pass
 
 class KmpcApp(App):
