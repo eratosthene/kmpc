@@ -16,8 +16,6 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
 from functools import partial
 
-from extra import ScrollButton,ScrollBoxLayout
-
 class PlaylistTabbedPanelItem(TabbedPanelItem):
 
     playlist_selection={}
