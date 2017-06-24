@@ -29,7 +29,8 @@ class MPDIdleHandler(object):
                 # force a reload of nextsong if playlist changes
                 app.root.nextsong = None
             elif format(s) == 'player':
-                pass
+                # update everything 'currentsong' can tell us, cascade it down too
+                self.protocol.currentsong().addCallback(app.root.update_mpd_currentsong).addErrback(app.root.handle_mpd_error)
             elif format(s) == 'sticker':
                 pass
 
@@ -39,19 +40,13 @@ class MPDIdleHandler(object):
         self.protocol.status().addCallback(app.root.ids.playlist_tab.update_mpd_status).addErrback(app.root.ids.playlist_tab.handle_mpd_error)
 
 #### this stuff all needs to only happen on Changed events above and on first run, plz fix kthx
-        # update everything 'currentsong' can tell us
-        self.protocol.currentsong().addCallback(app.root.update_mpd_currentsong).addErrback(app.root.handle_mpd_error)
-
-        # if 'currentsong' said there is a current track, get the rating
-        if app.root.currfile:
-            self.protocol.sticker_get('song',app.root.currfile,'rating').addCallback(app.root.update_mpd_sticker_rating).addErrback(app.root.handle_mpd_no_sticker)
 
         # if 'status' said there is a next track, update that too
-        if app.root.nextsong:
-            self.protocol.playlistinfo(app.root.nextsong).addCallback(app.root.update_mpd_nextsong).addErrback(app.root.handle_mpd_error)
-        else:
-            app.root.ids.next_track_label.text = ''
-            app.root.ids.next_song_artist_label.text = ''
+#        if app.root.nextsong:
+#            self.protocol.playlistinfo(app.root.nextsong).addCallback(app.root.update_mpd_nextsong).addErrback(app.root.handle_mpd_error)
+#        else:
+#            app.root.ids.next_track_label.text = ''
+#            app.root.ids.next_song_artist_label.text = ''
 
 class MPDClientFactory(protocol.ReconnectingClientFactory):
     protocol = MPDFactoryProtocol

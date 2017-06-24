@@ -61,6 +61,8 @@ class KmpcInterface(TabbedPanel):
         # start the interface update task after mpd connection
         self.status_task=task.LoopingCall(self.protocol.status)
         self.status_task.start(1.0)
+        # run the callbacks once to update the interface
+        self.protocol.currentsong().addCallback(self.update_mpd_currentsong).addErrback(self.handle_mpd_error)
 
     def main_tab_changed(self,obj,value):
         self.active_tab = value.text
@@ -107,6 +109,7 @@ class KmpcInterface(TabbedPanel):
             # save the next song for later use
             if 'nextsong' in result:
                 self.nextsong=result['nextsong']
+                self.protocol.playlistinfo(self.nextsong).addCallback(self.update_mpd_nextsong).addErrback(self.handle_mpd_error)
             else:
                 self.nextsong=None
         if int(self.mpd_status['repeat']):
@@ -160,11 +163,23 @@ class KmpcInterface(TabbedPanel):
 
     def update_mpd_currentsong(self,result):
         Logger.debug('NowPlaying: update_mpd_currentsong()')
-        if self.mpd_status['state'] != 'stop':
+        if result:
             self.ids.current_song_label.text = result['title']
             self.ids.current_artist_label.text = result['artist']
             self.ids.current_album_label.text = result['album']
             self.currfile = result['file']
+            self.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
+        else:
+            self.ids.current_track_time_label.text=''
+            self.ids.current_track_totaltime_label.text=''
+            self.ids.current_track_slider.value=0
+            self.ids.current_playlist_track_number_label.text=''
+            self.ids.current_song_label.text = 'Playback Stopped'
+            self.ids.current_artist_label.text = ''
+            self.ids.current_album_label.text = ''
+            self.ids.next_track_label.text = ''
+            self.ids.next_song_artist_label.text = ''
+            self.currfile = None
 
     def update_mpd_sticker_rating(self,result):
         Logger.debug('NowPlaying: update_mpd_sticker_rating')
