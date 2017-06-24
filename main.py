@@ -51,6 +51,7 @@ class KmpcInterface(TabbedPanel):
         self.update_slider=True
         self.currsong=None
         self.nextsong=None
+        self.currfile=None
 
     def mpd_connectionMade(self,protocol):
         self.protocol = protocol
@@ -140,6 +141,7 @@ class KmpcInterface(TabbedPanel):
             self.ids.current_album_label.text = ''
             self.ids.next_track_label.text = ''
             self.ids.next_song_artist_label.text = ''
+            self.currfile = None
         else:
             # mpd returns {elapsed seconds}:{total seconds}, the following splits each to minute:second
             c,t=result['time'].split(":")
@@ -162,6 +164,39 @@ class KmpcInterface(TabbedPanel):
             self.ids.current_song_label.text = result['title']
             self.ids.current_artist_label.text = result['artist']
             self.ids.current_album_label.text = result['album']
+            self.currfile = result['file']
+
+    def update_mpd_sticker_rating(self,result):
+        Logger.debug('NowPlaying: update_mpd_sticker_rating')
+        btn = self.ids.current_song_stars
+        # this is silly, but it's because we're building it out of characters
+        if int(result) == 10:
+            btn.text = u"\uf005\uf005\uf005\uf005\uf005"
+        elif int(result) == 9:
+            btn.text = u"\uf005\uf005\uf005\uf005\uf123"
+        elif int(result) == 8:
+            btn.text = u"\uf005\uf005\uf005\uf005\uf006"
+        elif int(result) == 7:
+            btn.text = u"\uf005\uf005\uf005\uf123\uf006"
+        elif int(result) == 6:
+            btn.text = u"\uf005\uf005\uf005\uf006\uf006"
+        elif int(result) == 5:
+            btn.text = u"\uf005\uf005\uf123\uf006\uf006"
+        elif int(result) == 4:
+            btn.text = u"\uf005\uf005\uf006\uf006\uf006"
+        elif int(result) == 3:
+            btn.text = u"\uf005\uf123\uf006\uf006\uf006"
+        elif int(result) == 2:
+            btn.text = u"\uf005\uf006\uf006\uf006\uf006"
+        elif int(result) == 1:
+            btn.text = u"\uf123\uf006\uf006\uf006\uf006"
+        elif int(result) == 0:
+            btn.text = u"\uf006\uf006\uf006\uf006\uf006"
+
+    def handle_mpd_no_sticker(self,result):
+        Logger.debug('NowPlaying: handle_mpd_no_sticker')
+        btn = self.ids.current_song_stars
+        btn.text = u"\uf29c"
 
     def update_mpd_nextsong(self,result):
         Logger.debug('NowPlaying: update_mpd_nextsong()')

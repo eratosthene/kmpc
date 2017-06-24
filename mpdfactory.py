@@ -28,14 +28,23 @@ class MPDIdleHandler(object):
                 self.protocol.playlistinfo().addCallback(app.root.ids.playlist_tab.populate_playlist).addErrback(app.root.ids.playlist_tab.handle_mpd_error)
                 # force a reload of nextsong if playlist changes
                 app.root.nextsong = None
+            elif format(s) == 'player':
+                pass
+            elif format(s) == 'sticker':
+                pass
 
         # the following is done no matter what, so that now playing updates at least every second
         # update everything 'status' can tell us
         self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
         self.protocol.status().addCallback(app.root.ids.playlist_tab.update_mpd_status).addErrback(app.root.ids.playlist_tab.handle_mpd_error)
 
+#### this stuff all needs to only happen on Changed events above and on first run, plz fix kthx
         # update everything 'currentsong' can tell us
         self.protocol.currentsong().addCallback(app.root.update_mpd_currentsong).addErrback(app.root.handle_mpd_error)
+
+        # if 'currentsong' said there is a current track, get the rating
+        if app.root.currfile:
+            self.protocol.sticker_get('song',app.root.currfile,'rating').addCallback(app.root.update_mpd_sticker_rating).addErrback(app.root.handle_mpd_no_sticker)
 
         # if 'status' said there is a next track, update that too
         if app.root.nextsong:
