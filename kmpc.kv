@@ -1,6 +1,8 @@
 #:kivy 1.10.0
 #:import ConfigTabbedPanelItem configpanel.ConfigTabbedPanelItem
 #:import PlaylistTabbedPanelItem playlistpanel.PlaylistTabbedPanelItem
+#:import PlaylistRow playlistpanel.PlaylistRow
+#:import PlaylistRecycleBoxLayout playlistpanel.PlaylistRecycleBoxLayout
 #:import LibraryTabbedPanelItem librarypanel.LibraryTabbedPanelItem
 
 <Widget>:
@@ -71,8 +73,46 @@
     Label:
         text: 'tab4 stuff'
 
+<PlaylistRow>:
+    canvas.before:
+        Rectangle:
+            source: "resources/list-backdrop-selected.png" if self.iscurrent else "resources/list-backdrop.png"          
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: (1,1,0,0.5) if self.selected else (0,0,0,0)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: (1,1,0,0.7) if self.iscurrent else (1,1,1,0.3)
+        Rectangle:
+            size: (self.width,sp(3)) if self.iscurrent else (self.width,sp(1))
+            pos: self.pos
+        Rectangle:
+            size: (self.width,sp(3)) if self.iscurrent else (self.width,sp(1))
+            pos: (self.x,self.top)
+    plpos: ''
+    rownum: ''
+    artist: ''
+    title: ''
+    iscurrent: False
+#    CheckBox:
+#        size_hint_x: None
+    Label:
+        size_hint_x: None
+        text: root.rownum
+    Label:
+        size_hint_x: 1
+        halign: 'left'
+        valign: 'center'
+        text_size: self.size
+        text: root.artist+' - '+root.title
+
 <PlaylistTabbedPanelItem>:
     text: 'Playlist'
+    rv: rv
+    prbl: prbl
     BackdropBoxLayout:
         orientation: 'vertical'
         BoxLayout:
@@ -93,8 +133,21 @@
             Button:
                 text: 'Swap'
                 on_press: root.playlist_swap_pressed()
-        PlaylistScrollView:
-            id: playlist_sv
+        RecycleView:
+            id: rv
+            scroll_type: ['bars','content']
+            bar_width: sp(40)
+            viewclass: 'PlaylistRow'
+            PlaylistRecycleBoxLayout:
+                id: prbl
+                default_size: None, sp(56)
+                default_size_hint: 1, None
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: 'vertical'
+                spacing: sp(2)
+                multiselect: True
+                touch_multiselect: True
 
 <LibraryTabbedPanelItem>:
     text: 'Library'

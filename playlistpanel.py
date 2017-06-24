@@ -1,15 +1,26 @@
 import kivy
 kivy.require('1.10.0')
+from kivy.app import App
 from kivy.uix.tabbedpanel import TabbedPanelItem
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.logger import Logger
 from kivy.metrics import Metrics
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
+from kivy.properties import BooleanProperty
+from kivy.uix.recycleboxlayout import RecycleBoxLayout
+from kivy.uix.behaviors import FocusBehavior
+from kivy.uix.recycleview.layout import LayoutSelectionBehavior
+from kivy.uix.boxlayout import BoxLayout
+from kivy.clock import Clock
+from functools import partial
 
 from extra import ScrollButton,ScrollBoxLayout
 
 class PlaylistTabbedPanelItem(TabbedPanelItem):
+
+    playlist_selection={}
 
     def playlist_clear_pressed(self):
         Logger.info("Playlist: clear")
@@ -17,9 +28,10 @@ class PlaylistTabbedPanelItem(TabbedPanelItem):
 
     def playlist_delete_pressed(self):
         Logger.info("Playlist: delete")
-        for pos in self.playlist_marked:
-            Logger.debug("Playlist: deleting pos "+pos)
-            self.protocol.delete(pos)
+        for pos in self.playlist_selection:
+            Logger.debug("Playlist: deleting pos "+str(pos))
+            self.protocol.delete(str(pos))
+        self.prbl.clear_selection()
 
     def playlist_move_pressed(self):
         Logger.info("Playlist: move")
@@ -32,62 +44,79 @@ class PlaylistTabbedPanelItem(TabbedPanelItem):
         Logger.info("Playlist: swap")
 
     def populate_playlist(self,result):
-        Logger.info("Application: populate_playlist()")
-        self.playlist_marked={}
-        self.ids.playlist_sv.clear_widgets()
-        layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
-        layout.bind(minimum_height=layout.setter('height'))
+        Logger.info("Playlist: populate_playlist()")
+        self.rv.data = []
         for row in result:
             Logger.debug("Playlist: row "+row['pos']+" found = "+row['title'])
-            bl = ScrollBoxLayout(orientation='horizontal')
-            chk = CheckBox(size_hint_x=None)
-            chk.plpos=row['pos']
-            chk.bind(active=self.playlist_checkbox_pressed)
-            lbl = Label(text=str(int(row['pos'])+1),size_hint_x=None,height='50sp')
-            btn = ScrollButton(text=row['artist']+' - '+row['title'])
-            btn.plpos=row['pos']
-            btn.bind(on_press=self.playlist_button_pressed)
-            btn.texture_update()
-            bl.add_widget(chk)
-            bl.add_widget(lbl)
-            bl.add_widget(btn)
-            layout.add_widget(bl)
-            Logger.debug("Playlist: "+str(row['pos'])+' btn.height '+format(btn.height))
-            nh=kivy.metrics.sp((int(btn.height/Metrics.dpi/(Metrics.density*Metrics.density))*20))+kivy.metrics.sp(btn.padding_y)
-            Logger.debug("Playlist: nh = "+str(nh))
-            if nh < kivy.metrics.sp(50):
-                nh = kivy.metrics.sp(50)
-            bl.height=nh
-            Logger.debug('Playlist: bl.height '+format(bl.height))
-        self.ids.playlist_sv.add_widget(layout)
-
-    def playlist_button_pressed(self,btn):
-        Logger.debug("Playlist: playlist_button_pressed("+str(btn.plpos)+")")
-        self.protocol.play(btn.plpos)
-
-    def playlist_checkbox_pressed(self,checkbox,value):
-        Logger.debug("Playlist: playlist_checkbox_pressed("+format(checkbox.plpos)+")")
-        if value:
-            self.playlist_marked[checkbox.plpos]=True
-        else:
-            if checkbox.plpos in self.playlist_marked:
-                del self.playlist_marked[checkbox.plpos]
+            r = {'plpos':row['pos'],'rownum':str(int(row['pos'])+1),'artist':format(row['artist']),'title':format(row['title'])}
+            self.rv.data.append(r)
+        self.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
 
     def update_mpd_status(self,result):
         Logger.debug('Playlist: update_mpd_status()')
         if result['state'] == 'stop':
             self.currsong=None
+            for r in self.rv.data:
+                r['iscurrent'] = False
         else:
             self.currsong=result['song']
-        sv=self.ids.playlist_sv
-        if len(list(sv.children)) > 0:
-            gl=sv.children[0]
-            for sl in gl.children:
-                btn=sl.children[0]
-                if btn.plpos==self.currsong:
-                    btn.background_color=(2,2,2,1)
+            for r in self.rv.data:
+                if r['plpos'] == result['song']:
+                    r['iscurrent'] = True
                 else:
-                    btn.background_color=(1,1,1,1)
+                    r['iscurrent'] = False
+        self.rv.refresh_from_layout()
 
     def handle_mpd_error(self,result):
         Logger.error('Playlist: MPDIdleHandler Callback error: {}'.format(result))
+
+class PlaylistRecycleBoxLayout(FocusBehavior,LayoutSelectionBehavior,RecycleBoxLayout):
+    ''' Adds selection and focus behaviour to the view. '''
+
+class PlaylistRow(RecycleDataViewBehavior,BoxLayout):
+    ''' Add selection support to the Label '''
+    index = None
+    selected = BooleanProperty(False)
+    selectable = BooleanProperty(True)
+
+    def playfrom(self, touch, index, *args):
+        Logger.debug("Playlist: long-touch playfrom "+str(index))
+        App.get_running_app().root.protocol.play(str(index))
+        App.get_running_app().root.ids.playlist_tab.prbl.clear_selection()
+
+    def refresh_view_attrs(self, rv, index, data):
+        ''' Catch and handle the view changes '''
+        self.index = index
+        return super(PlaylistRow, self).refresh_view_attrs(
+            rv, index, data)
+
+    def on_touch_down(self, touch):
+        ''' Add selection on touch down '''
+        if super(PlaylistRow, self).on_touch_down(touch):
+            return True
+        if self.collide_point(*touch.pos) and self.selectable:
+            # these lines start a 1 second clock to detect long-presses
+            callback = partial(self.playfrom, touch, self.index)
+            Clock.schedule_once(callback, 1)
+            touch.ud['event'] = callback
+            return self.parent.select_with_touch(self.index, touch)
+
+    def on_touch_up(self, touch):
+        if super(PlaylistRow, self).on_touch_up(touch):
+            return True
+        # if i don't check for this, the app crashes when things scroll off screen
+        if 'event' in touch.ud:
+            Clock.unschedule(touch.ud['event'])
+
+    def apply_selection(self, rv, index, is_selected):
+        ''' Respond to the selection of items in the view. '''
+        self.selected = is_selected
+        pt=App.get_running_app().root.ids.playlist_tab
+        if is_selected:
+            pt.playlist_selection[index] = True
+        else:
+            if index in pt.playlist_selection:
+                del pt.playlist_selection[index]
+
+#    def build(self):
+#        self.root.bind(on_touch_down=self.create_clock,on_touch_up=self.delete_clock)
