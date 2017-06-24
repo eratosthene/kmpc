@@ -19,11 +19,17 @@ class MPDIdleHandler(object):
         self.protocol = protocol
 
     def __call__(self, result):
-        for s in result:
-            Logger.info('MPDIdleHandler: Changed '+format(s))
-
         app=App.get_running_app()
 
+        # notify various subsystems based on what changed
+        for s in result:
+            Logger.info('MPDIdleHandler: Changed '+format(s))
+            if format(s) == 'playlist':
+                self.protocol.playlistinfo().addCallback(app.root.ids.playlist_tab.populate_playlist).addErrback(app.root.ids.playlist_tab.handle_mpd_error)
+                # force a reload of nextsong if playlist changes
+                app.root.nextsong = None
+
+        # the following is done no matter what, so that now playing updates at least every second
         # update everything 'status' can tell us
         self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
         self.protocol.status().addCallback(app.root.ids.playlist_tab.update_mpd_status).addErrback(app.root.ids.playlist_tab.handle_mpd_error)

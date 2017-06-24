@@ -27,11 +27,9 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
         elif tabname == 'Albums':
             self.populate_album_browser()
         elif tabname == 'Tracks':
-            pass
-#            self.populate_track_browser()
+            self.populate_track_browser()
         elif tabname == 'Playlists':
-            pass
-#            self.populate_playlist_browser()
+            self.protocol.listplaylists().addCallback(self.populate_playlist_browser).addErrback(self.handle_mpd_error)
 
     def handle_mpd_error(self,result):
         Logger.error('Library: MPDIdleHandler Callback error: {}'.format(result))
@@ -50,6 +48,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
                 b2 = 'root'
             btn = Button(text=".. ("+b2+")",size_hint_y=None,height='50sp')
             btn.base=os.path.normpath(base+'/..')
+            btn.repopulate = True
             if btn.base == '.':
                 btn.base = '/'
             btn.bind(on_press=self.file_browser_button)
@@ -202,60 +201,65 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
         self.album_browser_base={'level':instance.nextlevel,'base':instance.base,'upto':bbase}
         self.populate_album_browser()
 
-    @inlineCallbacks
     def populate_track_browser(self):
         self.browser_marked={}
         base=self.track_browser_base['base']
         level=self.track_browser_base['level']
-        Logger.info("Application: populate_track_browser, base=["+base+"] level=["+level+"]")
+        Logger.info("Library: populate_track_browser, base=["+base+"] level=["+level+"]")
+        if self.track_browser_base['level'] == 'root':
+            self.protocol.list('artistsort').addCallback(self.populate_root_track_browser).addErrback(self.handle_mpd_error)
+        elif self.track_browser_base['level'] == 'artist':
+            self.protocol.list('title','artistsort',base).addCallback(self.populate_artist_track_browser).addErrback(self.handle_mpd_error)
+
+    def populate_root_track_browser(self,result):
+        base=self.track_browser_base['base']
+        level=self.track_browser_base['level']
         self.ids.library_tracks_sv.clear_widgets()
         layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
         layout.bind(minimum_height=layout.setter('height'))
-        if level == 'root':
-            self.protocol.command_list_ok_begin()
-            self.protocol.list('artistsort')
-            reslist=yield self.protocol.command_list_end()
-            result=reslist[0]
-            for row in result:
-                Logger.debug("TrackBrowser: artist found = "+row)
-                btn = ScrollButton(text=row)
-                btn.base = row
-                btn.nextlevel = 'artist'
-                btn.bind(on_press=self.track_browser_button)
-                bl = ScrollBoxLayout(orientation='horizontal')
-                chk = CheckBox(size_hint_x=None)
-                chk.base = row
-                chk.info = {'type':'artistsort'}
-                chk.bind(active=self.browser_checkbox_pressed)
-                bl.add_widget(chk)
-                bl.add_widget(btn)
-                layout.add_widget(bl)
-        elif level == "artist":
-            btn = Button(text=".. (root)",size_hint_y=None,height='50sp')
-            btn.base = 'root'
+        for row in result:
+            Logger.debug("TrackBrowser: artist found = "+row)
+            btn = ScrollButton(text=row)
+            btn.base = row
+            btn.nextlevel = 'artist'
             btn.bind(on_press=self.track_browser_button)
-            layout.add_widget(btn)
-            lbl = Label(text=base,size_hint_y=None,height='50sp')
-            layout.add_widget(lbl)
-            self.protocol.command_list_ok_begin()
-            self.protocol.list('title','artistsort',base)
-            reslist=yield self.protocol.command_list_end()
-            result=reslist[0]
-            for row in result:
-                Logger.debug("TrackBrowser: track found = "+row)
-                btn = ScrollButton(text=row)
-                bl = ScrollBoxLayout(orientation='horizontal')
-                chk = CheckBox(size_hint_x=None)
-                chk.base = row
-                chk.info = {'type':'title','artistsort':base}
-                chk.bind(active=self.browser_checkbox_pressed)
-                bl.add_widget(chk)
-                bl.add_widget(btn)
-                layout.add_widget(bl)
+            bl = ScrollBoxLayout(orientation='horizontal')
+            chk = CheckBox(size_hint_x=None)
+            chk.base = row
+            chk.info = {'type':'artistsort'}
+            chk.bind(active=self.browser_checkbox_pressed)
+            bl.add_widget(chk)
+            bl.add_widget(btn)
+            layout.add_widget(bl)
+        self.ids.library_tracks_sv.add_widget(layout)
+
+    def populate_artist_track_browser(self,result):
+        base=self.track_browser_base['base']
+        level=self.track_browser_base['level']
+        self.ids.library_tracks_sv.clear_widgets()
+        layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
+        layout.bind(minimum_height=layout.setter('height'))
+        btn = Button(text=".. (root)",size_hint_y=None,height='50sp')
+        btn.base = 'root'
+        btn.bind(on_press=self.track_browser_button)
+        layout.add_widget(btn)
+        lbl = Label(text=base,size_hint_y=None,height='50sp')
+        layout.add_widget(lbl)
+        for row in result:
+            Logger.debug("TrackBrowser: track found = "+row)
+            btn = ScrollButton(text=row)
+            bl = ScrollBoxLayout(orientation='horizontal')
+            chk = CheckBox(size_hint_x=None)
+            chk.base = row
+            chk.info = {'type':'title','artistsort':base}
+            chk.bind(active=self.browser_checkbox_pressed)
+            bl.add_widget(chk)
+            bl.add_widget(btn)
+            layout.add_widget(bl)
         self.ids.library_tracks_sv.add_widget(layout)
 
     def track_browser_button(self,instance):
-        Logger.debug("Application: track_browser_button("+instance.text+","+instance.base+","+instance.nextlevel+")")
+        Logger.debug("Library: track_browser_button("+instance.text+","+instance.base+")")
         blevel=self.track_browser_base['level']
         bbase=self.track_browser_base['base']
         if blevel == 'root':
@@ -264,17 +268,11 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             self.track_browser_base={'level':'root','base':'root'}
         self.populate_track_browser()
 
-    @inlineCallbacks
-    def populate_playlist_browser(self):
-        Logger.info("Application: populate_playlist_browser()")
-#        self.ids.library_playlists_panel.clear_widgets()
+    def populate_playlist_browser(self,result):
+        Logger.info("Library: populate_playlist_browser()")
         self.ids.library_playlists_sv.clear_widgets()
         layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
         layout.bind(minimum_height=layout.setter('height'))
-        self.protocol.command_list_ok_begin()
-        self.protocol.listplaylists()
-        reslist=yield self.protocol.command_list_end()
-        result=reslist[0]
         for row in result:
             Logger.debug("PlaylistBrowser: playlist found = "+row['playlist'])
             bl = ScrollBoxLayout(orientation='horizontal')
@@ -301,7 +299,10 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             if checkbox.base in self.browser_marked:
                 del self.browser_marked[checkbox.base]
 
-    @inlineCallbacks
+    def browser_add_find(self,result):
+        for rrow in result:
+            self.protocol.add(rrow['file'])
+
     def browser_add(self,clearfirst):
         Logger.debug('Application: browser_add('+str(clearfirst)+')')
         if clearfirst:
@@ -313,37 +314,13 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             if mtype == 'uri':
                 self.protocol.add(row)
             elif mtype == 'albumartistsort':
-                self.protocol.command_list_ok_begin()
-                self.protocol.find(mtype,row)
-                reslist=yield self.protocol.command_list_end()
-                result=reslist[0]
-                Logger.debug("Browser: find("+mtype+","+row+") = "+format(result))
-                for rrow in result:
-                    self.protocol.add(rrow['file'])
+                self.protocol.find(mtype,row).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
             elif mtype == 'album':
-                self.protocol.command_list_ok_begin()
-                self.protocol.find(mtype,row,'albumartistsort',self.browser_marked[row]['albumartistsort'])
-                reslist=yield self.protocol.command_list_end()
-                result=reslist[0]
-                Logger.debug("Browser: find("+mtype+","+row+",albumartistsort,"+self.browser_marked[row]['albumartistsort']+") = "+format(result))
-                for rrow in result:
-                    self.protocol.add(rrow['file'])
+                self.protocol.find(mtype,row,'albumartistsort',self.browser_marked[row]['albumartistsort']).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
             elif mtype == 'artistsort':
-                self.protocol.command_list_ok_begin()
-                self.protocol.find(mtype,row)
-                reslist=yield self.protocol.command_list_end()
-                result=reslist[0]
-                Logger.debug("Browser: find("+mtype+","+row+") = "+format(result))
-                for rrow in result:
-                    self.protocol.add(rrow['file'])
+                self.protocol.find(mtype,row).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
             elif mtype == 'title':
-                self.protocol.command_list_ok_begin()
-                self.protocol.find('artistsort',self.browser_marked[row]['artistsort'],mtype,row)
-                reslist=yield self.protocol.command_list_end()
-                result=reslist[0]
-                Logger.debug("Browser: find(artistsort,"+self.browser_marked[row]['artistsort']+","+mtype+","+row+") = "+format(result))
-                if result:
-                    self.protocol.add(result[0]['file'])
+                self.protocol.find('artistsort',self.browser_marked[row]['artistsort'],mtype,row).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
             else:
                 Logger.warning("Browser: "+mtype+' not implemented')
 

@@ -68,7 +68,7 @@ class KmpcInterface(TabbedPanel):
             if 'protocol' in locals():
                 self.protocol.status()
         elif self.active_tab == 'Playlist':
-            self.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.handle_mpd_error)
+            self.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
         elif self.active_tab == 'Library':
             if self.ids.library_tab.ids.library_panel.active_tab is None:
                 self.ids.library_tab.ids.library_panel.active_tab = 'Files'
@@ -81,7 +81,7 @@ class KmpcInterface(TabbedPanel):
         curpos=int(self.ids.current_track_slider.value)
         Logger.info('Application: current_track_slider_up('+str(curpos)+')')
         self.update_slider=False
-        self.protocol.seekcur(str(curpos))
+        self.protocol.seekcur(str(curpos)).addErrback(self.handle_mpd_error)
         self.update_slider=True
 
     def current_track_slider_move(self):
@@ -90,9 +90,6 @@ class KmpcInterface(TabbedPanel):
 
     def handle_mpd_error(self,result):
         Logger.error('Application: MPDIdleHandler Callback error: {}'.format(result))
-
-    def testprint(self,result):
-        print format(result)
 
     def update_mpd_status(self,result):
         Logger.debug('NowPlaying: update_mpd_status()')
@@ -107,7 +104,7 @@ class KmpcInterface(TabbedPanel):
         else:
             self.currsong=result['song']
             # save the next song for later use
-            if result['nextsong']:
+            if 'nextsong' in result:
                 self.nextsong=result['nextsong']
             else:
                 self.nextsong=None
@@ -179,9 +176,9 @@ class KmpcInterface(TabbedPanel):
     def play_pressed(self):
         Logger.debug('Application: play_pressed()')
         if self.mpd_status['state'] == 'play':
-            self.protocol.pause().addCallback(self.testprint).addErrback(self.handle_mpd_error)
+            self.protocol.pause()
         else:
-            self.protocol.play().addCallback(self.testprint).addErrback(self.handle_mpd_error)
+            self.protocol.play()
 
     def next_pressed(self):
         Logger.debug('Application: next_pressed()')

@@ -14,27 +14,22 @@ class PlaylistTabbedPanelItem(TabbedPanelItem):
     def playlist_clear_pressed(self):
         Logger.info("Playlist: clear")
         self.protocol.clear()
-        self.protocol.playlistinfo().addCallback(self.populate_playlist).addErrback(self.handle_mpd_error)
 
     def playlist_delete_pressed(self):
         Logger.info("Playlist: delete")
         for pos in self.playlist_marked:
             Logger.debug("Playlist: deleting pos "+pos)
             self.protocol.delete(pos)
-        self.protocol.playlistinfo().addCallback(self.populate_playlist).addErrback(self.handle_mpd_error)
 
     def playlist_move_pressed(self):
         Logger.info("Playlist: move")
-        self.protocol.playlistinfo().addCallback(self.populate_playlist).addErrback(self.handle_mpd_error)
 
     def playlist_shuffle_pressed(self):
         Logger.info("Playlist: shuffle")
         self.protocol.shuffle()
-        self.protocol.playlistinfo().addCallback(self.populate_playlist).addErrback(self.handle_mpd_error)
 
     def playlist_swap_pressed(self):
         Logger.info("Playlist: swap")
-        self.protocol.playlistinfo().addCallback(self.populate_playlist).addErrback(self.handle_mpd_error)
 
     def populate_playlist(self,result):
         Logger.info("Application: populate_playlist()")
