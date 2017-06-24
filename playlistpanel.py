@@ -35,13 +35,18 @@ class PlaylistTabbedPanelItem(TabbedPanelItem):
 
     def playlist_move_pressed(self):
         Logger.info("Playlist: move")
+        Logger.warn("Playlist: move not implemented")
+        self.prbl.clear_selection()
 
     def playlist_shuffle_pressed(self):
         Logger.info("Playlist: shuffle")
         self.protocol.shuffle()
+        self.prbl.clear_selection()
 
     def playlist_swap_pressed(self):
         Logger.info("Playlist: swap")
+        Logger.warn("Playlist: swap not implemented")
+        self.prbl.clear_selection()
 
     def populate_playlist(self,result):
         Logger.info("Playlist: populate_playlist()")
