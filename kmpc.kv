@@ -208,43 +208,44 @@
                 text: 'Playlists'
                 id: playlists_button
                 on_press: root.change_view_type(self.text)
-        BoxLayout:
+        Label:
+            id: current_header
             size_hint_y: 0.1
-            Label:
-                id: current_header
+            size_hint_x: 1
+            padding_x: sp(10)
+            text: ''
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+        BoxLayout:
+            orientation: 'horizontal'
+            RecycleView:
+                id: rv
+                size_hint_y: 1
                 size_hint_x: 1
-                padding_x: sp(10)
-#                size_hint_y: 0.1
-                text: ''
-                text_size: self.size
-                halign: 'center'
-                valign: 'middle'
-        RecycleView:
-            id: rv
-            size_hint_y: 1
-            rv_selection: {}
-            scroll_type: ['bars','content']
-            bar_width: sp(40)
-            viewclass: 'LibraryRow'
-            LibraryRecycleBoxLayout:
-                id: rbl
-                default_size: None, sp(56)
-                default_size_hint: 1, None
-                size_hint_y: None
-                height: self.minimum_height
+                rv_selection: {}
+                scroll_type: ['bars','content']
+                bar_width: sp(40)
+                viewclass: 'LibraryRow'
+                LibraryRecycleBoxLayout:
+                    id: rbl
+                    default_size: None, sp(56)
+                    default_size_hint: 1, None
+                    size_hint_y: None
+                    height: self.minimum_height
+                    orientation: 'vertical'
+                    spacing: sp(2)
+                    multiselect: True
+                    touch_multiselect: True
+            BoxLayout:
                 orientation: 'vertical'
-                spacing: sp(2)
-                multiselect: True
-                touch_multiselect: True
-#        BoxLayout:
-#            orientation: 'vertical'
-#            size_hint_x: '0.1'
-#            Button:
-#                text: '+'
-#                on_press: root.browser_add(False)
-#            Button:
-#                text: '!'
-#                on_press: root.browser_add(True)
+                size_hint_x: '0.05'
+                Button:
+                    text: '+'
+                    on_press: root.browser_add(False)
+                Button:
+                    text: '!'
+                    on_press: root.browser_add(True)
 
 <KmpcInterface>:
     do_default_tab: False

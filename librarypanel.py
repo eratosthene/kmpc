@@ -90,7 +90,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             if 'playlist' in row:
                 if self.current_view['info']['type'] != 'uri':
                     Logger.debug("Library: playlist found = "+row['playlist'])
-                    r = {'value':row['playlist'],'info':{'type':'playlist'}}
+                    r = {'value':row['playlist'],'base':row['playlist'],'info':{'type':'playlist'}}
                     self.rv.data.append(r)
             elif 'directory' in row:
                 Logger.debug("Library: directory found: ["+row['directory']+"]")
@@ -121,7 +121,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
                 else:
                     Logger.warn("Library: not sure what to do with ["+format(row)+"]")
 
-    def handle_double_click(self,row):
+    def handle_double_click(self,row,index):
         Logger.debug("Library: handle_double_click("+format(row)+")")
         self.current_view = deepcopy(row)
         if row['info']['type'] == 'uri':
@@ -136,6 +136,15 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             self.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'artistsort':
             self.protocol.list('title','artistsort',row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+        elif row['info']['type'] == 'playlist':
+            self.protocol.clear()
+            self.protocol.load(row['base'])
+            self.protocol.play('0')
+        elif row['info']['type'] == 'file':
+            self.protocol.clear()
+            (a,b)=os.path.split(row['base'])
+            self.protocol.add(a)
+            self.protocol.play(str(int(index)-1))
         else:
             Logger.warn("Library: double click for ["+format(row)+"] not implemented")
 
@@ -146,26 +155,35 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
         for rrow in result:
             self.protocol.add(rrow['file'])
 
+    def browser_add_find_one(self,result):
+        for rrow in result:
+            self.protocol.add(rrow['file'])
+            break
+
     def browser_add(self,clearfirst):
-        Logger.debug('Application: browser_add('+str(clearfirst)+')')
+        Logger.info('Library: browser_add('+str(clearfirst)+')')
         if clearfirst:
-            Logger.info('Browser: Clearing playlist')
+            Logger.info('Library: Clearing playlist')
             self.protocol.clear()
-        for row in self.browser_marked:
-            mtype=self.browser_marked[row]['type']
-            Logger.info("Browser: Adding "+mtype+" '"+row+"' to current playlist")
-            if mtype == 'uri':
-                self.protocol.add(row)
+        for index in self.rbl.selected_nodes:
+            row = self.rv.data[index]
+            mtype=row['info']['type']
+            Logger.info("Library: Adding "+mtype+" '"+row['base']+"' to current playlist")
+            if mtype == 'uri' or mtype == 'file':
+                self.protocol.add(row['base'])
             elif mtype == 'albumartistsort':
-                self.protocol.find(mtype,row).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
+                self.protocol.find(mtype,row['base']).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
             elif mtype == 'album':
-                self.protocol.find(mtype,row,'albumartistsort',self.browser_marked[row]['albumartistsort']).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
+                self.protocol.find(mtype,row['base'],'albumartistsort',row['info']['albumartistsort']).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
             elif mtype == 'artistsort':
-                self.protocol.find(mtype,row).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
-            elif mtype == 'title':
-                self.protocol.find('artistsort',self.browser_marked[row]['artistsort'],mtype,row).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
+                self.protocol.find(mtype,row['base']).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
+            elif mtype == 'track':
+                self.protocol.find('artistsort',row['info']['artistsort'],'title',row['base']).addCallback(self.browser_add_find_one).addErrback(self.handle_mpd_error)
+            elif mtype == 'playlist':
+                self.protocol.load(row['base'])
             else:
-                Logger.warning("Browser: "+mtype+' not implemented')
+                Logger.warning("Library: "+mtype+' not implemented')
+        self.rbl.clear_selection()
 
 class LibraryRecycleBoxLayout(FocusBehavior,LayoutSelectionBehavior,RecycleBoxLayout):
     ''' Adds selection and focus behaviour to the view. '''
@@ -191,7 +209,7 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
             if touch.is_double_tap:
                 Logger.debug("Library: double-click on "+str(self.index))
                 App.get_running_app().root.ids.library_tab.rbl.clear_selection()
-                App.get_running_app().root.ids.library_tab.handle_double_click(App.get_running_app().root.ids.library_tab.rv.data[self.index])
+                App.get_running_app().root.ids.library_tab.handle_double_click(App.get_running_app().root.ids.library_tab.rv.data[self.index],self.index)
             else:
                 return self.parent.select_with_touch(self.index, touch)
 
