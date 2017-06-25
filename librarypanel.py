@@ -7,7 +7,6 @@ from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.logger import Logger
-from kivy.metrics import Metrics
 from twisted.internet.defer import inlineCallbacks
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.properties import BooleanProperty
@@ -30,15 +29,31 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
         if value == 'Files':
             self.current_view = {'value': 'root','base':'/','info':{'type':'uri'}}
             self.protocol.lsinfo(self.current_view['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            self.ids.files_button.state='down'
+            self.ids.albums_button.state='normal'
+            self.ids.tracks_button.state='normal'
+            self.ids.playlists_button.state='normal'
         elif value == 'Albums':
             self.current_view = {'value': 'All Album Artists','base':'All Album Artists','info':{'type':'rootalbums'}}
             self.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            self.ids.files_button.state='normal'
+            self.ids.albums_button.state='down'
+            self.ids.tracks_button.state='normal'
+            self.ids.playlists_button.state='normal'
         elif value == 'Tracks':
             self.current_view = {'value': 'All Track Artists','base':'All Track Artists','info':{'type':'roottracks'}}
             self.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            self.ids.files_button.state='normal'
+            self.ids.albums_button.state='normal'
+            self.ids.tracks_button.state='down'
+            self.ids.playlists_button.state='normal'
         elif value == 'Playlists':
             self.current_view = {'value':'All Playlists','base':'All Playlists','info':{'type':'playlist'}}
             self.protocol.listplaylists().addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            self.ids.files_button.state='normal'
+            self.ids.albums_button.state='normal'
+            self.ids.tracks_button.state='normal'
+            self.ids.playlists_button.state='down'
 
     def reload_view(self,result):
         Logger.info("Library: reload_view() current type: "+self.current_view['info']['type'])
@@ -73,9 +88,10 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             self.current_header.text = self.current_view['base']
         for row in result:
             if 'playlist' in row:
-                Logger.debug("Library: playlist found = "+row['playlist'])
-                r = {'value':row['playlist'],'info':{'type':'playlist'}}
-                self.rv.data.append(r)
+                if self.current_view['info']['type'] != 'uri':
+                    Logger.debug("Library: playlist found = "+row['playlist'])
+                    r = {'value':row['playlist'],'info':{'type':'playlist'}}
+                    self.rv.data.append(r)
             elif 'directory' in row:
                 Logger.debug("Library: directory found: ["+row['directory']+"]")
                 (b1,b2)=os.path.split(row['directory'])

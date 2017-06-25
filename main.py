@@ -14,7 +14,6 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.boxlayout import BoxLayout
 from kivy.logger import Logger
-from kivy.metrics import Metrics
 from kivy.graphics import Color,Rectangle
 from kivy.uix.popup import Popup
 from mpd import MPDProtocol
@@ -272,9 +271,5 @@ class KmpcApp(App):
         return KmpcInterface(self.config)
 
 if __name__ == '__main__':
-    Logger.info("Metrics: density "+format(Metrics.density))
-    Logger.info("Metrics: dpi "+format(Metrics.dpi))
-    Logger.info("Metrics: fontscale "+format(Metrics.fontscale))
-    Logger.info("Metrics: 1 sp = "+format(kivy.metrics.sp(1)))
     KmpcApp().run()
 

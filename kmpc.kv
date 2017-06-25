@@ -10,6 +10,7 @@
     font_size: '20sp'
 
 <Button>:
+    border: (4,4,4,4)
     background_normal: 'resources/button-normal.png'
     background_down: 'resources/button-down.png'
 
@@ -191,17 +192,21 @@
         BoxLayout:
             size_hint_y: 0.1
             orientation: 'horizontal'
-            Button:
+            ToggleButton:
                 text: 'Files'
+                id: files_button
                 on_press: root.change_view_type(self.text)
-            Button:
+            ToggleButton:
                 text: 'Albums'
+                id: albums_button
                 on_press: root.change_view_type(self.text)
-            Button:
+            ToggleButton:
                 text: 'Tracks'
+                id: tracks_button
                 on_press: root.change_view_type(self.text)
-            Button:
+            ToggleButton:
                 text: 'Playlists'
+                id: playlists_button
                 on_press: root.change_view_type(self.text)
         BoxLayout:
             size_hint_y: 0.1

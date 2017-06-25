@@ -6,7 +6,6 @@ from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.logger import Logger
-from kivy.metrics import Metrics
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.properties import BooleanProperty
 from kivy.uix.recycleboxlayout import RecycleBoxLayout
