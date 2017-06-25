@@ -82,11 +82,6 @@ class PlaylistRow(RecycleDataViewBehavior,BoxLayout):
     selected = BooleanProperty(False)
     selectable = BooleanProperty(True)
 
-    def playfrom(self, touch, index, *args):
-        Logger.debug("Playlist: long-touch playfrom "+str(index))
-        App.get_running_app().root.protocol.play(str(index))
-        App.get_running_app().root.ids.playlist_tab.prbl.clear_selection()
-
     def refresh_view_attrs(self, rv, index, data):
         ''' Catch and handle the view changes '''
         self.index = index
@@ -98,18 +93,13 @@ class PlaylistRow(RecycleDataViewBehavior,BoxLayout):
         if super(PlaylistRow, self).on_touch_down(touch):
             return True
         if self.collide_point(*touch.pos) and self.selectable:
-            # these lines start a 1 second clock to detect long-presses
-            callback = partial(self.playfrom, touch, self.index)
-            Clock.schedule_once(callback, 1)
-            touch.ud['event'] = callback
-            return self.parent.select_with_touch(self.index, touch)
-
-    def on_touch_up(self, touch):
-        if super(PlaylistRow, self).on_touch_up(touch):
-            return True
-        # if i don't check for this, the app crashes when things scroll off screen
-        if 'event' in touch.ud:
-            Clock.unschedule(touch.ud['event'])
+            # if we have a double-click, play from that location instead of selecting
+            if touch.is_double_tap:
+                Logger.debug("Playlist: double-click playfrom "+str(self.index))
+                App.get_running_app().root.protocol.play(str(self.index))
+                App.get_running_app().root.ids.playlist_tab.prbl.clear_selection()
+            else:
+                return self.parent.select_with_touch(self.index, touch)
 
     def apply_selection(self, rv, index, is_selected):
         ''' Respond to the selection of items in the view. '''
@@ -121,5 +111,3 @@ class PlaylistRow(RecycleDataViewBehavior,BoxLayout):
             if index in pt.playlist_selection:
                 del pt.playlist_selection[index]
 
-#    def build(self):
-#        self.root.bind(on_touch_down=self.create_clock,on_touch_up=self.delete_clock)
