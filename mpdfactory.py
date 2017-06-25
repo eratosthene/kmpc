@@ -32,21 +32,13 @@ class MPDIdleHandler(object):
                 # update everything 'currentsong' can tell us, cascade it down too
                 self.protocol.currentsong().addCallback(app.root.update_mpd_currentsong).addErrback(app.root.handle_mpd_error)
             elif format(s) == 'sticker':
-                pass
+                # update everything 'currentsong' can tell us, cascade it down too
+                self.protocol.currentsong().addCallback(app.root.update_mpd_currentsong).addErrback(app.root.handle_mpd_error)
 
         # the following is done no matter what, so that now playing updates at least every second
         # update everything 'status' can tell us
         self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
         self.protocol.status().addCallback(app.root.ids.playlist_tab.update_mpd_status).addErrback(app.root.ids.playlist_tab.handle_mpd_error)
-
-#### this stuff all needs to only happen on Changed events above and on first run, plz fix kthx
-
-        # if 'status' said there is a next track, update that too
-#        if app.root.nextsong:
-#            self.protocol.playlistinfo(app.root.nextsong).addCallback(app.root.update_mpd_nextsong).addErrback(app.root.handle_mpd_error)
-#        else:
-#            app.root.ids.next_track_label.text = ''
-#            app.root.ids.next_song_artist_label.text = ''
 
 class MPDClientFactory(protocol.ReconnectingClientFactory):
     protocol = MPDFactoryProtocol

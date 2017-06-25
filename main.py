@@ -16,6 +16,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.logger import Logger
 from kivy.metrics import Metrics
 from kivy.graphics import Color,Rectangle
+from kivy.uix.popup import Popup
 from mpd import MPDProtocol
 import os
 import traceback
@@ -31,7 +32,7 @@ from twisted.internet import task
 from twisted.internet.defer import inlineCallbacks
 
 from mpdfactory import MPDClientFactory
-from extra import ScrollButton,ScrollBoxLayout
+from extra import ScrollButton,ScrollBoxLayout,songratings
 from playlistpanel import PlaylistTabbedPanelItem
 
 class KmpcInterface(TabbedPanel):
@@ -184,29 +185,7 @@ class KmpcInterface(TabbedPanel):
     def update_mpd_sticker_rating(self,result):
         Logger.debug('NowPlaying: update_mpd_sticker_rating')
         btn = self.ids.current_song_stars
-        # this is silly, but it's because we're building it out of characters
-        if int(result) == 10:
-            btn.text = u"\uf005\uf005\uf005\uf005\uf005"
-        elif int(result) == 9:
-            btn.text = u"\uf005\uf005\uf005\uf005\uf123"
-        elif int(result) == 8:
-            btn.text = u"\uf005\uf005\uf005\uf005\uf006"
-        elif int(result) == 7:
-            btn.text = u"\uf005\uf005\uf005\uf123\uf006"
-        elif int(result) == 6:
-            btn.text = u"\uf005\uf005\uf005\uf006\uf006"
-        elif int(result) == 5:
-            btn.text = u"\uf005\uf005\uf123\uf006\uf006"
-        elif int(result) == 4:
-            btn.text = u"\uf005\uf005\uf006\uf006\uf006"
-        elif int(result) == 3:
-            btn.text = u"\uf005\uf123\uf006\uf006\uf006"
-        elif int(result) == 2:
-            btn.text = u"\uf005\uf006\uf006\uf006\uf006"
-        elif int(result) == 1:
-            btn.text = u"\uf123\uf006\uf006\uf006\uf006"
-        elif int(result) == 0:
-            btn.text = u"\uf006\uf006\uf006\uf006\uf006"
+        btn.text = songratings[result]['stars']
 
     def handle_mpd_no_sticker(self,result):
         Logger.debug('NowPlaying: handle_mpd_no_sticker')
@@ -249,6 +228,26 @@ class KmpcInterface(TabbedPanel):
     def consume_pressed(self):
         Logger.debug('Application: consume_pressed()')
         self.protocol.consume(str(1-int(self.mpd_status['consume'])))
+
+    def rating_popup(self):
+        Logger.debug('Application: rating_popup()')
+        layout = GridLayout(cols=2,spacing=10)
+        popup = Popup(title='Rating',content=layout,size_hint=(0.8,1))
+        for r in list(range(0,11)):
+            btn=Button(font_name='resources/FontAwesome.ttf')
+            btn.text=songratings[str(r)]['stars']
+            btn.rating=str(r)
+            btn.popup=popup
+            layout.add_widget(btn)
+            btn.bind(on_press=self.rating_set)
+            lbl=Label(text=songratings[str(r)]['meaning'],halign='left')
+            layout.add_widget(lbl)
+        popup.open()
+
+    def rating_set(self,instance):
+        Logger.debug('Application: rating_set('+instance.rating+')')
+        instance.popup.dismiss()
+        self.protocol.sticker_set('song',self.currfile,'rating',instance.rating)
 
 class KmpcApp(App):
     def build_config(self,config):
