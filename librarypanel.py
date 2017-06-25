@@ -43,20 +43,21 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
         Logger.info("Library: View changed to "+value)
         self.rbl.clear_selection()
         if value == 'Files':
-            self.current_view = {'base':'/','info':{'type':'uri'}}
+            self.current_view = {'value': 'root','base':'/','info':{'type':'uri'}}
             self.protocol.lsinfo(self.current_view['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif value == 'Albums':
-            pass
-            #self.populate_album_browser()
+            self.current_view = {'value': 'All Album Artists','base':'All Album Artists','info':{'type':'rootalbums'}}
+            self.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif value == 'Tracks':
             pass
             #self.populate_track_browser()
         elif value == 'Playlists':
-            self.current_view = {'value':'All Playlists','info':{'type':'playlist'}}
+            self.current_view = {'value':'All Playlists','base':'All Playlists','info':{'type':'playlist'}}
             self.protocol.listplaylists().addCallback(self.reload_view).addErrback(self.handle_mpd_error)
 
     def reload_view(self,result):
         Logger.info("Library: reload_view()")
+        print "type "+self.current_view['info']['type']
         self.rv.data=[]
         if self.current_view['info']['type'] == 'uri':
             if self.current_view['base'] != '/':
@@ -76,8 +77,16 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
                 self.current_header.text = tbase
             else:
                 self.current_header.text = 'All Files'
-        elif self.current_view['info']['type'] == 'playlist':
-            self.current_header.text = self.current_view['value']
+        elif self.current_view['info']['type'] == 'albumartistsort':
+            r={'value': 'up to All Album Artists','base':'All Album Artists','info':{'type':'rootalbums'}}
+            self.rv.data.append(r)
+            self.current_header.text = self.current_view['base']
+        elif self.current_view['info']['type'] == 'album':
+            r={'value':'up to '+self.current_view['info']['albumartistsort'],'base':self.current_view['info']['albumartistsort'],'info':{'type':'albumartistsort'}}
+            self.rv.data.append(r)
+            self.current_header.text = self.current_view['base']
+        else:
+            self.current_header.text = self.current_view['base']
         for row in result:
             if 'playlist' in row:
                 Logger.debug("Library: playlist found = "+row['playlist'])
@@ -92,6 +101,17 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
                 Logger.debug("FileBrowser: file found: ["+row['file']+"]")
                 r={'value':formatsong(row),'base':row['file'],'info':{'type':'file'}}
                 self.rv.data.append(r)
+            else:
+                if self.current_view['info']['type'] == 'rootalbums':
+                    Logger.debug("Library: album artist found: ["+row+"]")
+                    r={'value':row,'base':row,'info':{'type':'albumartistsort'}}
+                    self.rv.data.append(r)
+                elif self.current_view['info']['type'] == 'albumartistsort':
+                    Logger.debug("Library: album found: ["+row+"]")
+                    r={'value':row,'base':row,'info':{'type':'album','albumartistsort':self.current_view['base']}}
+                    self.rv.data.append(r)
+                else:
+                    print format(row)
 
     def handle_double_click(self,row):
         Logger.debug("Library: handle_double_click("+format(row)+")")
@@ -101,6 +121,12 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
         print "new current_view = "+format(self.current_view)
         if row['info']['type'] == 'uri':
             self.protocol.lsinfo(row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+        elif row['info']['type'] == 'rootalbums':
+            self.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+        elif row['info']['type'] == 'albumartistsort':
+            self.protocol.list('album','albumartistsort',row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+        elif row['info']['type'] == 'album':
+            self.protocol.find('album',row['base'],'albumartistsort',row['info']['albumartistsort']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'playlist':
             print "NOT IMPLEMENTED"
         else:
@@ -108,77 +134,6 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
 
     def handle_mpd_error(self,result):
         Logger.error('Library: MPDIdleHandler Callback error: {}'.format(result))
-
-    def populate_file_browser(self,result):
-#        self.browser_marked={}
-        base=self.file_browser_base
-        (hbase,tbase)=os.path.split(base)
-        Logger.info("Library: populate_file_browser, base=["+base+"], tbase=["+tbase+"]")
-#        self.ids.library_files_sv.clear_widgets()
-#        layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
-#        layout.bind(minimum_height=layout.setter('height'))
-        self.rv.data=[]
-        if base != '/':
-            (b1,b2)=os.path.split(hbase)
-            if b2 == '':
-                b2 = 'root'
-            btn = Button(text=".. ("+b2+")",size_hint_y=None,height='50sp')
-            btn.base=os.path.normpath(base+'/..')
-#            btn.repopulate = True
-            if btn.base == '.':
-                btn.base = '/'
- #           btn.bind(on_press=self.file_browser_button)
-            layout.add_widget(btn)
-            lbl = Label(text=tbase,size_hint_y=None,height='50sp')
-            layout.add_widget(lbl)
-#        pos=0
-        for row in result:
-            if 'directory' in row:
-                Logger.debug("FileBrowser: directory found: ["+row['directory']+"]")
-                (b1,b2)=os.path.split(row['directory'])
-                r={'value':b2,'base':row['directory'],'info':{'type':'uri'}}
-                self.rv.data.append(r)
-#                btn = ScrollButton(text=b2)
-#                btn.base = row['directory']
-#                btn.repopulate = True
-#                btn.bind(on_press=self.file_browser_button)
-#                bl = ScrollBoxLayout(orientation='horizontal')
-#                chk = CheckBox(size_hint_x=None)
-#                chk.base = row['directory']
-#                chk.info = {'type':'uri'}
-#                chk.bind(active=self.browser_checkbox_pressed)
-#                bl.add_widget(chk)
-#                bl.add_widget(btn)
-#                layout.add_widget(bl)
-            elif 'file' in row:
-                Logger.debug("FileBrowser: file found: ["+row['file']+"]")
-                r={'value':formatsong(row),'base':os.path.normpath(base),'info':{'type':'uri'}}
-                self.rv.data.append(r)
-#                btn = ScrollButton(text=formatsong(row))
-#                btn.base=os.path.normpath(base)
-#                btn.repopulate = False
-#                btn.plpos=pos
-#                btn.bind(on_press=self.file_browser_button)
-#                bl = ScrollBoxLayout(orientation='horizontal')
-#                chk = CheckBox(size_hint_x=None)
-#                chk.base = row['file']
-#                chk.info = {'type':'uri'}
-#                chk.bind(active=self.browser_checkbox_pressed)
-#                bl.add_widget(chk)
-#                bl.add_widget(btn)
-#                layout.add_widget(bl)
-#            pos+=1
-#        self.ids.library_files_sv.add_widget(layout)
-
-    def file_browser_button(self,instance):
-        Logger.debug('Library: file_browser_button('+instance.text+')')
-        if instance.repopulate:
-            self.file_browser_base=instance.base
-            self.protocol.lsinfo(self.file_browser_base).addCallback(self.populate_file_browser).addErrback(self.handle_mpd_error)
-        else:
-            self.protocol.clear()
-            self.protocol.add(instance.base)
-            self.protocol.play(str(instance.plpos))
 
     def populate_album_browser(self):
         self.album_browser_marked={}
@@ -347,14 +302,6 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
         else:
             self.track_browser_base={'level':'root','base':'root'}
         self.populate_track_browser()
-
-    def populate_playlist_browser(self,result):
-        Logger.info("Library: populate_playlist_browser()")
-        self.rv.data=[]
-        for row in result:
-            Logger.debug("PlaylistBrowser: playlist found = "+row['playlist'])
-            r = {'value':row['playlist'],'info':{'type':'playlist'}}
-            self.rv.data.append(r)
 
     def browser_checkbox_pressed(self,checkbox,value):
         Logger.debug("Library: browser_checkbox_pressed("+checkbox.base+","+format(checkbox.info)+")")
