@@ -16,9 +16,11 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.logger import Logger
 from kivy.graphics import Color,Rectangle
 from kivy.uix.popup import Popup
+from kivy.core.image import Image as CoreImage
 from mpd import MPDProtocol
 import os
 import traceback
+import mutagen
 
 #install twisted reactor to interface with mpd
 import sys
@@ -46,7 +48,6 @@ class KmpcInterface(TabbedPanel):
         reactor.connectTCP(self.config.get('mpd','host'), self.config.getint('mpd','port'), self.factory)
         # bind callbacks for tab changes
         self.bind(current_tab=self.main_tab_changed)
-#        self.ids.library_tab.ids.library_panel.bind(current_tab=self.ids.library_tab.library_tab_changed)
         self.mpd_status={'state':'stop','repeat':0,'single':0,'random':0,'consume':0,'curpos':0}
         self.update_slider=True
         self.currsong=None
@@ -74,9 +75,6 @@ class KmpcInterface(TabbedPanel):
             self.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
         elif self.active_tab == 'Library':
             pass
-#            if self.ids.library_tab.ids.library_panel.active_tab is None:
-#                self.ids.library_tab.ids.library_panel.active_tab = 'Files'
-#                self.protocol.lsinfo(self.ids.library_tab.file_browser_base).addCallback(self.ids.library_tab.populate_file_browser).addErrback(self.ids.library_tab.handle_mpd_error)
 
     def mpd_connectionLost(self,protocol, reason):
         Logger.info('Application: Connection lost: %s' % reason)
@@ -170,6 +168,38 @@ class KmpcInterface(TabbedPanel):
             self.ids.current_album_label.text = result['album']
             self.currfile = result['file']
             self.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
+            bp=self.config.get('mpd','basepath')
+            p=os.path.join(bp,result['file'])
+            if os.path.isfile(p):
+                Logger.debug('NowPlaying: found good file at path '+p)
+                f = mutagen.File(p)
+                pframes = f.tags.getall("APIC")
+                for frame in pframes:
+                    Logger.debug('NowPlaying: found embedded artwork')
+                    pic = bytearray(frame.data)
+                    ext = 'img'
+                    if frame.mime.endswith('jpeg') or frame.mime.endswith('jpg'):
+                        ext = 'jpg'
+                    elif frame.mime.endswith('png'):
+                        ext = 'png'
+                    elif frame.mime.endswith('bmp'):
+                        ext = 'bmp'
+                    elif frame.mime.endswith('gif'):
+                        ext = 'gif'
+                    tempfilename = 'cover.'+ext
+                    tempfilepath = os.path.join(self.config.get('mpd','tmppath'),tempfilename)
+                    try:
+                        os.remove(tempfilepath)
+                    except OSError:
+                        pass
+                    coverfile = open(tempfilepath,'wb')
+                    coverfile.write(pic)
+                    coverfile.close()
+                    self.ids.album_cover_image.source=tempfilepath
+                    self.ids.album_cover_image.reload()
+                    break
+            else:
+                Logger.debug('NowPlaying: no file found at path '+p)
         else:
             self.ids.current_track_time_label.text=''
             self.ids.current_track_totaltime_label.text=''
