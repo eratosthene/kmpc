@@ -181,16 +181,23 @@ class KmpcInterface(TabbedPanel):
             self.ids.next_track_label.text = ''
             self.ids.next_song_artist_label.text = ''
             self.currfile = None
+            self.ids.song_star_layout.clear_widgets()
 
     def update_mpd_sticker_rating(self,result):
-        Logger.debug('NowPlaying: update_mpd_sticker_rating')
-        btn = self.ids.current_song_stars
+        Logger.info('NowPlaying: update_mpd_sticker_rating')
+        btn = Button(padding_x='10sp',font_name='resources/FontAwesome.ttf',halign='center',valign='middle')
         btn.text = songratings[result]['stars']
+	btn.bind(on_press=self.rating_popup)
+	self.ids.song_star_layout.clear_widgets()
+	self.ids.song_star_layout.add_widget(btn)
 
     def handle_mpd_no_sticker(self,result):
-        Logger.debug('NowPlaying: handle_mpd_no_sticker')
-        btn = self.ids.current_song_stars
+        Logger.info('NowPlaying: handle_mpd_no_sticker')
+        btn = Button(padding_x='10sp',font_name='resources/FontAwesome.ttf',halign='center',valign='middle')
         btn.text = u"\uf29c"
+	btn.bind(on_press=self.rating_popup)
+	self.ids.song_star_layout.clear_widgets()
+	self.ids.song_star_layout.add_widget(btn)
 
     def update_mpd_nextsong(self,result):
         Logger.debug('NowPlaying: update_mpd_nextsong()')
@@ -229,7 +236,7 @@ class KmpcInterface(TabbedPanel):
         Logger.debug('Application: consume_pressed()')
         self.protocol.consume(str(1-int(self.mpd_status['consume'])))
 
-    def rating_popup(self):
+    def rating_popup(self,instance):
         Logger.debug('Application: rating_popup()')
         layout = GridLayout(cols=2,spacing=10)
         popup = Popup(title='Rating',content=layout,size_hint=(0.8,1))
