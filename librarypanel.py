@@ -21,23 +21,8 @@ import os
 from extra import ScrollButton,ScrollBoxLayout,formatsong
 
 class LibraryTabbedPanelItem(TabbedPanelItem):
-    current_view = {'base':'/','info':{'type':'uri'}}
-    album_browser_base = {"level":"root","base":"root","upto":None}
-    track_browser_base = {"level":"root","base":"root"}
+    current_view = {'value': 'root', 'base':'/','info':{'type':'uri'}}
     library_selection = {}
-
-    def library_tab_changed(self,obj,value):
-        tabname = value.text
-        self.ids.library_panel.active_tab = tabname
-        Logger.info("Library: Changed tab: "+tabname)
-        if tabname == 'Files':
-            self.protocol.lsinfo(self.file_browser_base).addCallback(self.populate_file_browser).addErrback(self.handle_mpd_error)
-        elif tabname == 'Albums':
-            self.populate_album_browser()
-        elif tabname == 'Tracks':
-            self.populate_track_browser()
-        elif tabname == 'Playlists':
-            self.protocol.listplaylists().addCallback(self.populate_playlist_browser).addErrback(self.handle_mpd_error)
 
     def change_view_type(self,value):
         Logger.info("Library: View changed to "+value)
@@ -49,30 +34,25 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             self.current_view = {'value': 'All Album Artists','base':'All Album Artists','info':{'type':'rootalbums'}}
             self.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif value == 'Tracks':
-            pass
-            #self.populate_track_browser()
+            self.current_view = {'value': 'All Track Artists','base':'All Track Artists','info':{'type':'roottracks'}}
+            self.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif value == 'Playlists':
             self.current_view = {'value':'All Playlists','base':'All Playlists','info':{'type':'playlist'}}
             self.protocol.listplaylists().addCallback(self.reload_view).addErrback(self.handle_mpd_error)
 
     def reload_view(self,result):
-        Logger.info("Library: reload_view()")
-        print "type "+self.current_view['info']['type']
+        Logger.info("Library: reload_view() current type: "+self.current_view['info']['type'])
         self.rv.data=[]
         if self.current_view['info']['type'] == 'uri':
             if self.current_view['base'] != '/':
-                print "browsing files, not in root"
                 (hbase,tbase)=os.path.split(self.current_view['base'])
-                print "hbase ["+hbase+"] tbase ["+tbase+"]"
                 (b1,b2)=os.path.split(hbase)
-                print "b1 ["+b1+"] b2 ["+b2+"]"
                 if b2 == '':
                     b2 = 'root'
                 upbase=os.path.normpath(self.current_view['base']+'/..')
                 if upbase == '.':
                     upbase = '/'
                 r = {'value':"up to "+b2,'base':upbase,'info':{'type':'uri'}}
-                print format(r)
                 self.rv.data.append(r)
                 self.current_header.text = tbase
             else:
@@ -83,6 +63,10 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             self.current_header.text = self.current_view['base']
         elif self.current_view['info']['type'] == 'album':
             r={'value':'up to '+self.current_view['info']['albumartistsort'],'base':self.current_view['info']['albumartistsort'],'info':{'type':'albumartistsort'}}
+            self.rv.data.append(r)
+            self.current_header.text = self.current_view['base']
+        elif self.current_view['info']['type'] == 'artistsort':
+            r={'value': 'up to All Track Artists','base':'All Track Artists','info':{'type':'roottracks'}}
             self.rv.data.append(r)
             self.current_header.text = self.current_view['base']
         else:
@@ -110,15 +94,20 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
                     Logger.debug("Library: album found: ["+row+"]")
                     r={'value':row,'base':row,'info':{'type':'album','albumartistsort':self.current_view['base']}}
                     self.rv.data.append(r)
+                elif self.current_view['info']['type'] == 'roottracks':
+                    Logger.debug("Library: track artist found: ["+row+"]")
+                    r={'value':row,'base':row,'info':{'type':'artistsort'}}
+                    self.rv.data.append(r)
+                elif self.current_view['info']['type'] == 'artistsort':
+                    Logger.debug("Library: track found: ["+row+"]")
+                    r={'value':row,'base':row,'info':{'type':'track','artistsort':self.current_view['base']}}
+                    self.rv.data.append(r)
                 else:
-                    print format(row)
+                    Logger.warn("Library: not sure what to do with ["+format(row)+"]")
 
     def handle_double_click(self,row):
         Logger.debug("Library: handle_double_click("+format(row)+")")
-        print format(row)
-        print "current_view = "+format(self.current_view)
         self.current_view = deepcopy(row)
-        print "new current_view = "+format(self.current_view)
         if row['info']['type'] == 'uri':
             self.protocol.lsinfo(row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'rootalbums':
@@ -127,189 +116,15 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             self.protocol.list('album','albumartistsort',row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'album':
             self.protocol.find('album',row['base'],'albumartistsort',row['info']['albumartistsort']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
-        elif row['info']['type'] == 'playlist':
-            print "NOT IMPLEMENTED"
+        elif row['info']['type'] == 'roottracks':
+            self.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+        elif row['info']['type'] == 'artistsort':
+            self.protocol.list('title','artistsort',row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         else:
-            print "NOT IMPLEMENTED"
+            Logger.warn("Library: double click for ["+format(row)+"] not implemented")
 
     def handle_mpd_error(self,result):
         Logger.error('Library: MPDIdleHandler Callback error: {}'.format(result))
-
-    def populate_album_browser(self):
-        self.album_browser_marked={}
-        base=self.album_browser_base['base']
-        level=self.album_browser_base['level']
-        upto=self.album_browser_base['upto']
-        Logger.info("Library: populate_album_browser, base=["+base+"] level=["+level+"]")
-        if self.album_browser_base['level'] == 'root':
-            self.protocol.list('albumartistsort').addCallback(self.populate_root_album_browser).addErrback(self.handle_mpd_error)
-        elif self.album_browser_base['level'] == 'artist':
-            self.protocol.list('album','albumartistsort',base).addCallback(self.populate_artist_album_browser).addErrback(self.handle_mpd_error)
-        elif self.album_browser_base['level'] == 'album':
-            self.protocol.find('album',base,'albumartistsort',upto).addCallback(self.populate_album_album_browser).addErrback(self.handle_mpd_error)
-
-    def populate_root_album_browser(self,result):
-        base=self.album_browser_base['base']
-        level=self.album_browser_base['level']
-        upto=self.album_browser_base['upto']
-        self.ids.library_albums_sv.clear_widgets()
-        layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
-        layout.bind(minimum_height=layout.setter('height'))
-        for row in result:
-            Logger.debug("AlbumBrowser: artist found = "+row)
-            btn = ScrollButton(text=row)
-            btn.base = row
-            btn.nextlevel = 'artist'
-            btn.bind(on_press=self.album_browser_button)
-            bl = ScrollBoxLayout(orientation='horizontal')
-            chk = CheckBox(size_hint_x=None)
-            chk.base = row
-            chk.info = {'type':'albumartistsort'}
-            chk.bind(active=self.browser_checkbox_pressed)
-            bl.add_widget(chk)
-            bl.add_widget(btn)
-            layout.add_widget(bl)
-        self.ids.library_albums_sv.add_widget(layout)
-
-    def populate_artist_album_browser(self,result):
-        base=self.album_browser_base['base']
-        level=self.album_browser_base['level']
-        upto=self.album_browser_base['upto']
-        self.ids.library_albums_sv.clear_widgets()
-        layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
-        layout.bind(minimum_height=layout.setter('height'))
-        btn = Button(text=".. (root)",size_hint_y=None,height='50sp')
-        btn.base = upto
-        btn.nextlevel = 'root'
-        btn.bind(on_press=self.album_browser_button)
-        layout.add_widget(btn)
-        lbl = Label(text=base,size_hint_y=None,height='50sp')
-        layout.add_widget(lbl)
-        for row in result:
-            Logger.debug('AlbumBrowser: album found = '+row)
-            btn = ScrollButton(text=row,size_hint_y=None)
-            btn.base = row
-            btn.nextlevel = 'album'
-            btn.bind(on_press=self.album_browser_button)
-            bl = ScrollBoxLayout(orientation='horizontal')
-            chk = CheckBox(size_hint_x=None)
-            chk.base = row
-            chk.info = {'type':'album','albumartistsort':base}
-            chk.bind(active=self.browser_checkbox_pressed)
-            bl.add_widget(chk)
-            bl.add_widget(btn)
-            layout.add_widget(bl)
-        self.ids.library_albums_sv.add_widget(layout)
-
-    def populate_album_album_browser(self,result):
-        base=self.album_browser_base['base']
-        level=self.album_browser_base['level']
-        upto=self.album_browser_base['upto']
-        self.ids.library_albums_sv.clear_widgets()
-        layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
-        layout.bind(minimum_height=layout.setter('height'))
-        btn = Button(text=".. ("+upto+")",size_hint_y=None,height='50sp')
-        btn.base = upto
-        btn.nextlevel = 'artist'
-        btn.bind(on_press=self.album_browser_button)
-        layout.add_widget(btn)
-        lbl = Label(text=base,size_hint_y=None,height='50sp')
-        layout.add_widget(lbl)
-        for row in result:
-            Logger.debug("AlbumBrowser: track found = "+row['file'])
-            btn = ScrollButton(text=formatsong(row),size_hint_y=None)
-            bl = ScrollBoxLayout(orientation='horizontal')
-            chk = CheckBox(size_hint_x=None)
-            chk.base = row['file']
-            chk.info = {'type':'uri'}
-            chk.bind(active=self.browser_checkbox_pressed)
-            bl.add_widget(chk)
-            bl.add_widget(btn)
-            layout.add_widget(bl)
-        self.ids.library_albums_sv.add_widget(layout)
-
-    def album_browser_button(self,instance):
-        Logger.debug('Library: album_browser_button('+instance.text+','+instance.base+','+instance.nextlevel+')')
-        blevel=self.album_browser_base['level']
-        bbase=self.album_browser_base['base']
-        bupto=self.album_browser_base['upto']
-        self.album_browser_base={'level':instance.nextlevel,'base':instance.base,'upto':bbase}
-        self.populate_album_browser()
-
-    def populate_track_browser(self):
-        self.browser_marked={}
-        base=self.track_browser_base['base']
-        level=self.track_browser_base['level']
-        Logger.info("Library: populate_track_browser, base=["+base+"] level=["+level+"]")
-        if self.track_browser_base['level'] == 'root':
-            self.protocol.list('artistsort').addCallback(self.populate_root_track_browser).addErrback(self.handle_mpd_error)
-        elif self.track_browser_base['level'] == 'artist':
-            self.protocol.list('title','artistsort',base).addCallback(self.populate_artist_track_browser).addErrback(self.handle_mpd_error)
-
-    def populate_root_track_browser(self,result):
-        base=self.track_browser_base['base']
-        level=self.track_browser_base['level']
-        self.ids.library_tracks_sv.clear_widgets()
-        layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
-        layout.bind(minimum_height=layout.setter('height'))
-        for row in result:
-            Logger.debug("TrackBrowser: artist found = "+row)
-            btn = ScrollButton(text=row)
-            btn.base = row
-            btn.nextlevel = 'artist'
-            btn.bind(on_press=self.track_browser_button)
-            bl = ScrollBoxLayout(orientation='horizontal')
-            chk = CheckBox(size_hint_x=None)
-            chk.base = row
-            chk.info = {'type':'artistsort'}
-            chk.bind(active=self.browser_checkbox_pressed)
-            bl.add_widget(chk)
-            bl.add_widget(btn)
-            layout.add_widget(bl)
-        self.ids.library_tracks_sv.add_widget(layout)
-
-    def populate_artist_track_browser(self,result):
-        base=self.track_browser_base['base']
-        level=self.track_browser_base['level']
-        self.ids.library_tracks_sv.clear_widgets()
-        layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
-        layout.bind(minimum_height=layout.setter('height'))
-        btn = Button(text=".. (root)",size_hint_y=None,height='50sp')
-        btn.base = 'root'
-        btn.bind(on_press=self.track_browser_button)
-        layout.add_widget(btn)
-        lbl = Label(text=base,size_hint_y=None,height='50sp')
-        layout.add_widget(lbl)
-        for row in result:
-            Logger.debug("TrackBrowser: track found = "+row)
-            btn = ScrollButton(text=row)
-            bl = ScrollBoxLayout(orientation='horizontal')
-            chk = CheckBox(size_hint_x=None)
-            chk.base = row
-            chk.info = {'type':'title','artistsort':base}
-            chk.bind(active=self.browser_checkbox_pressed)
-            bl.add_widget(chk)
-            bl.add_widget(btn)
-            layout.add_widget(bl)
-        self.ids.library_tracks_sv.add_widget(layout)
-
-    def track_browser_button(self,instance):
-        Logger.debug("Library: track_browser_button("+instance.text+","+instance.base+")")
-        blevel=self.track_browser_base['level']
-        bbase=self.track_browser_base['base']
-        if blevel == 'root':
-            self.track_browser_base={'level':'artist','base':instance.base}
-        else:
-            self.track_browser_base={'level':'root','base':'root'}
-        self.populate_track_browser()
-
-    def browser_checkbox_pressed(self,checkbox,value):
-        Logger.debug("Library: browser_checkbox_pressed("+checkbox.base+","+format(checkbox.info)+")")
-        if value:
-            self.browser_marked[checkbox.base]=checkbox.info
-        else:
-            if checkbox.base in self.browser_marked:
-                del self.browser_marked[checkbox.base]
 
     def browser_add_find(self,result):
         for rrow in result:
