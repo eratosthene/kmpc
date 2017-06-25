@@ -183,11 +183,13 @@
     text: 'Library'
     rv: rv
     rbl: rbl
+    current_header: current_header
     BackdropBoxLayout:
         orientation: 'vertical'
-        spacing: '10px'
+        padding: 0
+        spacing: 0
         BoxLayout:
-            size_hint_y: None
+            size_hint_y: 0.1
             orientation: 'horizontal'
             Button:
                 text: 'Files'
@@ -201,8 +203,20 @@
             Button:
                 text: 'Playlists'
                 on_press: root.change_view_type(self.text)
+        BoxLayout:
+            size_hint_y: 0.1
+            Label:
+                id: current_header
+                size_hint_x: 1
+                padding_x: sp(10)
+#                size_hint_y: 0.1
+                text: ''
+                text_size: self.size
+                halign: 'center'
+                valign: 'middle'
         RecycleView:
             id: rv
+            size_hint_y: 1
             rv_selection: {}
             scroll_type: ['bars','content']
             bar_width: sp(40)

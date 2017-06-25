@@ -52,26 +52,32 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             pass
             #self.populate_track_browser()
         elif value == 'Playlists':
-            self.current_view = {'info':{'type':'playlist'}}
+            self.current_view = {'value':'All Playlists','info':{'type':'playlist'}}
             self.protocol.listplaylists().addCallback(self.reload_view).addErrback(self.handle_mpd_error)
 
     def reload_view(self,result):
         Logger.info("Library: reload_view()")
         self.rv.data=[]
-        if self.current_view['info']['type'] == 'uri' and self.current_view['base'] != '/':
-            print "browsing files, not in root"
-            (hbase,tbase)=os.path.split(self.current_view['base'])
-            print "hbase ["+hbase+"] tbase ["+tbase+"]"
-            (b1,b2)=os.path.split(hbase)
-            print "b1 ["+b1+"] b2 ["+b2+"]"
-            if b2 == '':
-                b2 = 'root'
-            upbase=os.path.normpath(self.current_view['base']+'/..')
-            if upbase == '.':
-                upbase = '/'
-            r = {'value':"up to "+b2,'base':upbase,'info':{'type':'uri'}}
-            print format(r)
-            self.rv.data.append(r)
+        if self.current_view['info']['type'] == 'uri':
+            if self.current_view['base'] != '/':
+                print "browsing files, not in root"
+                (hbase,tbase)=os.path.split(self.current_view['base'])
+                print "hbase ["+hbase+"] tbase ["+tbase+"]"
+                (b1,b2)=os.path.split(hbase)
+                print "b1 ["+b1+"] b2 ["+b2+"]"
+                if b2 == '':
+                    b2 = 'root'
+                upbase=os.path.normpath(self.current_view['base']+'/..')
+                if upbase == '.':
+                    upbase = '/'
+                r = {'value':"up to "+b2,'base':upbase,'info':{'type':'uri'}}
+                print format(r)
+                self.rv.data.append(r)
+                self.current_header.text = tbase
+            else:
+                self.current_header.text = 'All Files'
+        elif self.current_view['info']['type'] == 'playlist':
+            self.current_header.text = self.current_view['value']
         for row in result:
             if 'playlist' in row:
                 Logger.debug("Library: playlist found = "+row['playlist'])
