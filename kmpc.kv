@@ -107,6 +107,36 @@
         text_size: self.size
         text: root.artist+' - '+root.title
 
+<LibraryRow>:
+    canvas.before:
+        Rectangle:
+            source: "resources/list-backdrop.png"          
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: (1,1,0,0.5) if self.selected else (0,0,0,0)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: (1,1,1,0.3)
+        Rectangle:
+            size: (self.width,sp(1))
+            pos: self.pos
+        Rectangle:
+            size: (self.width,sp(1))
+            pos: (self.x,self.top)
+    value: ''
+    base: ''
+    info: {}
+    Label:
+        size_hint_x: 1
+        halign: 'left'
+        valign: 'center'
+        text_size: self.size
+        text: root.value
+        padding_x: sp(10)
+
 <PlaylistTabbedPanelItem>:
     text: 'Playlist'
     rv: rv
@@ -149,6 +179,10 @@
 
 <LibraryTabbedPanelItem>:
     text: 'Library'
+    library_files_rv: library_files_rv
+    library_files_rbl: library_files_rbl
+    library_playlists_rv: library_playlists_rv
+    library_playlists_rbl: library_playlists_rbl
     BackdropBoxLayout:
         orientation: 'horizontal'
         spacing: '10px'
@@ -160,9 +194,25 @@
             do_default_tab: False
             TabbedPanelItem:
                 text: 'Files'
-                LibraryBoxLayout:
-                    LibraryScrollView:
-                        id: library_files_sv
+                RecycleView:
+                    id: library_files_rv
+                    rv_selection: {}
+                    scroll_type: ['bars','content']
+                    bar_width: sp(40)
+                    viewclass: 'LibraryRow'
+                    LibraryRecycleBoxLayout:
+                        id: library_files_rbl
+                        default_size: None, sp(56)
+                        default_size_hint: 1, None
+                        size_hint_y: None
+                        height: self.minimum_height
+                        orientation: 'vertical'
+                        spacing: sp(2)
+                        multiselect: True
+                        touch_multiselect: True
+#                LibraryBoxLayout:
+#                    LibraryScrollView:
+#                        id: library_files_sv
             TabbedPanelItem:
                 text: 'Albums'
                 LibraryBoxLayout:
@@ -175,9 +225,22 @@
                         id: library_tracks_sv
             TabbedPanelItem:
                 text: 'Playlists'
-                LibraryBoxLayout:
-                    LibraryScrollView:
-                        id: library_playlists_sv
+                RecycleView:
+                    id: library_playlists_rv
+                    rv_selection: {}
+                    scroll_type: ['bars','content']
+                    bar_width: sp(40)
+                    viewclass: 'LibraryRow'
+                    LibraryRecycleBoxLayout:
+                        id: library_playlists_rbl
+                        default_size: None, sp(56)
+                        default_size_hint: 1, None
+                        size_hint_y: None
+                        height: self.minimum_height
+                        orientation: 'vertical'
+                        spacing: sp(2)
+                        multiselect: True
+                        touch_multiselect: True
         BoxLayout:
             orientation: 'vertical'
             size_hint_x: '0.1'
