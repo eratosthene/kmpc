@@ -326,17 +326,18 @@
                     text: '1 of 10'
                     halign: 'center'
                     valign: 'middle'
-                Button:
+                BoxLayout:
                     size_hint_y: 1
                     size_hint_x: 0.2
-                    padding_x: '10sp'
-                    text_size: self.size
-                    id: current_song_stars
-                    font_name: 'resources/FontAwesome.ttf'
-                    text: u"\uf005\uf005\uf123\uf006\uf006"
-                    halign: 'center'
-                    valign: 'middle'
-                    on_press: root.rating_popup()
+                    Button:
+                        padding_x: '10sp'
+                        text_size: self.size
+                        id: current_song_stars
+                        font_name: 'resources/FontAwesome.ttf'
+                        text: u"\uf005\uf005\uf123\uf006\uf006"
+                        halign: 'center'
+                        valign: 'middle'
+                        on_press: root.rating_popup()
             BoxLayout:
                 size_hint: (1,0.15)
                 orientation: 'horizontal'
