@@ -184,7 +184,7 @@ class KmpcInterface(TabbedPanel):
             self.ids.song_star_layout.clear_widgets()
 
     def update_mpd_sticker_rating(self,result):
-        Logger.info('NowPlaying: update_mpd_sticker_rating')
+        Logger.debug('NowPlaying: update_mpd_sticker_rating')
         btn = Button(padding_x='10sp',font_name='resources/FontAwesome.ttf',halign='center',valign='middle')
         btn.text = songratings[result]['stars']
 	btn.bind(on_press=self.rating_popup)
@@ -192,7 +192,7 @@ class KmpcInterface(TabbedPanel):
 	self.ids.song_star_layout.add_widget(btn)
 
     def handle_mpd_no_sticker(self,result):
-        Logger.info('NowPlaying: handle_mpd_no_sticker')
+        Logger.debug('NowPlaying: handle_mpd_no_sticker')
         btn = Button(padding_x='10sp',font_name='resources/FontAwesome.ttf',halign='center',valign='middle')
         btn.text = u"\uf29c"
 	btn.bind(on_press=self.rating_popup)
