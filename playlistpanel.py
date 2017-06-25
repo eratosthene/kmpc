@@ -29,22 +29,22 @@ class PlaylistTabbedPanelItem(TabbedPanelItem):
         for pos in self.playlist_selection:
             Logger.debug("Playlist: deleting pos "+str(pos))
             self.protocol.delete(str(pos))
-        self.prbl.clear_selection()
+        self.rbl.clear_selection()
 
     def playlist_move_pressed(self):
         Logger.info("Playlist: move")
         Logger.warn("Playlist: move not implemented")
-        self.prbl.clear_selection()
+        self.rbl.clear_selection()
 
     def playlist_shuffle_pressed(self):
         Logger.info("Playlist: shuffle")
         self.protocol.shuffle()
-        self.prbl.clear_selection()
+        self.rbl.clear_selection()
 
     def playlist_swap_pressed(self):
         Logger.info("Playlist: swap")
         Logger.warn("Playlist: swap not implemented")
-        self.prbl.clear_selection()
+        self.rbl.clear_selection()
 
     def populate_playlist(self,result):
         Logger.info("Playlist: populate_playlist()")
@@ -97,7 +97,7 @@ class PlaylistRow(RecycleDataViewBehavior,BoxLayout):
             if touch.is_double_tap:
                 Logger.debug("Playlist: double-click playfrom "+str(self.index))
                 App.get_running_app().root.protocol.play(str(self.index))
-                App.get_running_app().root.ids.playlist_tab.prbl.clear_selection()
+                App.get_running_app().root.ids.playlist_tab.rbl.clear_selection()
             else:
                 return self.parent.select_with_touch(self.index, touch)
 

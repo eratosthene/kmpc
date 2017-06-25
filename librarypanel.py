@@ -15,13 +15,13 @@ from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 from kivy.uix.boxlayout import BoxLayout
+from copy import deepcopy
 import os
 
 from extra import ScrollButton,ScrollBoxLayout,formatsong
 
 class LibraryTabbedPanelItem(TabbedPanelItem):
-    file_browser_base = '/'
-    active_tab = None
+    current_view = {'base':'/','info':{'type':'uri'}}
     album_browser_base = {"level":"root","base":"root","upto":None}
     track_browser_base = {"level":"root","base":"root"}
     library_selection = {}
@@ -39,6 +39,67 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
         elif tabname == 'Playlists':
             self.protocol.listplaylists().addCallback(self.populate_playlist_browser).addErrback(self.handle_mpd_error)
 
+    def change_view_type(self,value):
+        Logger.info("Library: View changed to "+value)
+        self.rbl.clear_selection()
+        if value == 'Files':
+            self.current_view = {'base':'/','info':{'type':'uri'}}
+            self.protocol.lsinfo(self.current_view['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+        elif value == 'Albums':
+            pass
+            #self.populate_album_browser()
+        elif value == 'Tracks':
+            pass
+            #self.populate_track_browser()
+        elif value == 'Playlists':
+            self.current_view = {'info':{'type':'playlist'}}
+            self.protocol.listplaylists().addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+
+    def reload_view(self,result):
+        Logger.info("Library: reload_view()")
+        self.rv.data=[]
+        if self.current_view['info']['type'] == 'uri' and self.current_view['base'] != '/':
+            print "browsing files, not in root"
+            (hbase,tbase)=os.path.split(self.current_view['base'])
+            print "hbase ["+hbase+"] tbase ["+tbase+"]"
+            (b1,b2)=os.path.split(hbase)
+            print "b1 ["+b1+"] b2 ["+b2+"]"
+            if b2 == '':
+                b2 = 'root'
+            upbase=os.path.normpath(self.current_view['base']+'/..')
+            if upbase == '.':
+                upbase = '/'
+            r = {'value':"up to "+b2,'base':upbase,'info':{'type':'uri'}}
+            print format(r)
+            self.rv.data.append(r)
+        for row in result:
+            if 'playlist' in row:
+                Logger.debug("Library: playlist found = "+row['playlist'])
+                r = {'value':row['playlist'],'info':{'type':'playlist'}}
+                self.rv.data.append(r)
+            elif 'directory' in row:
+                Logger.debug("Library: directory found: ["+row['directory']+"]")
+                (b1,b2)=os.path.split(row['directory'])
+                r={'value':b2,'base':row['directory'],'info':{'type':'uri'}}
+                self.rv.data.append(r)
+            elif 'file' in row:
+                Logger.debug("FileBrowser: file found: ["+row['file']+"]")
+                r={'value':formatsong(row),'base':row['file'],'info':{'type':'file'}}
+                self.rv.data.append(r)
+
+    def handle_double_click(self,row):
+        Logger.debug("Library: handle_double_click("+format(row)+")")
+        print format(row)
+        print "current_view = "+format(self.current_view)
+        self.current_view = deepcopy(row)
+        print "new current_view = "+format(self.current_view)
+        if row['info']['type'] == 'uri':
+            self.protocol.lsinfo(row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+        elif row['info']['type'] == 'playlist':
+            print "NOT IMPLEMENTED"
+        else:
+            print "NOT IMPLEMENTED"
+
     def handle_mpd_error(self,result):
         Logger.error('Library: MPDIdleHandler Callback error: {}'.format(result))
 
@@ -50,7 +111,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
 #        self.ids.library_files_sv.clear_widgets()
 #        layout = GridLayout(cols=1,spacing=10,size_hint_y=None)
 #        layout.bind(minimum_height=layout.setter('height'))
-        self.library_files_rv.data=[]
+        self.rv.data=[]
         if base != '/':
             (b1,b2)=os.path.split(hbase)
             if b2 == '':
@@ -70,7 +131,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
                 Logger.debug("FileBrowser: directory found: ["+row['directory']+"]")
                 (b1,b2)=os.path.split(row['directory'])
                 r={'value':b2,'base':row['directory'],'info':{'type':'uri'}}
-                self.library_files_rv.data.append(r)
+                self.rv.data.append(r)
 #                btn = ScrollButton(text=b2)
 #                btn.base = row['directory']
 #                btn.repopulate = True
@@ -86,7 +147,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             elif 'file' in row:
                 Logger.debug("FileBrowser: file found: ["+row['file']+"]")
                 r={'value':formatsong(row),'base':os.path.normpath(base),'info':{'type':'uri'}}
-                self.library_files_rv.data.append(r)
+                self.rv.data.append(r)
 #                btn = ScrollButton(text=formatsong(row))
 #                btn.base=os.path.normpath(base)
 #                btn.repopulate = False
@@ -283,11 +344,11 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
 
     def populate_playlist_browser(self,result):
         Logger.info("Library: populate_playlist_browser()")
-        self.library_playlists_rv.data=[]
+        self.rv.data=[]
         for row in result:
             Logger.debug("PlaylistBrowser: playlist found = "+row['playlist'])
-            r = {'value':row['playlist']}
-            self.library_playlists_rv.data.append(r)
+            r = {'value':row['playlist'],'info':{'type':'playlist'}}
+            self.rv.data.append(r)
 
     def browser_checkbox_pressed(self,checkbox,value):
         Logger.debug("Library: browser_checkbox_pressed("+checkbox.base+","+format(checkbox.info)+")")
@@ -344,21 +405,18 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
         if self.collide_point(*touch.pos) and self.selectable:
             # if we have a double-click, play from that location instead of selecting
             if touch.is_double_tap:
-                Logger.debug("Library: double-click playfrom "+str(self.index))
-#                App.get_running_app().root.protocol.play(str(self.index))
-#                App.get_running_app().root.ids.playlist_tab.prbl.clear_selection()
+                Logger.debug("Library: double-click on "+str(self.index))
+                App.get_running_app().root.ids.library_tab.rbl.clear_selection()
+                App.get_running_app().root.ids.library_tab.handle_double_click(App.get_running_app().root.ids.library_tab.rv.data[self.index])
             else:
                 return self.parent.select_with_touch(self.index, touch)
 
     def apply_selection(self, rv, index, is_selected):
         ''' Respond to the selection of items in the view. '''
         self.selected = is_selected
-#        lt=App.get_running_app().root.ids.library_tab
+        lt=App.get_running_app().root.ids.library_tab
         if is_selected:
-            rv.rv_selection[index] = True
-#            lt.library_selection[index] = True
+            lt.library_selection[index] = True
         else:
-            if index in rv.rv_selection:
-                del rv.rv_selection[index]
-#            if index in lt.library_selection:
-#                del lt.library_selection[index]
+            if index in lt.library_selection:
+                del lt.library_selection[index]

@@ -47,7 +47,7 @@ class KmpcInterface(TabbedPanel):
         reactor.connectTCP(self.config.get('mpd','host'), self.config.getint('mpd','port'), self.factory)
         # bind callbacks for tab changes
         self.bind(current_tab=self.main_tab_changed)
-        self.ids.library_tab.ids.library_panel.bind(current_tab=self.ids.library_tab.library_tab_changed)
+#        self.ids.library_tab.ids.library_panel.bind(current_tab=self.ids.library_tab.library_tab_changed)
         self.mpd_status={'state':'stop','repeat':0,'single':0,'random':0,'consume':0,'curpos':0}
         self.update_slider=True
         self.currsong=None
@@ -74,9 +74,10 @@ class KmpcInterface(TabbedPanel):
         elif self.active_tab == 'Playlist':
             self.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
         elif self.active_tab == 'Library':
-            if self.ids.library_tab.ids.library_panel.active_tab is None:
-                self.ids.library_tab.ids.library_panel.active_tab = 'Files'
-                self.protocol.lsinfo(self.ids.library_tab.file_browser_base).addCallback(self.ids.library_tab.populate_file_browser).addErrback(self.ids.library_tab.handle_mpd_error)
+            pass
+#            if self.ids.library_tab.ids.library_panel.active_tab is None:
+#                self.ids.library_tab.ids.library_panel.active_tab = 'Files'
+#                self.protocol.lsinfo(self.ids.library_tab.file_browser_base).addCallback(self.ids.library_tab.populate_file_browser).addErrback(self.ids.library_tab.handle_mpd_error)
 
     def mpd_connectionLost(self,protocol, reason):
         Logger.info('Application: Connection lost: %s' % reason)

@@ -127,7 +127,9 @@
             size: (self.width,sp(1))
             pos: (self.x,self.top)
     value: ''
-    base: ''
+    base: 'root'
+    level: 'root'
+    upto: None
     info: {}
     Label:
         size_hint_x: 1
@@ -140,7 +142,7 @@
 <PlaylistTabbedPanelItem>:
     text: 'Playlist'
     rv: rv
-    prbl: prbl
+    rbl: rbl
     BackdropBoxLayout:
         orientation: 'vertical'
         BoxLayout:
@@ -167,7 +169,7 @@
             bar_width: sp(40)
             viewclass: 'PlaylistRow'
             PlaylistRecycleBoxLayout:
-                id: prbl
+                id: rbl
                 default_size: None, sp(56)
                 default_size_hint: 1, None
                 size_hint_y: None
@@ -179,77 +181,52 @@
 
 <LibraryTabbedPanelItem>:
     text: 'Library'
-    library_files_rv: library_files_rv
-    library_files_rbl: library_files_rbl
-    library_playlists_rv: library_playlists_rv
-    library_playlists_rbl: library_playlists_rbl
+    rv: rv
+    rbl: rbl
     BackdropBoxLayout:
-        orientation: 'horizontal'
+        orientation: 'vertical'
         spacing: '10px'
-        TabbedPanel:
-            tab_width: self.width / 4
-            id: library_panel
-            size_hint_x: '0.9'
-            active_tab: None
-            do_default_tab: False
-            TabbedPanelItem:
-                text: 'Files'
-                RecycleView:
-                    id: library_files_rv
-                    rv_selection: {}
-                    scroll_type: ['bars','content']
-                    bar_width: sp(40)
-                    viewclass: 'LibraryRow'
-                    LibraryRecycleBoxLayout:
-                        id: library_files_rbl
-                        default_size: None, sp(56)
-                        default_size_hint: 1, None
-                        size_hint_y: None
-                        height: self.minimum_height
-                        orientation: 'vertical'
-                        spacing: sp(2)
-                        multiselect: True
-                        touch_multiselect: True
-#                LibraryBoxLayout:
-#                    LibraryScrollView:
-#                        id: library_files_sv
-            TabbedPanelItem:
-                text: 'Albums'
-                LibraryBoxLayout:
-                    LibraryScrollView:
-                        id: library_albums_sv
-            TabbedPanelItem:
-                text: 'Tracks'
-                LibraryBoxLayout:
-                    LibraryScrollView:
-                        id: library_tracks_sv
-            TabbedPanelItem:
-                text: 'Playlists'
-                RecycleView:
-                    id: library_playlists_rv
-                    rv_selection: {}
-                    scroll_type: ['bars','content']
-                    bar_width: sp(40)
-                    viewclass: 'LibraryRow'
-                    LibraryRecycleBoxLayout:
-                        id: library_playlists_rbl
-                        default_size: None, sp(56)
-                        default_size_hint: 1, None
-                        size_hint_y: None
-                        height: self.minimum_height
-                        orientation: 'vertical'
-                        spacing: sp(2)
-                        multiselect: True
-                        touch_multiselect: True
         BoxLayout:
-            orientation: 'vertical'
-            size_hint_x: '0.1'
+            size_hint_y: None
+            orientation: 'horizontal'
             Button:
-                text: '+'
-                on_press: root.browser_add(False)
+                text: 'Files'
+                on_press: root.change_view_type(self.text)
             Button:
-                text: '!'
-                on_press: root.browser_add(True)
+                text: 'Albums'
+                on_press: root.change_view_type(self.text)
+            Button:
+                text: 'Tracks'
+                on_press: root.change_view_type(self.text)
+            Button:
+                text: 'Playlists'
+                on_press: root.change_view_type(self.text)
+        RecycleView:
+            id: rv
+            rv_selection: {}
+            scroll_type: ['bars','content']
+            bar_width: sp(40)
+            viewclass: 'LibraryRow'
+            LibraryRecycleBoxLayout:
+                id: rbl
+                default_size: None, sp(56)
+                default_size_hint: 1, None
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: 'vertical'
+                spacing: sp(2)
+                multiselect: True
+                touch_multiselect: True
+#        BoxLayout:
+#            orientation: 'vertical'
+#            size_hint_x: '0.1'
+#            Button:
+#                text: '+'
+#                on_press: root.browser_add(False)
+#            Button:
+#                text: '!'
+#                on_press: root.browser_add(True)
+
 <KmpcInterface>:
     do_default_tab: False
     tab_width: self.width / 4
