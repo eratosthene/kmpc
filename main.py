@@ -67,20 +67,24 @@ class KmpcInterface(TabbedPanel):
         self.status_task.start(1.0)
         # run the callbacks once to update the interface
         self.protocol.currentsong().addCallback(self.update_mpd_currentsong).addErrback(self.handle_mpd_error)
+        # for some reason the next line causes an exception. it looks like it is trying to call MPDIdleHandler.__call__ instead, which is super weird
+        # so instead we run it once when the active_tab changes to Playlist
+#        self.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
 
     def main_tab_changed(self,obj,value):
         self.active_tab = value.text
         Logger.info("Application: Changed active tab to "+self.active_tab)
         if self.active_tab == 'Now Playing':
+            # this is just to ensure the interface gets updated as soon as possible
             if 'protocol' in locals():
                 self.protocol.status()
         elif self.active_tab == 'Playlist':
-            self.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
-        elif self.active_tab == 'Library':
-            pass
+            # switching to the playlist tab repopulates it if it is empty
+            if len(self.ids.playlist_tab.rv.data) == 0:
+                self.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
 
     def mpd_connectionLost(self,protocol, reason):
-        Logger.info('Application: Connection lost: %s' % reason)
+        Logger.warn('Application: Connection lost: %s' % reason)
 
     def current_track_slider_up(self):
         curpos=int(self.ids.current_track_slider.value)
@@ -96,24 +100,45 @@ class KmpcInterface(TabbedPanel):
     def handle_mpd_error(self,result):
         Logger.error('Application: MPDIdleHandler Callback error: {}'.format(result))
 
+    def stop_zero_stuff(self):
+        self.ids.current_track_time_label.text=''
+        self.ids.current_track_totaltime_label.text=''
+        self.ids.current_track_slider.value=0
+        self.ids.current_playlist_track_number_label.text=''
+        self.ids.current_song_label.text = 'Playback Stopped'
+        self.ids.current_artist_label.text = ''
+        self.ids.current_album_label.text = ''
+        self.ids.next_track_label.text = ''
+        self.ids.next_song_artist_label.text = ''
+        self.currfile = None
+        self.currsong = None
+        self.nextsong = None
+        self.ids.song_star_layout.clear_widgets()
+        self.ids.album_cover_layout.clear_widgets()
+        self.ids.album_cover_layout.size_hint_min_x=None
+
     def update_mpd_status(self,result):
         Logger.debug('NowPlaying: update_mpd_status()')
+        # probably state is the only one necessary, but hey
         self.mpd_status['state']=result['state']
         self.mpd_status['repeat']=result['repeat']
         self.mpd_status['single']=result['single']
         self.mpd_status['random']=result['random']
         self.mpd_status['consume']=result['consume']
         if self.mpd_status['state'] == 'stop':
+            # if stopped, there are no current or next songs
             self.currsong=None
             self.nextsong=None
         else:
+            # save current song, this is a 0-based index into the playlist
             self.currsong=result['song']
-            # save the next song for later use
+            # save next song, this is a 0-based index into the playlist
             if 'nextsong' in result:
                 self.nextsong=result['nextsong']
                 self.protocol.playlistinfo(self.nextsong).addCallback(self.update_mpd_nextsong).addErrback(self.handle_mpd_error)
             else:
                 self.nextsong=None
+        # check various flag states. there's probably a more efficient way to do this
         if int(self.mpd_status['repeat']):
             self.ids.repeat_button.state='down'
         else:
@@ -137,16 +162,8 @@ class KmpcInterface(TabbedPanel):
             self.ids.play_button.state='down'
             self.ids.play_button.text=u"\uf04c"
         if self.mpd_status['state'] == 'stop':
-            self.ids.current_track_time_label.text=''
-            self.ids.current_track_totaltime_label.text=''
-            self.ids.current_track_slider.value=0
-            self.ids.current_playlist_track_number_label.text=''
-            self.ids.current_song_label.text = 'Playback Stopped'
-            self.ids.current_artist_label.text = ''
-            self.ids.current_album_label.text = ''
-            self.ids.next_track_label.text = ''
-            self.ids.next_song_artist_label.text = ''
-            self.currfile = None
+            # zero everything out if we are stopped
+            self.stop_zero_stuff()
         else:
             # mpd returns {elapsed seconds}:{total seconds}, the following splits each to minute:second
             c,t=result['time'].split(":")
@@ -154,7 +171,9 @@ class KmpcInterface(TabbedPanel):
             tm,ts=divmod(int(t),60)
             self.ids.current_track_time_label.text = "%02d:%02d" % (cm,cs)
             self.ids.current_track_totaltime_label.text = "%02d:%02d" % (tm,ts)
+            # set the max slider value to the total seconds
             self.ids.current_track_slider.max = int(t)
+            # set the current slider value to the current seconds
             self.mpd_status['curpos']=int(c)
             if self.update_slider:
                 self.ids.current_track_slider.value = int(c)
@@ -166,62 +185,76 @@ class KmpcInterface(TabbedPanel):
     def update_mpd_currentsong(self,result):
         Logger.debug('NowPlaying: update_mpd_currentsong()')
         if result:
+            # set the song title and artist labels
             self.ids.current_song_label.text = result['title']
             self.ids.current_artist_label.text = result['artist']
+            # clear the album cover
+	    self.ids.album_cover_layout.clear_widgets()
+            # set the current file name
             self.currfile = result['file']
+            # get the stored star rating
             self.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
+            # figure out the full path of the file
             bp=self.config.get('mpd','basepath')
             p=os.path.join(bp,result['file'])
+            # set the release year if mpd has it
             year=None
             if 'date' in result:
                 year=result['date'][:4]
             if os.path.isfile(p):
                 Logger.debug('NowPlaying: found good file at path '+p)
+                # load up the file to read the tags
                 f = mutagen.File(p)
+                cimg = None
+                data = None
+                # if the original year mp3 tag exists use it instead of mpd's year
                 if 'TXXX:originalyear' in f.keys():
                     year=format(f['TXXX:originalyear'])
-                pframes = f.tags.getall("APIC")
-                cimg = None
-                for frame in pframes:
-                    ext = 'img'
-                    if frame.mime.endswith('jpeg') or frame.mime.endswith('jpg'):
-                        ext = 'jpg'
-                    elif frame.mime.endswith('png'):
+                try:
+                    # try to get mp3 cover, if this throws an exception it's not an mp3 or it doesn't have a cover
+                    pframes = f.tags.getall("APIC")
+                    for frame in pframes:
+                        ext = 'img'
+                        if frame.mime.endswith('jpeg') or frame.mime.endswith('jpg'):
+                            ext = 'jpg'
+                        elif frame.mime.endswith('png'):
+                            ext = 'png'
+                        elif frame.mime.endswith('bmp'):
+                            ext = 'bmp'
+                        elif frame.mime.endswith('gif'):
+                            ext = 'gif'
+                        data=io.BytesIO(bytearray(frame.data))
+                        break
+                except AttributeError:
+                    pass
+                # try to get mp4 cover
+                if 'covr' in f.keys():
+                    if f['covr'][0].imageformat == mutagen.mp4.MP4Cover.FORMAT_PNG:
                         ext = 'png'
-                    elif frame.mime.endswith('bmp'):
-                        ext = 'bmp'
-                    elif frame.mime.endswith('gif'):
-                        ext = 'gif'
-                    data=io.BytesIO(bytearray(frame.data))
+                    else:
+                        ext = 'jpg'
+                    data=io.BytesIO(bytearray(f['covr'][0]))
+                if data:
+                    # if we got image data, load it as a kivy.core.image
                     cimg = CoreImage(data,ext=ext)
-                    break
-		self.ids.album_cover_layout.clear_widgets()
                 if cimg:
+                    # if the image loading worked, create an image widget and fix up the layout
 		    img=Image(texture=cimg.texture,allow_stretch=True)
 		    self.ids.album_cover_layout.add_widget(img)
                     self.ids.album_cover_layout.size_hint_min_x=sp(300)
                 else:
+                    # if no coreimage, make the album layout tiny
                     self.ids.album_cover_layout.size_hint_min_x=None
             else:
                 Logger.debug('NowPlaying: no file found at path '+p)
+            # if we got a year tag from somewhere, include it in the album label
             if year:
                 self.ids.current_album_label.text = result['album']+' ['+year+']'
             else:
                 self.ids.current_album_label.text = result['album']
         else:
-            self.ids.current_track_time_label.text=''
-            self.ids.current_track_totaltime_label.text=''
-            self.ids.current_track_slider.value=0
-            self.ids.current_playlist_track_number_label.text=''
-            self.ids.current_song_label.text = 'Playback Stopped'
-            self.ids.current_artist_label.text = ''
-            self.ids.current_album_label.text = ''
-            self.ids.next_track_label.text = ''
-            self.ids.next_song_artist_label.text = ''
-            self.currfile = None
-            self.ids.song_star_layout.clear_widgets()
-            self.ids.album_cover_layout.clear_widgets()
-            self.ids.album_cover_layout.size_hint_min_x=None
+            # there's not a current song, so zero everything out
+            self.stop_zero_stuff()
 
     def update_mpd_sticker_rating(self,result):
         Logger.debug('NowPlaying: update_mpd_sticker_rating')
