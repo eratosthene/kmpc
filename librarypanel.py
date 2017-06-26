@@ -160,7 +160,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             self.protocol.add(rrow['file'])
             break
 
-    def browser_add(self,clearfirst):
+    def browser_add(self,clearfirst,insert):
         Logger.info('Library: browser_add('+str(clearfirst)+')')
         if clearfirst:
             Logger.info('Library: Clearing playlist')
@@ -170,7 +170,10 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             mtype=row['info']['type']
             Logger.info("Library: Adding "+mtype+" '"+row['base']+"' to current playlist")
             if mtype == 'uri' or mtype == 'file':
-                self.protocol.add(row['base'])
+                if insert and App.get_running_app().root.currsong:
+                    self.protocol.addid(row['base'],str(int(App.get_running_app().root.currsong)+1))
+                else:
+                    self.protocol.add(row['base'])
             elif mtype == 'albumartistsort':
                 self.protocol.find(mtype,row['base']).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
             elif mtype == 'album':

@@ -242,10 +242,13 @@
                 size_hint_x: '0.05'
                 Button:
                     text: '+'
-                    on_press: root.browser_add(False)
+                    on_press: root.browser_add(False,False)
+                Button:
+                    text: '>'
+                    on_press: root.browser_add(False,True)
                 Button:
                     text: '!'
-                    on_press: root.browser_add(True)
+                    on_press: root.browser_add(True,False)
 
 <KmpcInterface>:
     do_default_tab: False

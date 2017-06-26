@@ -17,7 +17,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.image import Image
+from kivy.uix.image import Image,AsyncImage
 from kivy.uix.popup import Popup
 from mpd import MPDProtocol
 import os
@@ -239,7 +239,7 @@ class KmpcInterface(TabbedPanel):
                     cimg = CoreImage(data,ext=ext)
                 if cimg:
                     # if the image loading worked, create an image widget and fix up the layout
-		    img=Image(texture=cimg.texture,allow_stretch=True)
+		    img=AsyncImage(texture=cimg.texture,allow_stretch=True)
 		    self.ids.album_cover_layout.add_widget(img)
                     self.ids.album_cover_layout.size_hint_min_x=sp(300)
                 else:
