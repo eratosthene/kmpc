@@ -34,11 +34,14 @@ class MPDIdleHandler(object):
             elif format(s) == 'sticker':
                 # update everything 'currentsong' can tell us, cascade it down too
                 self.protocol.currentsong().addCallback(app.root.update_mpd_currentsong).addErrback(app.root.handle_mpd_error)
+            elif format(s) == 'options':
+                self.protocol.status().addCallback(app.root.ids.config_tab.update_mpd_status).addErrback(app.root.ids.config_tab.handle_mpd_error)
 
         # the following is done no matter what, so that now playing updates at least every second
         # update everything 'status' can tell us
         self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
         self.protocol.status().addCallback(app.root.ids.playlist_tab.update_mpd_status).addErrback(app.root.ids.playlist_tab.handle_mpd_error)
+        self.protocol.status().addCallback(app.root.ids.config_tab.update_mpd_status).addErrback(app.root.ids.config_tab.handle_mpd_error)
 
 class MPDClientFactory(protocol.ReconnectingClientFactory):
     protocol = MPDFactoryProtocol

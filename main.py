@@ -61,6 +61,7 @@ class KmpcInterface(TabbedPanel):
         self.protocol = protocol
         self.ids.playlist_tab.protocol=protocol
         self.ids.library_tab.protocol=protocol
+        self.ids.config_tab.protocol=protocol
         Logger.info('Application: Connected to mpd server host='+self.config.get('mpd','host')+' port='+self.config.get('mpd','port'))
         # start the interface update task after mpd connection
         self.status_task=task.LoopingCall(self.protocol.status)
@@ -69,8 +70,9 @@ class KmpcInterface(TabbedPanel):
         self.protocol.currentsong().addCallback(self.update_mpd_currentsong).addErrback(self.handle_mpd_error)
         # for some reason the next line causes an exception. it looks like it is trying to call MPDIdleHandler.__call__ instead, which is super weird
         # so instead we run it once when the active_tab changes to Playlist
-#        self.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
-
+#        self.protocol.playlistinfo().addCalLback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
+        # same with this line
+#        self.protocol.status().addCallback(self.ids.config_tab.update_mpd_status).addErrback(self.ids.config_tab.handle_mpd_error)
     def main_tab_changed(self,obj,value):
         self.active_tab = value.text
         Logger.info("Application: Changed active tab to "+self.active_tab)
@@ -82,6 +84,9 @@ class KmpcInterface(TabbedPanel):
             # switching to the playlist tab repopulates it if it is empty
             if len(self.ids.playlist_tab.rv.data) == 0:
                 self.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
+        elif self.active_tab == 'Config':
+            # switching to the config tab repopulates options
+            self.protocol.status().addCallback(self.ids.config_tab.update_mpd_status).addErrback(self.ids.config_tab.handle_mpd_error)
 
     def mpd_connectionLost(self,protocol, reason):
         Logger.warn('Application: Connection lost: %s' % reason)

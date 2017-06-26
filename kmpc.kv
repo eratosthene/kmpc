@@ -71,8 +71,71 @@
 
 <ConfigTabbedPanelItem>:
     text: 'Config'
-    Label:
-        text: 'tab4 stuff'
+    BackdropBoxLayout:
+        orientation: 'vertical'
+        Label:
+            text: 'Crossfade length in seconds'
+            text_size: self.size
+            halign: 'left'
+            valign: 'middle'
+            padding_x: sp(10)
+        BoxLayout:
+            orientation: 'horizontal'
+            Label:
+                text: str(int(round(crossfade_slider.value)))
+                size_hint_x: 0.2
+                text_size: self.size
+                halign: 'right'
+                valign: 'middle'
+                padding_x: sp(10)
+            Slider:
+                id: crossfade_slider
+                min: 0
+                max: 10
+                value: 0
+                on_touch_up: if self.collide_point(*args[1].pos): root.change_crossfade()
+        Label:
+            text: 'Mixramp threshold in DB'
+            text_size: self.size
+            halign: 'left'
+            valign: 'middle'
+            padding_x: sp(10)
+        BoxLayout:
+            orientation: 'horizontal'
+            Label:
+                text: '-'+str(round(mixrampdb_slider.value,6))
+                size_hint_x: 0.2
+                text_size: self.size
+                halign: 'right'
+                valign: 'middle'
+                padding_x: sp(10)
+            Slider:
+                id: mixrampdb_slider
+                min: 0
+                max: 20
+                value: 0
+                on_touch_up: if self.collide_point(*args[1].pos): root.change_mixrampdb()
+        Label:
+            text: 'Mixramp delay in seconds'
+            text_size: self.size
+            halign: 'left'
+            valign: 'middle'
+            padding_x: sp(10)
+        BoxLayout:
+            orientation: 'horizontal'
+            Label:
+                text: str(round(mixrampdelay_slider.value,6))
+                size_hint_x: 0.2
+                text_size: self.size
+                halign: 'right'
+                valign: 'middle'
+                padding_x: sp(10)
+            Slider:
+                id: mixrampdelay_slider
+                min: 0
+                max: 10
+                value: 0
+                on_touch_up: if self.collide_point(*args[1].pos): root.change_mixrampdelay()
 
 <PlaylistRow>:
     canvas.before:
@@ -364,3 +427,4 @@
     LibraryTabbedPanelItem:
         id: library_tab
     ConfigTabbedPanelItem:
+        id: config_tab
