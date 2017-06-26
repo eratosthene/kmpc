@@ -3,20 +3,22 @@
 import kivy
 kivy.require('1.10.0')
 from kivy.app import App
-from kivy.uix.widget import Widget
-from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 from kivy.support import install_twisted_reactor
 from kivy.config import Config
+from kivy.logger import Logger
+from kivy.graphics import Color,Rectangle
+from kivy.core.image import Image as CoreImage
+from kivy.metrics import Metrics, sp
+from kivy.uix.widget import Widget
+from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.boxlayout import BoxLayout
-from kivy.logger import Logger
-from kivy.graphics import Color,Rectangle
+from kivy.uix.image import Image
 from kivy.uix.popup import Popup
-from kivy.core.image import Image as CoreImage
 from mpd import MPDProtocol
 import os
 import traceback
@@ -161,6 +163,25 @@ class KmpcInterface(TabbedPanel):
             b=int(result['playlistlength'])
             self.ids.current_playlist_track_number_label.text = "%d of %d" % (a,b)
 
+    def get_album_cover(self,filepath):
+        f = mutagen.File(filepath)
+        pframes = f.tags.getall("APIC")
+	cimg = None
+        for frame in pframes:
+            ext = 'img'
+            if frame.mime.endswith('jpeg') or frame.mime.endswith('jpg'):
+                ext = 'jpg'
+            elif frame.mime.endswith('png'):
+                ext = 'png'
+            elif frame.mime.endswith('bmp'):
+                ext = 'bmp'
+            elif frame.mime.endswith('gif'):
+                ext = 'gif'
+            data=io.BytesIO(bytearray(frame.data))
+            cimg = CoreImage(data,ext=ext)
+            break
+        return cimg
+
     def update_mpd_currentsong(self,result):
         Logger.debug('NowPlaying: update_mpd_currentsong()')
         if result:
@@ -173,35 +194,15 @@ class KmpcInterface(TabbedPanel):
             p=os.path.join(bp,result['file'])
             if os.path.isfile(p):
                 Logger.debug('NowPlaying: found good file at path '+p)
-                f = mutagen.File(p)
-                pframes = f.tags.getall("APIC")
-                for frame in pframes:
-                    Logger.debug('NowPlaying: found embedded artwork')
-#                    pic = bytearray(frame.data)
-                    ext = 'img'
-                    if frame.mime.endswith('jpeg') or frame.mime.endswith('jpg'):
-                        ext = 'jpg'
-                    elif frame.mime.endswith('png'):
-                        ext = 'png'
-                    elif frame.mime.endswith('bmp'):
-                        ext = 'bmp'
-                    elif frame.mime.endswith('gif'):
-                        ext = 'gif'
-                    data=io.BytesIO(bytearray(frame.data))
-                    cimg = CoreImage(data,ext=ext)
-                    self.ids.album_cover_image.texture=cimg.texture
-#                    tempfilename = 'cover.'+ext
-#                    tempfilepath = os.path.join(self.config.get('mpd','tmppath'),tempfilename)
-#                    try:
-#                        os.remove(tempfilepath)
-#                    except OSError:
-#                        pass
-#                    coverfile = open(tempfilepath,'wb')
-#                    coverfile.write(pic)
-#                    coverfile.close()
-#                    self.ids.album_cover_image.source=tempfilepath
-#                    self.ids.album_cover_image.reload()
-                    break
+		#img=Image(allow_stretch=True,size_hint=(1,1),size_hint_max=(sp(300),sp(300)),texture=self.get_album_cover(p).texture)
+                cimg=self.get_album_cover(p)
+		self.ids.album_cover_layout.clear_widgets()
+                if cimg:
+		    img=Image(texture=cimg.texture,allow_stretch=True)
+		    self.ids.album_cover_layout.add_widget(img)
+                    self.ids.album_cover_layout.size_hint_min_x=sp(300)
+                else:
+                    self.ids.album_cover_layout.size_hint_min_x=None
             else:
                 Logger.debug('NowPlaying: no file found at path '+p)
         else:
@@ -216,6 +217,8 @@ class KmpcInterface(TabbedPanel):
             self.ids.next_song_artist_label.text = ''
             self.currfile = None
             self.ids.song_star_layout.clear_widgets()
+            self.ids.album_cover_layout.clear_widgets()
+            self.ids.album_cover_layout.size_hint_min_x=None
 
     def update_mpd_sticker_rating(self,result):
         Logger.debug('NowPlaying: update_mpd_sticker_rating')

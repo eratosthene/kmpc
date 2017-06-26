@@ -259,17 +259,12 @@
                 orientation: 'horizontal'
                 spacing: '5sp'
                 padding: '5sp'
-                size_hint: (1,1)
-                Image:
-                    id: album_cover_image
-                    size_hint: (None,None)
-                    allow_stretch: True
-                    source: 'resources/album.png'
-                    height: "300sp"
-                    width: "300sp"
+                BoxLayout:
+                    id: album_cover_layout
+                    height: sp(300)
+                    size_hint_x: 0.001
                 BoxLayout:
                     size_hint_x: 1
-                    size_hint_y: 1
                     orientation: 'vertical'
                     InfoLargeLabel:
                         id: current_artist_label
