@@ -21,6 +21,7 @@ from mpd import MPDProtocol
 import os
 import traceback
 import mutagen
+import io
 
 #install twisted reactor to interface with mpd
 import sys
@@ -176,7 +177,7 @@ class KmpcInterface(TabbedPanel):
                 pframes = f.tags.getall("APIC")
                 for frame in pframes:
                     Logger.debug('NowPlaying: found embedded artwork')
-                    pic = bytearray(frame.data)
+#                    pic = bytearray(frame.data)
                     ext = 'img'
                     if frame.mime.endswith('jpeg') or frame.mime.endswith('jpg'):
                         ext = 'jpg'
@@ -186,17 +187,20 @@ class KmpcInterface(TabbedPanel):
                         ext = 'bmp'
                     elif frame.mime.endswith('gif'):
                         ext = 'gif'
-                    tempfilename = 'cover.'+ext
-                    tempfilepath = os.path.join(self.config.get('mpd','tmppath'),tempfilename)
-                    try:
-                        os.remove(tempfilepath)
-                    except OSError:
-                        pass
-                    coverfile = open(tempfilepath,'wb')
-                    coverfile.write(pic)
-                    coverfile.close()
-                    self.ids.album_cover_image.source=tempfilepath
-                    self.ids.album_cover_image.reload()
+                    data=io.BytesIO(bytearray(frame.data))
+                    cimg = CoreImage(data,ext=ext)
+                    self.ids.album_cover_image.texture=cimg.texture
+#                    tempfilename = 'cover.'+ext
+#                    tempfilepath = os.path.join(self.config.get('mpd','tmppath'),tempfilename)
+#                    try:
+#                        os.remove(tempfilepath)
+#                    except OSError:
+#                        pass
+#                    coverfile = open(tempfilepath,'wb')
+#                    coverfile.write(pic)
+#                    coverfile.close()
+#                    self.ids.album_cover_image.source=tempfilepath
+#                    self.ids.album_cover_image.reload()
                     break
             else:
                 Logger.debug('NowPlaying: no file found at path '+p)
