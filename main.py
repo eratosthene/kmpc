@@ -163,39 +163,38 @@ class KmpcInterface(TabbedPanel):
             b=int(result['playlistlength'])
             self.ids.current_playlist_track_number_label.text = "%d of %d" % (a,b)
 
-    def get_album_cover(self,filepath):
-        f = mutagen.File(filepath)
-        pframes = f.tags.getall("APIC")
-	cimg = None
-        for frame in pframes:
-            ext = 'img'
-            if frame.mime.endswith('jpeg') or frame.mime.endswith('jpg'):
-                ext = 'jpg'
-            elif frame.mime.endswith('png'):
-                ext = 'png'
-            elif frame.mime.endswith('bmp'):
-                ext = 'bmp'
-            elif frame.mime.endswith('gif'):
-                ext = 'gif'
-            data=io.BytesIO(bytearray(frame.data))
-            cimg = CoreImage(data,ext=ext)
-            break
-        return cimg
-
     def update_mpd_currentsong(self,result):
         Logger.debug('NowPlaying: update_mpd_currentsong()')
         if result:
             self.ids.current_song_label.text = result['title']
             self.ids.current_artist_label.text = result['artist']
-            self.ids.current_album_label.text = result['album']
             self.currfile = result['file']
             self.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
             bp=self.config.get('mpd','basepath')
             p=os.path.join(bp,result['file'])
+            year=None
+            if 'date' in result:
+                year=result['date'][:4]
             if os.path.isfile(p):
                 Logger.debug('NowPlaying: found good file at path '+p)
-		#img=Image(allow_stretch=True,size_hint=(1,1),size_hint_max=(sp(300),sp(300)),texture=self.get_album_cover(p).texture)
-                cimg=self.get_album_cover(p)
+                f = mutagen.File(p)
+                if 'TXXX:originalyear' in f.keys():
+                    year=format(f['TXXX:originalyear'])
+                pframes = f.tags.getall("APIC")
+                cimg = None
+                for frame in pframes:
+                    ext = 'img'
+                    if frame.mime.endswith('jpeg') or frame.mime.endswith('jpg'):
+                        ext = 'jpg'
+                    elif frame.mime.endswith('png'):
+                        ext = 'png'
+                    elif frame.mime.endswith('bmp'):
+                        ext = 'bmp'
+                    elif frame.mime.endswith('gif'):
+                        ext = 'gif'
+                    data=io.BytesIO(bytearray(frame.data))
+                    cimg = CoreImage(data,ext=ext)
+                    break
 		self.ids.album_cover_layout.clear_widgets()
                 if cimg:
 		    img=Image(texture=cimg.texture,allow_stretch=True)
@@ -205,6 +204,10 @@ class KmpcInterface(TabbedPanel):
                     self.ids.album_cover_layout.size_hint_min_x=None
             else:
                 Logger.debug('NowPlaying: no file found at path '+p)
+            if year:
+                self.ids.current_album_label.text = result['album']+' ['+year+']'
+            else:
+                self.ids.current_album_label.text = result['album']
         else:
             self.ids.current_track_time_label.text=''
             self.ids.current_track_totaltime_label.text=''
