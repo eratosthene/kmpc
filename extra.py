@@ -3,12 +3,6 @@ kivy.require('1.10.0')
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 
-class ScrollButton(Button):
-    pass
-
-class ScrollBoxLayout(BoxLayout):
-    pass
-
 def formatsong(rec):
     song = ''
     (d1,d2)=rec['disc'].split('/')

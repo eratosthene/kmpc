@@ -20,29 +20,10 @@
             source: "resources/backdrop.png"
             size: self.size
             pos: self.pos
-        Color:
-            rgba: 0,0.2,1,0.2
-        Rectangle:
-            size: self.size
-            pos: self.pos
 
 <MediaButton@Button,MediaToggleButton@ToggleButton>:
     font_name: 'resources/FontAwesome.ttf'
     font_size: '24sp'
-
-<ScrollButton>:
-    halign: 'left'
-    valign: 'center'
-    padding_x: '10sp'
-    padding_y: '10sp'
-    size_hint_y: None
-    size_hint_min_y: '50sp'
-    text_size: self.width, None
-    height: self.texture_size[1]
-
-<ScrollBoxLayout>:
-    size_hint_y: None
-    size_hint_min_y: '50sp'
 
 <LibraryBoxLayout@BoxLayout>:
     canvas.before:
@@ -320,6 +301,7 @@
     TabbedPanelItem:
         text: 'Now Playing'
         BackdropBoxLayout:
+            id: player
             orientation: 'vertical'
             BoxLayout:
                 orientation: 'horizontal'
@@ -330,6 +312,13 @@
                     height: sp(300)
                     size_hint_x: 0.001
                 BoxLayout:
+                    canvas.before:
+                        Color:
+                            rgba: 0,0,0,0.2
+                        Rectangle
+                            size: self.size
+                            pos: self.pos
+                    id: trackinfo
                     size_hint_x: 1
                     orientation: 'vertical'
                     InfoLargeLabel:

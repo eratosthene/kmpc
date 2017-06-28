@@ -24,6 +24,7 @@ import os
 import traceback
 import mutagen
 import io
+import random
 
 #install twisted reactor to interface with mpd
 import sys
@@ -36,7 +37,7 @@ from twisted.internet import task
 from twisted.internet.defer import inlineCallbacks
 
 from mpdfactory import MPDClientFactory
-from extra import ScrollButton,ScrollBoxLayout,songratings
+from extra import songratings
 from playlistpanel import PlaylistTabbedPanelItem
 
 class KmpcInterface(TabbedPanel):
@@ -245,11 +246,21 @@ class KmpcInterface(TabbedPanel):
                 if cimg:
                     # if the image loading worked, create an image widget and fix up the layout
 		    img=AsyncImage(texture=cimg.texture,allow_stretch=True)
+#                    img.canvas.opacity=0.5
 		    self.ids.album_cover_layout.add_widget(img)
                     self.ids.album_cover_layout.size_hint_min_x=sp(300)
                 else:
                     # if no coreimage, make the album layout tiny
                     self.ids.album_cover_layout.size_hint_min_x=None
+                mb_aid=str(f['TXXX:MusicBrainz Artist Id'])
+                fa_path=self.config.get('mpd','fanartpath')
+#                ab_path=os.path.join(fa_path,mb_aid,'artistbackground')
+#                print ab_path
+#                if os.path.isdir(ab_path):
+#                    img_path=random.choice(os.listdir(ab_path))
+#                    print img_path
+#                    self.ids.player.canvas.before.clear()
+#                    self.ids.player.canvas.before.add(Rectangle(source=os.path.join(ab_path,img_path),size=self.ids.player.size,pos=self.ids.player.pos))
             else:
                 Logger.debug('NowPlaying: no file found at path '+p)
             # if we got a year tag from somewhere, include it in the album label

@@ -17,7 +17,7 @@ from kivy.uix.boxlayout import BoxLayout
 from copy import deepcopy
 import os
 
-from extra import ScrollButton,ScrollBoxLayout,formatsong
+from extra import formatsong
 
 class LibraryTabbedPanelItem(TabbedPanelItem):
     current_view = {'value': 'root', 'base':'/','info':{'type':'uri'}}
