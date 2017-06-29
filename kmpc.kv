@@ -5,14 +5,85 @@
 #:import PlaylistRecycleBoxLayout playlistpanel.PlaylistRecycleBoxLayout
 #:import LibraryTabbedPanelItem librarypanel.LibraryTabbedPanelItem
 
-<Widget>:
-    font_name: 'resources/Palatino Linotype Bold.ttf'
+<Label>:
+    font_name: 'resources/Roboto-Bold.ttf'
     font_size: '20sp'
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, 0.5
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) + 1, int(self.center_y - self.texture_size[1] / 2.) + 1
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) + 1, int(self.center_y - self.texture_size[1] / 2.) - 1
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) - 1, int(self.center_y - self.texture_size[1] / 2.) - 1
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) - 1, int(self.center_y - self.texture_size[1] / 2.) + 1 
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.) - 1
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.) + 1 
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) + 1, int(self.center_y - self.texture_size[1] / 2.)
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) - 1, int(self.center_y - self.texture_size[1] / 2.)
+            size: root.texture_size
+            texture: root.texture
+        Color:
+            rgba: 0, 0, 0, 0.25
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) + 2, int(self.center_y - self.texture_size[1] / 2.) + 2
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) + 2, int(self.center_y - self.texture_size[1] / 2.) - 2
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) - 2, int(self.center_y - self.texture_size[1] / 2.) - 2
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) - 2, int(self.center_y - self.texture_size[1] / 2.) + 2
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.) - 2
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.) + 2
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) + 2, int(self.center_y - self.texture_size[1] / 2.)
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) - 2, int(self.center_y - self.texture_size[1] / 2.)
+            size: root.texture_size
+            texture: root.texture
 
 <Button>:
     border: (4,4,4,4)
     background_normal: 'resources/button-normal.png'
     background_down: 'resources/button-down.png'
+    font_name: 'resources/Roboto-Bold.ttf'
+    font_size: '20sp'
 
 <BackdropBoxLayout@BoxLayout>:
     canvas.before:
@@ -36,16 +107,22 @@
     size_hint: (1,1)
     do_scroll_x: False
 
-<InfoLargeLabel@Label>:
-    font_size: '24sp'
-    size_hint_y: None
+<InfoLargeLabel>:
+    font_size: '28sp'
     text_size: self.width, None
     height: self.texture_size[1]
     halign: 'center'
+    font_name: 'resources/Roboto-Black.ttf'
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, 0.75
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) + sp(2), int(self.center_y - self.texture_size[1] / 2.) - sp(2)
+            size: root.texture_size
+            texture: root.texture
 
-<InfoSmallLabel@Label>:
+<InfoSmallLabel>:
     font_size: '18sp'
-    size_hint_y: None
     text_size: self.width, None
     height: self.texture_size[1]
     halign: 'center'
@@ -304,80 +381,50 @@
             id: player
             orientation: 'vertical'
             BoxLayout:
+                id: trackinfo
+                size_hint_x: 1
+                orientation: 'vertical'
+            BoxLayout:
                 orientation: 'horizontal'
-                spacing: '5sp'
-                padding: '5sp'
+                id: extended_info
+                size_hint_y: 0.33
                 BoxLayout:
                     id: album_cover_layout
-                    height: sp(300)
-                    size_hint_x: 0.001
-                BoxLayout:
-                    canvas.before:
-                        Color:
-                            rgba: 0,0,0,0.2
-                        Rectangle
-                            size: self.size
-                            pos: self.pos
-                    id: trackinfo
-                    size_hint_x: 1
-                    orientation: 'vertical'
-                    InfoLargeLabel:
-                        id: current_artist_label
-                        text: 'ARTIST NAME'
-                    Label:
-                    InfoLargeLabel:
-                        id: current_song_label
-                        text: 'SONG NAME'
-                    Label:
-                    InfoLargeLabel:
-                        id: current_album_label
-                        text: 'ALBUM NAME [YEAR]'
-                    Label:
-                    InfoSmallLabel:
-                        id: next_track_label
-                        text: 'Up Next:'
-                    InfoSmallLabel:
-                        id: next_song_artist_label
-                        text: 'NEXT SONG ARTIST - NEXT SONG NAME'
-            BoxLayout:
-                size_hint_y: 0.15
-                orientation: 'horizontal'
-                Label:
-                    id: current_track_time_label
-                    size_hint: (0.1,1)
-                    valign: 'center'
-                    size: self.texture_size
-                    text: '0:00'
-                Slider:
-                    id: current_track_slider
-                    size_hint_y: 1
-                    value_track: True
-                    valign: 'center'
-                    max: '1000'
-                    on_touch_move: if self.collide_point(*args[1].pos): root.current_track_slider_move()
-                    on_touch_up: if self.collide_point(*args[1].pos): root.current_track_slider_up()
-                Label:
-                    id: current_track_totaltime_label
-                    size_hint: (0.1,1)
-                    valign: 'center'
-                    size: self.texture_size
-                    text: '0:00'
-            BoxLayout:
-                size_hint_y: 0.1
-                orientation: 'horizontal'
-                Label:
                     size_hint_x: 0.2
                     padding_x: '10sp'
-                Label:
-                    size_hint_y: 1
-                    padding_x: '10sp'
-                    text_size: self.size
-                    id: current_playlist_track_number_label
-                    text: '1 of 10'
-                    halign: 'center'
-                    valign: 'middle'
                 BoxLayout:
-                    size_hint_y: 1
+                    orientation: 'vertical'
+                    InfoSmallLabel:
+                        id: next_song_artist_label
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        Label:
+                            id: current_track_time_label
+                            size_hint_x: 0.1
+                            valign: 'center'
+                            size: self.texture_size
+                            text: '0:00'
+                        Slider:
+                            id: current_track_slider
+                            value_track: True
+                            valign: 'center'
+                            max: '1000'
+                            on_touch_move: if self.collide_point(*args[1].pos): root.current_track_slider_move()
+                            on_touch_up: if self.collide_point(*args[1].pos): root.current_track_slider_up()
+                        Label:
+                            id: current_track_totaltime_label
+                            size_hint_x: 0.1
+                            valign: 'center'
+                            size: self.texture_size
+                            text: '0:00'
+                    Label:
+                        padding_x: '10sp'
+                        text_size: self.size
+                        id: current_playlist_track_number_label
+                        text: '1 of 10'
+                        halign: 'center'
+                        valign: 'middle'
+                BoxLayout:
                     size_hint_x: 0.2
                     id: song_star_layout
             BoxLayout:

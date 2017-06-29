@@ -19,6 +19,7 @@ from kivy.uix.checkbox import CheckBox
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image,AsyncImage
 from kivy.uix.popup import Popup
+from kivy.uix.behaviors import ButtonBehavior
 from mpd import MPDProtocol
 import os
 import traceback
@@ -111,17 +112,15 @@ class KmpcInterface(TabbedPanel):
         self.ids.current_track_totaltime_label.text=''
         self.ids.current_track_slider.value=0
         self.ids.current_playlist_track_number_label.text=''
-        self.ids.current_song_label.text = 'Playback Stopped'
-        self.ids.current_artist_label.text = ''
-        self.ids.current_album_label.text = ''
-        self.ids.next_track_label.text = ''
         self.ids.next_song_artist_label.text = ''
         self.currfile = None
         self.currsong = None
         self.nextsong = None
         self.ids.song_star_layout.clear_widgets()
         self.ids.album_cover_layout.clear_widgets()
-        self.ids.album_cover_layout.size_hint_min_x=None
+        self.ids.trackinfo.clear_widgets()
+        lbl = Label(text="Playback Stopped")
+        self.ids.trackinfo.add(lbl)
 
     def update_mpd_status(self,result):
         Logger.debug('NowPlaying: update_mpd_status()')
@@ -190,109 +189,113 @@ class KmpcInterface(TabbedPanel):
 
     def update_mpd_currentsong(self,result):
         Logger.debug('NowPlaying: update_mpd_currentsong()')
+        songchange=False
+        ti=self.ids.trackinfo
         if result:
-            # set the song title and artist labels
-            self.ids.current_song_label.text = result['title']
-            self.ids.current_artist_label.text = result['artist']
-            # clear the album cover
-	    self.ids.album_cover_layout.clear_widgets()
-            # set the current file name
+            if self.currfile != result['file']:
+                songchange=True
             self.currfile = result['file']
-            # get the stored star rating
-            self.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
-            # figure out the full path of the file
-            bp=self.config.get('mpd','basepath')
-            p=os.path.join(bp,result['file'])
-            # set the release year if mpd has it
-            year=None
-            if 'date' in result:
-                year=result['date'][:4]
-            if os.path.isfile(p):
-                Logger.debug('NowPlaying: found good file at path '+p)
-                # load up the file to read the tags
-                f = mutagen.File(p)
-                cimg = None
-                data = None
-                # if the original year mp3 tag exists use it instead of mpd's year
-                if 'TXXX:originalyear' in f.keys():
-                    year=format(f['TXXX:originalyear'])
-                try:
-                    # try to get mp3 cover, if this throws an exception it's not an mp3 or it doesn't have a cover
-                    pframes = f.tags.getall("APIC")
-                    for frame in pframes:
-                        ext = 'img'
-                        if frame.mime.endswith('jpeg') or frame.mime.endswith('jpg'):
-                            ext = 'jpg'
-                        elif frame.mime.endswith('png'):
+            if songchange:
+                ti.clear_widgets()
+                # set the song title and artist labels
+                current_artist_label = InfoLargeLabel(text = result['artist'])
+                ti.add_widget(current_artist_label)
+                current_song_label = InfoLargeLabel(text = result['title'])
+                ti.add_widget(current_song_label)
+                # clear the album cover
+                self.ids.album_cover_layout.clear_widgets()
+                # set the current file name
+                # get the stored star rating
+                self.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
+                # figure out the full path of the file
+                bp=self.config.get('mpd','basepath')
+                p=os.path.join(bp,result['file'])
+                # set the release year if mpd has it
+                year=None
+                if 'date' in result:
+                    year=result['date'][:4]
+                if os.path.isfile(p):
+                    Logger.debug('NowPlaying: found good file at path '+p)
+                    # load up the file to read the tags
+                    f = mutagen.File(p)
+                    cimg = None
+                    data = None
+                    # if the original year mp3 tag exists use it instead of mpd's year
+                    if 'TXXX:originalyear' in f.keys():
+                        year=format(f['TXXX:originalyear'])
+                    try:
+                        # try to get mp3 cover, if this throws an exception it's not an mp3 or it doesn't have a cover
+                        pframes = f.tags.getall("APIC")
+                        for frame in pframes:
+                            ext = 'img'
+                            if frame.mime.endswith('jpeg') or frame.mime.endswith('jpg'):
+                                ext = 'jpg'
+                            elif frame.mime.endswith('png'):
+                                ext = 'png'
+                            elif frame.mime.endswith('bmp'):
+                                ext = 'bmp'
+                            elif frame.mime.endswith('gif'):
+                                ext = 'gif'
+                            data=io.BytesIO(bytearray(frame.data))
+                            break
+                    except AttributeError:
+                        pass
+                    # try to get mp4 cover
+                    if 'covr' in f.keys():
+                        if f['covr'][0].imageformat == mutagen.mp4.MP4Cover.FORMAT_PNG:
                             ext = 'png'
-                        elif frame.mime.endswith('bmp'):
-                            ext = 'bmp'
-                        elif frame.mime.endswith('gif'):
-                            ext = 'gif'
-                        data=io.BytesIO(bytearray(frame.data))
-                        break
-                except AttributeError:
-                    pass
-                # try to get mp4 cover
-                if 'covr' in f.keys():
-                    if f['covr'][0].imageformat == mutagen.mp4.MP4Cover.FORMAT_PNG:
-                        ext = 'png'
-                    else:
-                        ext = 'jpg'
-                    data=io.BytesIO(bytearray(f['covr'][0]))
-                if data:
-                    # if we got image data, load it as a kivy.core.image
-                    cimg = CoreImage(data,ext=ext)
-                if cimg:
-                    # if the image loading worked, create an image widget and fix up the layout
-		    img=AsyncImage(texture=cimg.texture,allow_stretch=True)
-#                    img.canvas.opacity=0.5
-		    self.ids.album_cover_layout.add_widget(img)
-                    self.ids.album_cover_layout.size_hint_min_x=sp(300)
+                        else:
+                            ext = 'jpg'
+                        data=io.BytesIO(bytearray(f['covr'][0]))
+                    if data:
+                        # if we got image data, load it as a kivy.core.image
+                        cimg = CoreImage(data,ext=ext)
+                    if cimg:
+                        # if the image loading worked, create an image widget and fix up the layout
+                        img=ImageButton(texture=cimg.texture,allow_stretch=True)
+                        self.ids.album_cover_layout.add_widget(img)
+                        img.bind(on_press=self.cover_popup)
+                    self.ids.player.canvas.before.clear()
+                    try:
+                        mb_aid=str(f['TXXX:MusicBrainz Artist Id'])
+                        fa_path=self.config.get('mpd','fanartpath')
+                        ab_path=os.path.join(fa_path,mb_aid,'artistbackground')
+                        img_path=random.choice(os.listdir(ab_path))
+                        self.ids.player.canvas.before.add(Rectangle(source=os.path.join(ab_path,img_path),size=self.ids.player.size,pos=self.ids.player.pos))
+                    except:
+                        self.ids.player.canvas.before.add(Rectangle(source="resources/backdrop.png",size=self.ids.player.size,pos=self.ids.player.pos))
                 else:
-                    # if no coreimage, make the album layout tiny
-                    self.ids.album_cover_layout.size_hint_min_x=None
-                mb_aid=str(f['TXXX:MusicBrainz Artist Id'])
-                fa_path=self.config.get('mpd','fanartpath')
-#                ab_path=os.path.join(fa_path,mb_aid,'artistbackground')
-#                print ab_path
-#                if os.path.isdir(ab_path):
-#                    img_path=random.choice(os.listdir(ab_path))
-#                    print img_path
-#                    self.ids.player.canvas.before.clear()
-#                    self.ids.player.canvas.before.add(Rectangle(source=os.path.join(ab_path,img_path),size=self.ids.player.size,pos=self.ids.player.pos))
-            else:
-                Logger.debug('NowPlaying: no file found at path '+p)
-            # if we got a year tag from somewhere, include it in the album label
-            if year:
-                self.ids.current_album_label.text = result['album']+' ['+year+']'
-            else:
-                self.ids.current_album_label.text = result['album']
+                    Logger.debug('NowPlaying: no file found at path '+p)
+                # if we got a year tag from somewhere, include it in the album label
+                if year:
+                    current_album_label = InfoLargeLabel(text = result['album']+' ['+year+']')
+                else:
+                    current_album_label = InfoLargeLabel(text = result['album'])
+                ti.add_widget(current_album_label)
         else:
             # there's not a current song, so zero everything out
             self.stop_zero_stuff()
 
     def update_mpd_sticker_rating(self,result):
         Logger.debug('NowPlaying: update_mpd_sticker_rating')
-        btn = Button(padding_x='10sp',font_name='resources/FontAwesome.ttf',halign='center',valign='middle')
-        btn.text = songratings[result]['stars']
-	btn.bind(on_press=self.rating_popup)
+        btn = Label(padding_x='10sp',font_name='resources/FontAwesome.ttf',halign='center',valign='middle',markup=True)
+        btn.text = '[ref=rating]'+songratings[result]['stars']+'[/ref]'
+        btn.bind(on_ref_press=self.rating_popup)
 	self.ids.song_star_layout.clear_widgets()
 	self.ids.song_star_layout.add_widget(btn)
 
     def handle_mpd_no_sticker(self,result):
         Logger.debug('NowPlaying: handle_mpd_no_sticker')
-        btn = Button(padding_x='10sp',font_name='resources/FontAwesome.ttf',halign='center',valign='middle')
-        btn.text = u"\uf29c"
-	btn.bind(on_press=self.rating_popup)
+        btn = Label(padding_x='10sp',font_name='resources/FontAwesome.ttf',halign='center',valign='middle',markup=True)
+        btn.text = '[ref=rating]'+u"\uf29c"+'[/ref]'
+	btn.bind(on_ref_press=self.rating_popup)
 	self.ids.song_star_layout.clear_widgets()
 	self.ids.song_star_layout.add_widget(btn)
 
     def update_mpd_nextsong(self,result):
         Logger.debug('NowPlaying: update_mpd_nextsong()')
-        self.ids.next_track_label.text = 'Up Next:'
         for obj in result:
-            self.ids.next_song_artist_label.text = obj['artist']+' - '+obj['title']
+            self.ids.next_song_artist_label.text = 'Up Next: '+obj['artist']+' - '+obj['title']
 
     def prev_pressed(self):
         Logger.debug('Application: prev_pressed()')
@@ -325,7 +328,7 @@ class KmpcInterface(TabbedPanel):
         Logger.debug('Application: consume_pressed()')
         self.protocol.consume(str(1-int(self.mpd_status['consume'])))
 
-    def rating_popup(self,instance):
+    def rating_popup(self,instance,value):
         Logger.debug('Application: rating_popup()')
         layout = GridLayout(cols=2,spacing=10)
         popup = Popup(title='Rating',content=layout,size_hint=(0.8,1))
@@ -344,6 +347,14 @@ class KmpcInterface(TabbedPanel):
         Logger.debug('Application: rating_set('+instance.rating+')')
         instance.popup.dismiss()
         self.protocol.sticker_set('song',self.currfile,'rating',instance.rating)
+
+    def cover_popup(self,instance):
+        Logger.debug('Application: cover_popup()')
+        layout = BoxLayout()
+        popup = Popup(title='Cover',content=layout,size_hint=(0.6,1))
+        img = Image(texture=instance.texture,allow_stretch=True)
+        layout.add_widget(img)
+        popup.open()
 
 class KmpcApp(App):
     def build_config(self,config):
@@ -365,6 +376,15 @@ class KmpcApp(App):
         self.config=config
     def build(self):
         return KmpcInterface(self.config)
+
+class InfoLargeLabel(Label):
+    pass
+
+class InfoSmallLabel(Label):
+    pass
+
+class ImageButton(ButtonBehavior, AsyncImage):
+    pass
 
 if __name__ == '__main__':
     KmpcApp().run()
