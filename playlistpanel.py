@@ -26,8 +26,9 @@ class PlaylistTabbedPanelItem(TabbedPanelItem):
     def playlist_delete_pressed(self):
         Logger.info("Playlist: delete")
         for pos in self.playlist_selection:
-            Logger.debug("Playlist: deleting pos "+str(pos))
-            self.protocol.delete(str(pos))
+            songid=str(self.rv.data[pos]['songid'])
+            Logger.debug("Playlist: deleting songid "+songid)
+            self.protocol.deleteid(songid)
         self.rbl.clear_selection()
 
     def playlist_move_pressed(self):
@@ -50,7 +51,7 @@ class PlaylistTabbedPanelItem(TabbedPanelItem):
         self.rv.data = []
         for row in result:
             Logger.debug("Playlist: row "+row['pos']+" found = "+row['title'])
-            r = {'plpos':row['pos'],'rownum':str(int(row['pos'])+1),'artist':format(row['artist']),'title':format(row['title'])}
+            r = {'plpos':row['pos'],'rownum':str(int(row['pos'])+1),'artist':format(row['artist']),'title':format(row['title']),'songid':format(row['id'])}
             self.rv.data.append(r)
         self.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
 
