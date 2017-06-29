@@ -43,7 +43,12 @@ class PlaylistTabbedPanelItem(TabbedPanelItem):
 
     def playlist_swap_pressed(self):
         Logger.info("Playlist: swap")
-        Logger.warn("Playlist: swap not implemented")
+        if len(self.playlist_selection) != 2:
+            Logger.warn("Playlist: swap only works with two rows selected")
+        else:
+            s1 = self.playlist_selection.keys()[0]
+            s2 = self.playlist_selection.keys()[1]
+            self.protocol.swap(str(s1),str(s2)).addErrback(self.handle_mpd_error)
         self.rbl.clear_selection()
 
     def populate_playlist(self,result):
