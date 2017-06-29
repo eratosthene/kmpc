@@ -29,12 +29,11 @@ class MPDIdleHandler(object):
                 # force a reload of nextsong if playlist changes
                 app.root.nextsong = None
             elif format(s) == 'player':
-                # update everything 'currentsong' can tell us, cascade it down too
                 self.protocol.currentsong().addCallback(app.root.update_mpd_currentsong).addErrback(app.root.handle_mpd_error)
                 self.protocol.status().addCallback(app.root.ids.playlist_tab.update_mpd_status).addErrback(app.root.ids.playlist_tab.handle_mpd_error)
             elif format(s) == 'sticker':
-                # update everything 'currentsong' can tell us, cascade it down too
                 self.protocol.currentsong().addCallback(app.root.update_mpd_currentsong).addErrback(app.root.handle_mpd_error)
+                self.protocol.sticker_get('song',app.root.currfile,'rating').addCallback(app.root.update_mpd_sticker_rating).addErrback(app.root.handle_mpd_no_sticker)
             elif format(s) == 'options':
                 self.protocol.status().addCallback(app.root.ids.config_tab.update_mpd_status).addErrback(app.root.ids.config_tab.handle_mpd_error)
 
