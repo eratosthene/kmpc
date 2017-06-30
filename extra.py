@@ -25,3 +25,15 @@ songratings = {
         '9': {'stars': u"\uf005\uf005\uf005\uf005\uf123",'meaning':'Best songs by all artists'},
         '10': {'stars': u"\uf005\uf005\uf005\uf005\uf005",'meaning':'Best songs by favorite artists'}
 }
+
+sizearray = ['39sp','38sp','37sp','36sp','35sp','34sp','33sp','32sp','31sp','30sp','29sp','28sp','27sp','26sp','25sp']
+
+def getfontsize(str):
+    lr = len(str)
+    if lr < 33:
+	rsize = '40sp'
+    elif lr >= 55:
+	rsize = '24sp'
+    else:
+	rsize = sizearray[int(round((lr-33)/21*14))]
+    return rsize

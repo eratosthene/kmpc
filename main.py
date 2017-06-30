@@ -38,7 +38,7 @@ from twisted.internet import task
 from twisted.internet.defer import inlineCallbacks
 
 from mpdfactory import MPDClientFactory
-from extra import songratings
+from extra import songratings,getfontsize
 from playlistpanel import PlaylistTabbedPanelItem
 
 class KmpcInterface(TabbedPanel):
@@ -191,7 +191,6 @@ class KmpcInterface(TabbedPanel):
         Logger.debug('NowPlaying: update_mpd_currentsong()')
         songchange=False
         ti=self.ids.trackinfo
-        sz = ['39sp','38sp','37sp','36sp','35sp','34sp','33sp','32sp','31sp','30sp','29sp','28sp','27sp','26sp','25sp']
         if result:
             if self.currfile != result['file']:
                 songchange=True
@@ -216,25 +215,27 @@ class KmpcInterface(TabbedPanel):
                     f = mutagen.File(p)
                     cimg = None
                     data = None
+                    fa_path=self.config.get('mpd','fanartpath')
                     try:
-                        mb_aid=str(f['TXXX:MusicBrainz Artist Id'])
-                        fa_path=self.config.get('mpd','fanartpath')
-                        al_path=os.path.join(fa_path,mb_aid,'logo')
-                        img_path=random.choice(os.listdir(al_path))
-                        img = ImageButton(source=os.path.join(al_path,img_path),allow_stretch=True)
-                        current_artist_label = BoxLayout(size_hint=(1,1))
-                        current_artist_label.add_widget(img)
-                        haslogo=True
-                    except:
-                        lr = len(result['artist'])
-                        if lr < 33:
-                            rsize = '40sp'
-                        elif lr >= 55:
-                            rsize = '24sp'
-                        else:
-                            rsize = sz[int(round((lr-33)/21*14))]
-                        current_artist_label = InfoLargeLabel(text = result['artist'],font_size=rsize)
-                        haslogo=False
+                        aids=str(f['TXXX:MusicBrainz Artist Id'])
+                    except KeyError:
+                        aids='0000'
+                    artistids=aids.split('/')
+                    cbl = BoxLayout(size_hint=(1,1),orientation='horizontal')
+                    for mb_aid in artistids:
+                        try:
+                            al_path=os.path.join(fa_path,mb_aid,'logo')
+                            img_path=os.path.join(al_path,random.choice(os.listdir(al_path)))
+                            if os.path.isfile(img_path):
+                                img = ImageButton(source=os.path.join(al_path,img_path),allow_stretch=True)
+                                cbl.add_widget(img)
+                                haslogo=True
+                        except:
+                            pass
+                    if haslogo:
+                        current_artist_label = cbl
+                    else:
+                        current_artist_label = InfoLargeLabel(text = result['artist'],font_size=getfontsize(result['artist']))
                     # if the original year mp3 tag exists use it instead of mpd's year
                     if 'TXXX:originalyear' in f.keys():
                         year=format(f['TXXX:originalyear'])
@@ -272,8 +273,13 @@ class KmpcInterface(TabbedPanel):
                         img.bind(on_press=self.cover_popup)
                     self.ids.player.canvas.before.clear()
                     try:
-                        mb_aid=str(f['TXXX:MusicBrainz Artist Id'])
-                        fa_path=self.config.get('mpd','fanartpath')
+                        aids=str(f['TXXX:MusicBrainz Artist Id'])
+                    except KeyError:
+                        aids='0000'
+                    artistids=aids.split('/')
+                    fa_path=self.config.get('mpd','fanartpath')
+                    mb_aid=random.choice(artistids)
+                    try:
                         ab_path=os.path.join(fa_path,mb_aid,'artistbackground')
                         img_path=random.choice(os.listdir(ab_path))
                         self.ids.player.canvas.before.add(Rectangle(source=os.path.join(ab_path,img_path),size=self.ids.player.size,pos=self.ids.player.pos))
@@ -288,31 +294,17 @@ class KmpcInterface(TabbedPanel):
                     yeartext = result['album']+' ['+year+']'
                 else:
                     yeartext = result['album']
-                lt = len(result['title'])
-                la = len(yeartext)
-                if lt < 33:
-                    tsize = '40sp'
-                elif lt >= 55:
-                    tsize = '24sp'
-                else:
-                    tsize = sz[int(round((lt-33)/21*14))]
-                if la < 33:
-                    asize = '40sp'
-                elif la >= 55:
-                    asize = '24sp'
-                else:
-                    asize = sz[int(round((la-33)/21*14))]
                 if haslogo:
                     lyt = BoxLayout(orientation='vertical',padding_y='10sp')
-                    current_song_label = InfoLargeLabel(text = result['title'],font_size=tsize)
+                    current_song_label = InfoLargeLabel(text = result['title'],font_size=getfontsize(result['title']))
                     lyt.add_widget(current_song_label)
-                    current_album_label = InfoLargeLabel(text = yeartext,font_size=asize)
+                    current_album_label = InfoLargeLabel(text = yeartext,font_size=getfontsize(yeartext))
                     lyt.add_widget(current_album_label)
                     ti.add_widget(lyt)
                 else:
-                    current_song_label = InfoLargeLabel(text = result['title'],font_size=tsize)
+                    current_song_label = InfoLargeLabel(text = result['title'],font_size=getfontsize(result['title']))
                     ti.add_widget(current_song_label)
-                    current_album_label = InfoLargeLabel(text = yeartext,font_size=asize)
+                    current_album_label = InfoLargeLabel(text = yeartext,font_size=getfontsize(yeartext))
                     ti.add_widget(current_album_label)
         else:
             # there's not a current song, so zero everything out
