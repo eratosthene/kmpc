@@ -227,7 +227,7 @@ class KmpcInterface(TabbedPanel):
                             al_path=os.path.join(fa_path,mb_aid,'logo')
                             img_path=os.path.join(al_path,random.choice(os.listdir(al_path)))
                             if os.path.isfile(img_path):
-                                img = ImageButton(source=os.path.join(al_path,img_path),allow_stretch=True)
+                                img = ImageButton(source=os.path.join(al_path,img_path),allow_stretch=True,color=(1,1,1,0.65))
                                 cbl.add_widget(img)
                                 haslogo=True
                         except:
