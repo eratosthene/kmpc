@@ -120,7 +120,7 @@ class KmpcInterface(TabbedPanel):
         self.ids.album_cover_layout.clear_widgets()
         self.ids.trackinfo.clear_widgets()
         lbl = Label(text="Playback Stopped")
-        self.ids.trackinfo.add(lbl)
+        self.ids.trackinfo.add_widget(lbl)
 
     def update_mpd_status(self,result):
         Logger.debug('NowPlaying: update_mpd_status()')
@@ -209,33 +209,41 @@ class KmpcInterface(TabbedPanel):
                 year=None
                 if 'date' in result:
                     year=result['date'][:4]
+                fa_path=self.config.get('mpd','fanartpath')
+                try:
+                    aids=str(result['musicbrainz_artistid'])
+                except KeyError:
+                    aids='0000'
+                artistids=aids.split('/')
+                cbl = BoxLayout(size_hint=(1,1),orientation='horizontal')
+                for mb_aid in artistids:
+                    try:
+                        al_path=os.path.join(fa_path,mb_aid,'logo')
+                        img_path=os.path.join(al_path,random.choice(os.listdir(al_path)))
+                        if os.path.isfile(img_path):
+                            img = ImageButton(source=os.path.join(al_path,img_path),allow_stretch=True,color=(1,1,1,0.65))
+                            cbl.add_widget(img)
+                            haslogo=True
+                    except:
+                        pass
+                if haslogo:
+                    current_artist_label = cbl
+                else:
+                    current_artist_label = InfoLargeLabel(text = result['artist'],font_size=getfontsize(result['artist']))
+                self.ids.player.canvas.before.clear()
+                mb_aid=random.choice(artistids)
+                try:
+                    ab_path=os.path.join(fa_path,mb_aid,'artistbackground')
+                    img_path=random.choice(os.listdir(ab_path))
+                    self.ids.player.canvas.before.add(Rectangle(source=os.path.join(ab_path,img_path),size=self.ids.player.size,pos=self.ids.player.pos))
+                except:
+                    self.ids.player.canvas.before.add(Rectangle(source="resources/backdrop.png",size=self.ids.player.size,pos=self.ids.player.pos))
                 if os.path.isfile(p):
                     Logger.debug('NowPlaying: found good file at path '+p)
                     # load up the file to read the tags
                     f = mutagen.File(p)
                     cimg = None
                     data = None
-                    fa_path=self.config.get('mpd','fanartpath')
-                    try:
-                        aids=str(f['TXXX:MusicBrainz Artist Id'])
-                    except KeyError:
-                        aids='0000'
-                    artistids=aids.split('/')
-                    cbl = BoxLayout(size_hint=(1,1),orientation='horizontal')
-                    for mb_aid in artistids:
-                        try:
-                            al_path=os.path.join(fa_path,mb_aid,'logo')
-                            img_path=os.path.join(al_path,random.choice(os.listdir(al_path)))
-                            if os.path.isfile(img_path):
-                                img = ImageButton(source=os.path.join(al_path,img_path),allow_stretch=True,color=(1,1,1,0.65))
-                                cbl.add_widget(img)
-                                haslogo=True
-                        except:
-                            pass
-                    if haslogo:
-                        current_artist_label = cbl
-                    else:
-                        current_artist_label = InfoLargeLabel(text = result['artist'],font_size=getfontsize(result['artist']))
                     # if the original year mp3 tag exists use it instead of mpd's year
                     if 'TXXX:originalyear' in f.keys():
                         year=format(f['TXXX:originalyear'])
@@ -271,23 +279,8 @@ class KmpcInterface(TabbedPanel):
                         img=ImageButton(texture=cimg.texture,allow_stretch=True)
                         self.ids.album_cover_layout.add_widget(img)
                         img.bind(on_press=self.cover_popup)
-                    self.ids.player.canvas.before.clear()
-                    try:
-                        aids=str(f['TXXX:MusicBrainz Artist Id'])
-                    except KeyError:
-                        aids='0000'
-                    artistids=aids.split('/')
-                    fa_path=self.config.get('mpd','fanartpath')
-                    mb_aid=random.choice(artistids)
-                    try:
-                        ab_path=os.path.join(fa_path,mb_aid,'artistbackground')
-                        img_path=random.choice(os.listdir(ab_path))
-                        self.ids.player.canvas.before.add(Rectangle(source=os.path.join(ab_path,img_path),size=self.ids.player.size,pos=self.ids.player.pos))
-                    except:
-                        self.ids.player.canvas.before.add(Rectangle(source="resources/backdrop.png",size=self.ids.player.size,pos=self.ids.player.pos))
                 else:
                     Logger.debug('NowPlaying: no file found at path '+p)
-                    current_artist_label = InfoLargeLabel(text = result['artist'])
                 ti.add_widget(current_artist_label)
                 # if we got a year tag from somewhere, include it in the album label
                 if year:
