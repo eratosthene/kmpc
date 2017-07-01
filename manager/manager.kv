@@ -1,5 +1,6 @@
 #:kivy 1.10.0
 #:import LibraryTabbedPanelItem librarypanel.LibraryTabbedPanelItem
+#:import songratings extra.songratings
 
 <Label>:
     font_name: '../resources/DejaVuSans.ttf'
@@ -7,6 +8,10 @@
 
 <SmallButton@Button>:
     font_size: '16sp'
+
+<StarLabel@Label>:
+    font_name: '../resources/FontAwesome.ttf'
+    markup: True
 
 <ArtistRow>:
     canvas.before:
@@ -91,6 +96,7 @@
     upto: None
     info: {}
     copy_flag: ''
+    rating: ''
     BoxLayout:
         orientation: 'horizontal'
         Label:
@@ -100,6 +106,10 @@
             text_size: self.size
             text: root.value
             padding_x: sp(10)
+        StarLabel:
+            size_hint_x: 0.2
+            text: '[ref=rating]'+songratings[root.rating]['stars']+'[/ref]'
+            on_ref_press: root.rating_popup(root)
         Label:
             size_hint_x: 0.2
             text: root.copy_flag

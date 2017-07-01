@@ -26,7 +26,8 @@ songratings = {
         '7': {'stars': u"\uf005\uf005\uf005\uf123\uf006",'meaning':'Good songs by all artists'},
         '8': {'stars': u"\uf005\uf005\uf005\uf005\uf006",'meaning':'Great songs by all artists'},
         '9': {'stars': u"\uf005\uf005\uf005\uf005\uf123",'meaning':'Best songs by all artists'},
-        '10': {'stars': u"\uf005\uf005\uf005\uf005\uf005",'meaning':'Best songs by favorite artists'}
+        '10': {'stars': u"\uf005\uf005\uf005\uf005\uf005",'meaning':'Best songs by favorite artists'},
+        '' : {'stars': u"\uf29c", 'meaning':'No sticker set'}
 }
 
 sizearray = ['39sp','38sp','37sp','36sp','35sp','34sp','33sp','32sp','31sp','30sp','29sp','28sp','27sp','26sp','25sp']

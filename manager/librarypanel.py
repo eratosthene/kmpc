@@ -14,11 +14,12 @@ from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.popup import Popup
 from copy import deepcopy
 from functools import partial
 import os
 
-from extra import formatsong
+from extra import formatsong,songratings
 
 class LibraryTabbedPanelItem(TabbedPanelItem):
     current_view = {'value': 'root', 'base':'/','info':{'type':'uri'}}
@@ -60,10 +61,17 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
         rr=deepcopy(r)
         if has_sticker:
             rr['copy_flag']=str(result)
-            self.rv.data.append(rr)
         else:
             rr['copy_flag']=''
-            self.rv.data.append(rr)
+        self.protocol.sticker_get('song',rr['base'],'rating').addCallback(partial(self.render_row2,rr,True)).addErrback(partial(self.render_row2,rr,False))
+
+    def render_row2(self,r,has_sticker,result):
+        rr=deepcopy(r)
+        if has_sticker:
+            rr['rating']=str(result)
+        else:
+            rr['rating']=''
+        self.rv.data.append(rr)
 
     def reload_view(self,result):
         Logger.info("Library: reload_view() current type: "+self.current_view['info']['type'])
@@ -77,21 +85,21 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
                 upbase=os.path.normpath(self.current_view['base']+'/..')
                 if upbase == '.':
                     upbase = '/'
-                r = {'value':"up to "+b2,'base':upbase,'info':{'type':'uri'},'copy_flag':''}
+                r = {'value':"up to "+b2,'base':upbase,'info':{'type':'uri'},'copy_flag':'','rating':''}
                 self.rv.data.append(r)
                 self.current_header.text = tbase
             else:
                 self.current_header.text = 'All Files'
         elif self.current_view['info']['type'] == 'albumartistsort':
-            r={'value': 'up to All Album Artists','base':'All Album Artists','info':{'type':'rootalbums'},'copy_flag':''}
+            r={'value': 'up to All Album Artists','base':'All Album Artists','info':{'type':'rootalbums'},'copy_flag':'','rating':''}
             self.rv.data.append(r)
             self.current_header.text = self.current_view['base']
         elif self.current_view['info']['type'] == 'album':
-            r={'value':'up to '+self.current_view['info']['albumartistsort'],'base':self.current_view['info']['albumartistsort'],'info':{'type':'albumartistsort'},'copy_flag':''}
+            r={'value':'up to '+self.current_view['info']['albumartistsort'],'base':self.current_view['info']['albumartistsort'],'info':{'type':'albumartistsort'},'copy_flag':'','rating':''}
             self.rv.data.append(r)
             self.current_header.text = self.current_view['base']
         elif self.current_view['info']['type'] == 'artistsort':
-            r={'value': 'up to All Track Artists','base':'All Track Artists','info':{'type':'roottracks'},'copy_flag':''}
+            r={'value': 'up to All Track Artists','base':'All Track Artists','info':{'type':'roottracks'},'copy_flag':'','rating':''}
             self.rv.data.append(r)
             self.current_header.text = self.current_view['base']
         else:
@@ -100,12 +108,12 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             if 'playlist' in row:
                 if self.current_view['info']['type'] != 'uri':
                     Logger.debug("Library: playlist found = "+row['playlist'])
-                    r = {'value':row['playlist'],'base':row['playlist'],'info':{'type':'playlist'},'copy_flag':''}
+                    r = {'value':row['playlist'],'base':row['playlist'],'info':{'type':'playlist'},'copy_flag':'','rating':''}
                     self.rv.data.append(r)
             elif 'directory' in row:
                 Logger.debug("Library: directory found: ["+row['directory']+"]")
                 (b1,b2)=os.path.split(row['directory'])
-                r={'value':b2,'base':row['directory'],'info':{'type':'uri'},'copy_flag':''}
+                r={'value':b2,'base':row['directory'],'info':{'type':'uri'},'copy_flag':'','rating':''}
                 self.rv.data.append(r)
             elif 'file' in row:
                 Logger.debug("FileBrowser: file found: ["+row['file']+"]")
@@ -114,19 +122,19 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             else:
                 if self.current_view['info']['type'] == 'rootalbums':
                     Logger.debug("Library: album artist found: ["+row+"]")
-                    r={'value':row,'base':row,'info':{'type':'albumartistsort'},'copy_flag':''}
+                    r={'value':row,'base':row,'info':{'type':'albumartistsort'},'copy_flag':'','rating':''}
                     self.rv.data.append(r)
                 elif self.current_view['info']['type'] == 'albumartistsort':
                     Logger.debug("Library: album found: ["+row+"]")
-                    r={'value':row,'base':row,'info':{'type':'album','albumartistsort':self.current_view['base']},'copy_flag':''}
+                    r={'value':row,'base':row,'info':{'type':'album','albumartistsort':self.current_view['base']},'copy_flag':'','rating':''}
                     self.rv.data.append(r)
                 elif self.current_view['info']['type'] == 'roottracks':
                     Logger.debug("Library: track artist found: ["+row+"]")
-                    r={'value':row,'base':row,'info':{'type':'artistsort'},'copy_flag':''}
+                    r={'value':row,'base':row,'info':{'type':'artistsort'},'copy_flag':'','rating':''}
                     self.rv.data.append(r)
                 elif self.current_view['info']['type'] == 'artistsort':
                     Logger.debug("Library: track found: ["+row+"]")
-                    r={'value':row,'base':row,'info':{'type':'track','artistsort':self.current_view['base']},'copy_flag':''}
+                    r={'value':row,'base':row,'info':{'type':'track','artistsort':self.current_view['base']},'copy_flag':'','rating':''}
                     self.rv.data.append(r)
                 else:
                     Logger.warn("Library: not sure what to do with ["+format(row)+"]")
@@ -208,6 +216,19 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
                 Logger.warning("Library: "+mtype+' copy_flag not implemented')
         self.rbl.clear_selection()
 
+    def rating_set(self,base,index,instance):
+        Logger.debug('Application: rating_set('+instance.rating+')')
+        instance.popup.dismiss()
+        self.protocol.sticker_set('song',base,'rating',instance.rating).addCallback(partial(self.handle_rating_set,index,instance.rating,True)).addErrback(partial(self.handle_rating_set,index,instance.rating,False))
+
+    def handle_rating_set(self,index,rating,succ,result):
+        if succ:
+            Logger.info("Library: successfully set song rating for "+self.rv.data[index]['base'])
+            self.rv.data[index]['rating']=rating
+            self.rv.refresh_from_data()
+        else:
+            Logger.info("Library: could not set song rating for "+self.rv.data[index]['base'])
+
 class LibraryRecycleBoxLayout(FocusBehavior,LayoutSelectionBehavior,RecycleBoxLayout):
     ''' Adds selection and focus behaviour to the view. '''
 
@@ -216,6 +237,21 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
     index = None
     selected = BooleanProperty(False)
     selectable = BooleanProperty(True)
+
+    def rating_popup(self,instance):
+        Logger.debug('Library: rating_popup()')
+        layout = GridLayout(cols=2,spacing=10)
+        popup = Popup(title='Rating',content=layout,size_hint=(0.8,1))
+        for r in list(range(0,11)):
+            btn=Button(font_name='../resources/FontAwesome.ttf')
+            btn.text=songratings[str(r)]['stars']
+            btn.rating=str(r)
+            btn.popup=popup
+            layout.add_widget(btn)
+            btn.bind(on_press=partial(App.get_running_app().root.ids.library_tab.rating_set,instance.base,self.index))
+            lbl=Label(text=songratings[str(r)]['meaning'],halign='left')
+            layout.add_widget(lbl)
+        popup.open()
 
     def refresh_view_attrs(self, rv, index, data):
         ''' Catch and handle the view changes '''
