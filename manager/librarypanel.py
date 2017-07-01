@@ -77,21 +77,21 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
                 upbase=os.path.normpath(self.current_view['base']+'/..')
                 if upbase == '.':
                     upbase = '/'
-                r = {'value':"up to "+b2,'base':upbase,'info':{'type':'uri'}}
+                r = {'value':"up to "+b2,'base':upbase,'info':{'type':'uri'},'copy_flag':''}
                 self.rv.data.append(r)
                 self.current_header.text = tbase
             else:
                 self.current_header.text = 'All Files'
         elif self.current_view['info']['type'] == 'albumartistsort':
-            r={'value': 'up to All Album Artists','base':'All Album Artists','info':{'type':'rootalbums'}}
+            r={'value': 'up to All Album Artists','base':'All Album Artists','info':{'type':'rootalbums'},'copy_flag':''}
             self.rv.data.append(r)
             self.current_header.text = self.current_view['base']
         elif self.current_view['info']['type'] == 'album':
-            r={'value':'up to '+self.current_view['info']['albumartistsort'],'base':self.current_view['info']['albumartistsort'],'info':{'type':'albumartistsort'}}
+            r={'value':'up to '+self.current_view['info']['albumartistsort'],'base':self.current_view['info']['albumartistsort'],'info':{'type':'albumartistsort'},'copy_flag':''}
             self.rv.data.append(r)
             self.current_header.text = self.current_view['base']
         elif self.current_view['info']['type'] == 'artistsort':
-            r={'value': 'up to All Track Artists','base':'All Track Artists','info':{'type':'roottracks'}}
+            r={'value': 'up to All Track Artists','base':'All Track Artists','info':{'type':'roottracks'},'copy_flag':''}
             self.rv.data.append(r)
             self.current_header.text = self.current_view['base']
         else:
@@ -100,12 +100,12 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             if 'playlist' in row:
                 if self.current_view['info']['type'] != 'uri':
                     Logger.debug("Library: playlist found = "+row['playlist'])
-                    r = {'value':row['playlist'],'base':row['playlist'],'info':{'type':'playlist'}}
+                    r = {'value':row['playlist'],'base':row['playlist'],'info':{'type':'playlist'},'copy_flag':''}
                     self.rv.data.append(r)
             elif 'directory' in row:
                 Logger.debug("Library: directory found: ["+row['directory']+"]")
                 (b1,b2)=os.path.split(row['directory'])
-                r={'value':b2,'base':row['directory'],'info':{'type':'uri'}}
+                r={'value':b2,'base':row['directory'],'info':{'type':'uri'},'copy_flag':''}
                 self.rv.data.append(r)
             elif 'file' in row:
                 Logger.debug("FileBrowser: file found: ["+row['file']+"]")
@@ -114,19 +114,19 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             else:
                 if self.current_view['info']['type'] == 'rootalbums':
                     Logger.debug("Library: album artist found: ["+row+"]")
-                    r={'value':row,'base':row,'info':{'type':'albumartistsort'}}
+                    r={'value':row,'base':row,'info':{'type':'albumartistsort'},'copy_flag':''}
                     self.rv.data.append(r)
                 elif self.current_view['info']['type'] == 'albumartistsort':
                     Logger.debug("Library: album found: ["+row+"]")
-                    r={'value':row,'base':row,'info':{'type':'album','albumartistsort':self.current_view['base']}}
+                    r={'value':row,'base':row,'info':{'type':'album','albumartistsort':self.current_view['base']},'copy_flag':''}
                     self.rv.data.append(r)
                 elif self.current_view['info']['type'] == 'roottracks':
                     Logger.debug("Library: track artist found: ["+row+"]")
-                    r={'value':row,'base':row,'info':{'type':'artistsort'}}
+                    r={'value':row,'base':row,'info':{'type':'artistsort'},'copy_flag':''}
                     self.rv.data.append(r)
                 elif self.current_view['info']['type'] == 'artistsort':
                     Logger.debug("Library: track found: ["+row+"]")
-                    r={'value':row,'base':row,'info':{'type':'track','artistsort':self.current_view['base']}}
+                    r={'value':row,'base':row,'info':{'type':'track','artistsort':self.current_view['base']},'copy_flag':''}
                     self.rv.data.append(r)
                 else:
                     Logger.warn("Library: not sure what to do with ["+format(row)+"]")
@@ -184,8 +184,8 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
         for index in self.rbl.selected_nodes:
             row = self.rv.data[index]
             mtype=row['info']['type']
-            Logger.info("Library: Adding "+mtype+" '"+row['base']+"' to current playlist")
-            if mtype == 'uri' or mtype == 'file':
+            Logger.info("Library: Setting copy_flag for "+mtype+" '"+row['base']+"' to "+copy_flag)
+            if mtype == 'file':
                 print "adding uri or file"
                 if copy_flag:
                     print "setting copy_flag to "+copy_flag+" for file "+row['base']
@@ -201,11 +201,11 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
                 self.protocol.find(mtype,row['base']).addCallback(partial(self.set_copy_flag_find,copy_flag,index)).addErrback(self.handle_mpd_error)
             elif mtype == 'track':
                 self.protocol.find('artistsort',row['info']['artistsort'],'title',row['base']).addCallback(partial(self.set_copy_flag_find_one,copy_flag,index)).addErrback(self.handle_mpd_error)
-            elif mtype == 'playlist':
-                pass
+            elif mtype == 'playlist' or mtype == 'uri':
+                Logger.info("Library: "+mtype+" copy_flag not implemented")
                 #self.protocol.load(row['base'])
             else:
-                Logger.warning("Library: "+mtype+' not implemented')
+                Logger.warning("Library: "+mtype+' copy_flag not implemented')
         self.rbl.clear_selection()
 
 class LibraryRecycleBoxLayout(FocusBehavior,LayoutSelectionBehavior,RecycleBoxLayout):

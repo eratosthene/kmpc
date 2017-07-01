@@ -9,7 +9,10 @@ def formatsong(rec):
     if int(d2) > 1:
         song+='(Disc '+'%02d' % int(d1)+') '
     (t1,t2)=rec['track'].split('/')
-    song+='%02d' % int(t1)+' '+rec['title']
+    song+='%02d' % int(t1)+' '
+    if rec['artist'] != rec['albumartist']:
+        song+=rec['artist']+' - '
+    song+=rec['title']
     return song
 
 songratings = {
