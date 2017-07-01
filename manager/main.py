@@ -37,8 +37,6 @@ import pickle
 from functools import partial
 import json
 import subprocess
-from urllib2 import Request, urlopen
-#from urllib import urlretrieve
 import tempfile
 import shutil
 
@@ -109,6 +107,7 @@ class ManagerInterface(TabbedPanel):
     def mpd_connectionMade(self,protocol):
         self.protocol = protocol
         Logger.info('Manager: Connected to mpd server host='+self.config.get('mpd','host')+' port='+self.config.get('mpd','port'))
+        self.ids.library_tab.protocol = self.protocol
 
     def mpd_connectionLost(self,protocol, reason):
         Logger.warn('Manager: Connection lost: %s' % reason)
@@ -224,28 +223,17 @@ class ManagerInterface(TabbedPanel):
         fa_path=self.config.get('mpd','fanartpath')
 	fanart=self.config.get('mpd','fanarturl')
         api_key=self.config.get('mpd','api_key')
-	#request = Request(fanart+aid+"?api_key="+api_key)
         print fanart+aid+"?api_key="+api_key
         request = UrlRequest(url=fanart+aid+"?api_key="+api_key,on_success=partial(self.pull_art2,index))
 
     def pull_art2(self,index,request,result):
-#	try:
-#	    response_body = urlopen(request).read()
-#	except:
-#            print "no response"
-#	    return
-#	d=json.loads(response_body)
 	aid=self.ids.artist_tab.rv.data[index]['artist_id']
 	aname=self.ids.artist_tab.rv.data[index]['artist_name']
         fa_path=self.config.get('mpd','fanartpath')
 	fanart=self.config.get('mpd','fanarturl')
         api_key=self.config.get('mpd','api_key')
-        type(result)
         d=result
-#	d=json.loads(format(result))
 	if 'hdmusiclogo' in d or 'artistbackground' in d or 'musiclogo' in d:
-            #tf1='/tmp/t1.png'
-            #tf2='/tmp/t2.png'
 	    fapath=os.path.join(fa_path,aid)
 	    lpath=os.path.join(fapath,"logo")
 	    abpath=os.path.join(fapath,"artistbackground")
@@ -264,11 +252,6 @@ class ManagerInterface(TabbedPanel):
 		for idx,img in enumerate(d['hdmusiclogo']):
 		    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')):
 			print "downloading hdmusiclogo "+img['id']
-			#urlretrieve(img['url'],tf1)
-                        #subprocess.call(['convert',tf1,'-bordercolor','none','-border','10x10',tf2])
-                        #subprocess.call(['convert',tf2,'-trim','+repage',os.path.join(lpath,img['id']+'.png')])
-                        #os.remove(tf1)
-                        #os.remove(tf2)
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
                         adfile=open('artlog.txt','a')
@@ -282,11 +265,6 @@ class ManagerInterface(TabbedPanel):
 		for idx,img in enumerate(d['musiclogo']):
 		    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')):
 			print "downloading musiclogo "+img['id']
-			#urlretrieve(img['url'],tf1)
-                        #subprocess.call(['convert',tf1,'-bordercolor','none','-border','10x10',tf2])
-                        #subprocess.call(['convert',tf2,'-trim','+repage',os.path.join(lpath,img['id']+'.png')])
-                        #os.remove(tf1)
-                        #os.remove(tf2)
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
                         adfile=open('artlog.txt','a')
@@ -300,7 +278,6 @@ class ManagerInterface(TabbedPanel):
 		for idx,img in enumerate(d['artistbackground']):
 		    if not os.path.isfile(os.path.join(abpath,img['id']+'.png')):
 			print "downloading artistbackground "+img['id']
-			#urlretrieve(img['url'],os.path.join(abpath,img['id']+'.png'))
                         fp=os.path.join(abpath,img['id']+'.png')
                         req = UrlRequest(img['url'],file_path=fp)
                         adfile=open('artlog.txt','a')

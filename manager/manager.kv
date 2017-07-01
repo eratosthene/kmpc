@@ -1,4 +1,5 @@
 #:kivy 1.10.0
+#:import LibraryTabbedPanelItem librarypanel.LibraryTabbedPanelItem
 
 <Label>:
     font_name: '../resources/DejaVuSans.ttf'
@@ -69,6 +70,109 @@
             text: 'Y' if root.has_badge else 'N'
             padding_x: sp(10)
 
+<LibraryRow>:
+    canvas.before:
+        Color:
+            rgba: (1,1,0,0.5) if self.selected else (0,0,0,0)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: (1,1,1,0.3)
+        Rectangle:
+            size: (self.width,sp(1))
+            pos: self.pos
+        Rectangle:
+            size: (self.width,sp(1))
+            pos: (self.x,self.top)
+    value: ''
+    base: 'root'
+    level: 'root'
+    upto: None
+    info: {}
+    copy_flag: ''
+    BoxLayout:
+        orientation: 'horizontal'
+        Label:
+            size_hint_x: 1
+            halign: 'left'
+            valign: 'center'
+            text_size: self.size
+            text: root.value
+            padding_x: sp(10)
+        Label:
+            size_hint_x: 0.2
+            text: root.copy_flag
+
+<LibraryTabbedPanelItem>:
+    text: 'Library'
+    rv: rv
+    rbl: rbl
+    current_header: current_header
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 0
+        spacing: 0
+        BoxLayout:
+            size_hint_y: 0.1
+            orientation: 'horizontal'
+            ToggleButton:
+                text: 'Files'
+                id: files_button
+                on_press: root.change_view_type(self.text)
+            ToggleButton:
+                text: 'Albums'
+                id: albums_button
+                on_press: root.change_view_type(self.text)
+            ToggleButton:
+                text: 'Tracks'
+                id: tracks_button
+                on_press: root.change_view_type(self.text)
+            ToggleButton:
+                text: 'Playlists'
+                id: playlists_button
+                on_press: root.change_view_type(self.text)
+        Label:
+            id: current_header
+            size_hint_y: 0.1
+            size_hint_x: 1
+            padding_x: sp(10)
+            text: ''
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+        BoxLayout:
+            orientation: 'horizontal'
+            RecycleView:
+                id: rv
+                size_hint_y: 1
+                size_hint_x: 1
+                rv_selection: {}
+                scroll_type: ['bars','content']
+                bar_width: sp(40)
+                viewclass: 'LibraryRow'
+                LibraryRecycleBoxLayout:
+                    id: rbl
+                    default_size: None, sp(24)
+                    default_size_hint: 1, None
+                    size_hint_y: None
+                    height: self.minimum_height
+                    orientation: 'vertical'
+                    spacing: sp(2)
+                    multiselect: True
+                    touch_multiselect: True
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: '0.05'
+                Button:
+                    text: '+'
+                    on_press: root.set_copy_flag('Y')
+                Button:
+                    text: '-'
+                    on_press: root.set_copy_flag('N')
+                Button:
+                    text: '/'
+                    on_press: root.set_copy_flag('')
 <ManagerInterface>:
     do_default_tab: False
 #    tab_width: self.width / 4
@@ -130,3 +234,5 @@
                     spacing: sp(2)
                     multiselect: False
                     touch_multiselect: False
+    LibraryTabbedPanelItem:
+        id: library_tab
