@@ -1,0 +1,132 @@
+#:kivy 1.10.0
+
+<Label>:
+    font_name: '../resources/DejaVuSans.ttf'
+    font_size: '20sp'
+
+<SmallButton@Button>:
+    font_size: '16sp'
+
+<ArtistRow>:
+    canvas.before:
+        Color:
+            rgba: (1,1,0,0.5) if self.selected else (0,0,0,0)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: (1,1,1,0.3)
+        Rectangle:
+            size: (self.width,sp(1))
+            pos: self.pos
+        Rectangle:
+            size: (self.width,sp(1))
+            pos: (self.x,self.top)
+    artist_id: ''
+    artist_name: ''
+    has_artistbackground: False
+    has_logo: False
+    has_badge: False
+    BoxLayout:
+        orientation: 'horizontal'
+        UneditTextInput:
+            multiline: False
+            size_hint_x: 1
+            halign: 'left'
+            valign: 'center'
+            text_size: self.size
+            text: root.artist_name
+            padding_x: sp(10)
+            background_color: (1,1,0,1) if root.selected else (1,1,1,1)
+        UneditTextInput:
+            multiline: False
+            size_hint_x: 1
+            halign: 'left'
+            valign: 'center'
+            text_size: self.size
+            text: root.artist_id
+            padding_x: sp(10)
+            background_color: (1,1,0,1) if root.selected else (1,1,1,1)
+        Label:
+            size_hint_x: 0.05
+            halign: 'left'
+            valign: 'center'
+            text_size: self.size
+            text: 'Y' if root.has_artistbackground else 'N'
+            padding_x: sp(10)
+        Label:
+            size_hint_x: 0.05
+            halign: 'left'
+            valign: 'center'
+            text_size: self.size
+            text: 'Y' if root.has_logo else 'N'
+            padding_x: sp(10)
+        Label:
+            size_hint_x: 0.05
+            halign: 'left'
+            valign: 'center'
+            text_size: self.size
+            text: 'Y' if root.has_badge else 'N'
+            padding_x: sp(10)
+
+<ManagerInterface>:
+    do_default_tab: False
+#    tab_width: self.width / 4
+    active_tab: None
+    TabbedPanelItem:
+        text: 'Artists'
+        id: artist_tab
+        rv: rv
+        rbl: rbl
+        BoxLayout:
+            orientation: 'vertical'
+            BoxLayout:
+                size_hint_y: 0.05
+                Label:
+                    id: status
+                    text: ''
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.05
+                SmallButton:
+                    text: 'Refresh from mpd and internet'
+                    on_press: root.refresh_artists()
+                SmallButton:
+                    text: 'Refresh from cache'
+                    on_press: root.refresh_artists_from_cache()
+                SmallButton:
+                    text: 'Write to cache'
+                    on_press: root.write_artists_to_cache()
+                SmallButton:
+                    text: 'Scan row'
+                    on_press: root.scan_row_for_media()
+                SmallButton:
+                    text: 'Scan all'
+                    on_press: root.scan_all_for_media()
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.05
+                SmallButton:
+                    text: 'Pull art for row'
+                    on_press: root.pull_art_for_row()
+                SmallButton:
+                    text: 'Pull art for all'
+                    on_press: root.pull_art_for_all()
+            RecycleView:
+                id: rv
+                size_hint_y: 1
+                size_hint_x: 1
+                rv_selection: {}
+                scroll_type: ['bars','content']
+                bar_width: sp(40)
+                viewclass: 'ArtistRow'
+                ArtistRecycleBoxLayout:
+                    id: rbl
+                    default_size: None, sp(24)
+                    default_size_hint: 1, None
+                    size_hint_y: None
+                    height: self.minimum_height
+                    orientation: 'vertical'
+                    spacing: sp(2)
+                    multiselect: False
+                    touch_multiselect: False
