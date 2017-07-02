@@ -20,6 +20,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image,AsyncImage
 from kivy.uix.popup import Popup
 from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.slider import Slider
 from mpd import MPDProtocol
 import os
 import traceback
@@ -93,24 +94,12 @@ class KmpcInterface(TabbedPanel):
     def mpd_connectionLost(self,protocol, reason):
         Logger.warn('Application: Connection lost: %s' % reason)
 
-    def current_track_slider_up(self):
-        curpos=int(self.ids.current_track_slider.value)
-        Logger.info('Application: current_track_slider_up('+str(curpos)+')')
-        self.update_slider=False
-        self.protocol.seekcur(str(curpos)).addErrback(self.handle_mpd_error)
-        self.update_slider=True
-
-    def current_track_slider_move(self):
-        Logger.info('Application: current_track_slider_move()')
-        self.update_slider=False
-
     def handle_mpd_error(self,result):
         Logger.error('Application: MPDIdleHandler Callback error: {}'.format(result))
 
     def stop_zero_stuff(self):
-        self.ids.current_track_time_label.text=''
-        self.ids.current_track_totaltime_label.text=''
         self.ids.current_track_slider.value=0
+        self.ids.current_track_slider.max=0
         self.ids.current_playlist_track_number_label.text=''
         self.ids.next_song_artist_label.text = ''
         self.currfile = None
@@ -121,6 +110,7 @@ class KmpcInterface(TabbedPanel):
         self.ids.trackinfo.clear_widgets()
         lbl = Label(text="Playback Stopped")
         self.ids.trackinfo.add_widget(lbl)
+        self.ids.player.canvas.before.add(Rectangle(source="resources/backdrop.png",size=self.ids.player.size,pos=self.ids.player.pos))
 
     def update_mpd_status(self,result):
         Logger.debug('NowPlaying: update_mpd_status()')
@@ -172,10 +162,6 @@ class KmpcInterface(TabbedPanel):
         else:
             # mpd returns {elapsed seconds}:{total seconds}, the following splits each to minute:second
             c,t=result['time'].split(":")
-            cm,cs=divmod(int(c),60)
-            tm,ts=divmod(int(t),60)
-            self.ids.current_track_time_label.text = "%02d:%02d" % (cm,cs)
-            self.ids.current_track_totaltime_label.text = "%02d:%02d" % (tm,ts)
             # set the max slider value to the total seconds
             self.ids.current_track_slider.max = int(t)
             # set the current slider value to the current seconds
@@ -403,6 +389,35 @@ class KmpcApp(App):
         self.config=config
     def build(self):
         return KmpcInterface(self.config)
+
+class TrackSlider(Slider):
+
+    def on_touch_up(self, touch):
+        released = super(TrackSlider,self).on_touch_up(touch)
+        if released:
+            curpos = int(self.value)
+            Logger.debug("Application: touch up on track slider at "+str(curpos))
+            self.player.protocol.seekcur(str(curpos)).addErrback(self.player.handle_mpd_error)
+            self.player.update_slider=True
+        return released
+
+    def on_touch_down(self, touch):
+        td = super(TrackSlider,self).on_touch_down(touch)
+        if td:
+            Logger.debug("Application: touch down on track slider")
+            self.player.update_slider=False
+        return td
+
+    def current_track_slider_up(self):
+        curpos=int(self.ids.current_track_slider.value)
+        Logger.info('Application: current_track_slider_up('+str(curpos)+')')
+#        self.update_slider=False
+#        self.protocol.seekcur(str(curpos)).addErrback(self.handle_mpd_error)
+#        self.update_slider=True
+
+    def current_track_slider_down(self):
+        Logger.info('Application: current_track_slider_down()')
+        self.update_slider=False
 
 class InfoLargeLabel(Label):
     pass

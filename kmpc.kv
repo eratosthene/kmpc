@@ -194,6 +194,27 @@
                 max: 10
                 value: 0
                 on_touch_up: if self.collide_point(*args[1].pos): root.change_mixrampdelay()
+        Label:
+            text: 'Backlight value'
+            text_size: self.size
+            halign: 'left'
+            valign: 'middle'
+            padding_x: sp(10)
+        BoxLayout:
+            orientation: 'horizontal'
+            Label:
+                text: str(round(backlight_slider.value))
+                size_hint_x: 0.2
+                text_size: self.size
+                halign: 'right'
+                valign: 'middle'
+                padding_x: sp(10)
+            Slider:
+                id: backlight_slider
+                min: 50
+                max: 255
+                value: 255
+                on_touch_up: if self.collide_point(*args[1].pos): root.change_backlight()
 
 <PlaylistRow>:
     canvas.before:
@@ -411,20 +432,21 @@
                             size_hint_x: 0.1
                             valign: 'center'
                             size: self.texture_size
-                            text: '0:00'
-                        Slider:
+                            text: "%02d:%02d" % (divmod(int(current_track_slider.value),60))
+                        TrackSlider:
                             id: current_track_slider
+                            player: root
                             value_track: True
                             valign: 'center'
                             max: '1000'
-                            on_touch_move: if self.collide_point(*args[1].pos): root.current_track_slider_move()
-                            on_touch_up: if self.collide_point(*args[1].pos): root.current_track_slider_up()
+                            #on_touch_down: if self.collide_point(*args[1].pos): root.current_track_slider_down()
+                            #on_touch_up: if self.collide_point(*args[1].pos): root.current_track_slider_up()
                         Label:
                             id: current_track_totaltime_label
                             size_hint_x: 0.1
                             valign: 'center'
                             size: self.texture_size
-                            text: '0:00'
+                            text: "%02d:%02d" % (divmod(int(current_track_slider.max),60))
                     Label:
                         padding_x: '10sp'
                         text_size: self.size
