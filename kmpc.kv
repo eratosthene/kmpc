@@ -373,6 +373,11 @@
                 Button:
                     text: '!'
                     on_press: root.browser_add(True,False)
+                Button:
+                    id: delete_button
+                    text: 'X'
+                    on_press: root.browser_delete()
+                    disabled: True
 
 <KmpcInterface>:
     do_default_tab: False

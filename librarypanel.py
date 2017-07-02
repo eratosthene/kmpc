@@ -33,6 +33,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             self.ids.albums_button.state='normal'
             self.ids.tracks_button.state='normal'
             self.ids.playlists_button.state='normal'
+            self.ids.delete_button.disabled=True
         elif value == 'Albums':
             self.current_view = {'value': 'All Album Artists','base':'All Album Artists','info':{'type':'rootalbums'}}
             self.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
@@ -40,6 +41,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             self.ids.albums_button.state='down'
             self.ids.tracks_button.state='normal'
             self.ids.playlists_button.state='normal'
+            self.ids.delete_button.disabled=True
         elif value == 'Tracks':
             self.current_view = {'value': 'All Track Artists','base':'All Track Artists','info':{'type':'roottracks'}}
             self.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
@@ -47,6 +49,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             self.ids.albums_button.state='normal'
             self.ids.tracks_button.state='down'
             self.ids.playlists_button.state='normal'
+            self.ids.delete_button.disabled=True
         elif value == 'Playlists':
             self.current_view = {'value':'All Playlists','base':'All Playlists','info':{'type':'playlist'}}
             self.protocol.listplaylists().addCallback(self.reload_view).addErrback(self.handle_mpd_error)
@@ -54,6 +57,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             self.ids.albums_button.state='normal'
             self.ids.tracks_button.state='normal'
             self.ids.playlists_button.state='down'
+            self.ids.delete_button.disabled=False
 
     def reload_view(self,result):
         Logger.info("Library: reload_view() current type: "+self.current_view['info']['type'])
@@ -186,6 +190,15 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
                 self.protocol.load(row['base'])
             else:
                 Logger.warning("Library: "+mtype+' not implemented')
+        self.rbl.clear_selection()
+
+    def browser_delete(self):
+        for index in self.rbl.selected_nodes:
+            plname=self.rv.data[index]['base']
+            Logger.info("Library: deleting playlist "+plname)
+            self.protocol.rm(plname).addErrback(self.handle_mpd_error)
+            self.current_view = {'value':'All Playlists','base':'All Playlists','info':{'type':'playlist'}}
+            self.protocol.listplaylists().addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         self.rbl.clear_selection()
 
 class LibraryRecycleBoxLayout(LayoutSelectionBehavior,RecycleBoxLayout):
