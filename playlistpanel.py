@@ -7,11 +7,15 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.logger import Logger
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
-from kivy.properties import BooleanProperty
+from kivy.properties import BooleanProperty,StringProperty
 from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.popup import Popup
+from kivy.uix.textinput import TextInput
+from kivy.uix.button import Button
+from kivy.uix.vkeyboard import VKeyboard
 from kivy.clock import Clock
 from functools import partial
 
@@ -51,6 +55,33 @@ class PlaylistTabbedPanelItem(TabbedPanelItem):
             self.protocol.swap(str(s1),str(s2)).addErrback(self.handle_mpd_error)
         self.rbl.clear_selection()
 
+    def playlist_save_pressed(self):
+        Logger.info("Playlist: save")
+        self.rbl.clear_selection()
+        layout = BoxLayout(orientation='vertical')
+        popup = Popup(title='Playlist Name',content=layout)
+        l1 = BoxLayout(size_hint_y='0.1')
+        ti = TextInput()
+        l1.add_widget(ti)
+        layout.add_widget(l1)
+        l2 = BoxLayout(size_hint_y='0.1',orientation='horizontal')
+        btnok = Button(text="OK")
+        btncl = Button(text="Cancel")
+        btncl.bind(on_press=popup.dismiss)
+        btnok.bind(on_press=partial(self.save_playlist,ti,popup))
+        l2.add_widget(btnok)
+        l2.add_widget(btncl)
+        layout.add_widget(l2)
+        l3 = BoxLayout()
+        layout.add_widget(l3)
+        popup.open()
+        ti.show_keyboard()
+
+    def save_playlist(self,ti,popup,instance):
+        Logger.info("Playlist: save_playlist("+ti.text+")")
+        self.protocol.save(ti.text).addErrback(self.handle_mpd_error)
+        popup.dismiss()
+
     def populate_playlist(self,result):
         Logger.info("Playlist: populate_playlist()")
         self.rv.data = []
@@ -78,7 +109,7 @@ class PlaylistTabbedPanelItem(TabbedPanelItem):
     def handle_mpd_error(self,result):
         Logger.error('Playlist: MPDIdleHandler Callback error: {}'.format(result))
 
-class PlaylistRecycleBoxLayout(FocusBehavior,LayoutSelectionBehavior,RecycleBoxLayout):
+class PlaylistRecycleBoxLayout(LayoutSelectionBehavior,RecycleBoxLayout):
     ''' Adds selection and focus behaviour to the view. '''
 
 class PlaylistRow(RecycleDataViewBehavior,BoxLayout):

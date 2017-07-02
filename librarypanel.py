@@ -188,7 +188,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
                 Logger.warning("Library: "+mtype+' not implemented')
         self.rbl.clear_selection()
 
-class LibraryRecycleBoxLayout(FocusBehavior,LayoutSelectionBehavior,RecycleBoxLayout):
+class LibraryRecycleBoxLayout(LayoutSelectionBehavior,RecycleBoxLayout):
     ''' Adds selection and focus behaviour to the view. '''
 
 class LibraryRow(RecycleDataViewBehavior,BoxLayout):
