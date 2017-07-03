@@ -390,12 +390,13 @@ class KmpcApp(App):
         config.setdefaults('mpd',{
             'host': '127.0.0.1',
             'port': 6600,
-            'basepath': '/mnt/music'
+            'basepath': '/mnt/music',
+            'fanartpath': '/mnt/fanart'
         })
         config.setdefaults('kivy',{
             'log_level': 'info',
-            'log_enable': 1,
-            'keyboard_mode': 'systemandmulti'
+            'log_enable': 0,
+            'keyboard_mode': 'systemanddock'
         })
         config.setdefaults('graphics',{
             'width': 800,
