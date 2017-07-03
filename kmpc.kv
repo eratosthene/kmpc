@@ -391,6 +391,8 @@
     do_default_tab: False
     tab_width: self.width / 4
     active_tab: None
+    backlight_min: 11
+    backlight_max: 255
     TabbedPanelItem:
         text: 'Now Playing'
         BackdropBoxLayout:
@@ -472,8 +474,8 @@
                         cursor_image: 'resources/backlight-slider-cursor.png'
                         cursor_height: sp(40)
                         padding: sp(20)
-                        min: 50
-                        max: 255
+                        min: root.backlight_min
+                        max: root.backlight_max
                         value: 255
                         on_release: root.change_backlight()
                         Label:
