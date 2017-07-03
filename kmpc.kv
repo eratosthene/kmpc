@@ -418,65 +418,78 @@
             id: player
             orientation: 'vertical'
             BoxLayout:
-                id: trackinfo
-                size_hint_x: 1
-                orientation: 'vertical'
-            BoxLayout:
                 orientation: 'horizontal'
-                id: extended_info
-                size_hint_y: 0.33
-                BoxLayout:
-                    id: album_cover_layout
-                    size_hint_x: 0.2
-                    padding_x: '10sp'
                 BoxLayout:
                     orientation: 'vertical'
-                    InfoSmallLabel:
-                        id: next_song_artist_label
-                    ExtraSlider:
-                        id: current_track_slider
-                        update_slider: True
-                        value_track: True
-                        valign: 'center'
-                        max: '1000'
-                        cursor_image: 'resources/track-slider-cursor.png'
-                        cursor_width: sp(80)
-                        cursor_height: sp(36)
-                        on_touch_down: root.current_track_slider_down()
-                        on_release: root.current_track_slider_release()
-                        Label:
-                            pos: (current_track_slider.value_pos[0] - sp(16), current_track_slider.center_y - sp(16))
-                            size_hint: None, None
-                            size: sp(32), sp(32)
-                            text: "%02d:%02d" % (divmod(int(current_track_slider.max)-int(current_track_slider.value),60))
+                    size_hint_x: 0.025
+                BoxLayout:
+                    orientation: 'vertical'
+                    BoxLayout:
+                        id: trackinfo
+                        size_hint_x: 1
+                        orientation: 'vertical'
                     BoxLayout:
                         orientation: 'horizontal'
-                        Label:
-                            id: current_track_time_label
-                            size_hint_x: 0.1
-                            valign: 'center'
-                            halign: 'left'
-                            size: self.texture_size
-                            text: "%02d:%02d" % (divmod(int(current_track_slider.value),60))
-                        Label:
+                        id: extended_info
+                        size_hint_y: 0.33
+                        BoxLayout:
+                            id: album_cover_layout
+                            size_hint_x: 0.2
                             padding_x: '10sp'
-                            text_size: self.size
-                            id: current_playlist_track_number_label
-                            text: '1 of 10'
-                            halign: 'center'
-                            valign: 'middle'
-                        Label:
-                            id: current_track_totaltime_label
-                            size_hint_x: 0.1
-                            valign: 'center'
-                            halign: 'right'
-                            size: self.texture_size
-                            text: "%02d:%02d" % (divmod(int(current_track_slider.max),60))
+                        BoxLayout:
+                            orientation: 'vertical'
+                            InfoSmallLabel:
+                                id: next_song_artist_label
+                            ExtraSlider:
+                                id: current_track_slider
+                                update_slider: True
+                                value_track: True
+                                valign: 'center'
+                                max: '1000'
+                                cursor_image: 'resources/track-slider-cursor.png'
+                                cursor_width: sp(80)
+                                cursor_height: sp(36)
+                                on_touch_down: root.current_track_slider_down()
+                                on_release: root.current_track_slider_release()
+                                Label:
+                                    pos: (current_track_slider.value_pos[0] - sp(16), current_track_slider.center_y - sp(16))
+                                    size_hint: None, None
+                                    size: sp(32), sp(32)
+                                    text: "%02d:%02d" % (divmod(int(current_track_slider.max)-int(current_track_slider.value),60))
+                            BoxLayout:
+                                orientation: 'horizontal'
+                                Label:
+                                    id: current_track_time_label
+                                    size_hint_x: 0.1
+                                    valign: 'center'
+                                    halign: 'left'
+                                    size: self.texture_size
+                                    text: "%02d:%02d" % (divmod(int(current_track_slider.value),60))
+                                Label:
+                                    padding_x: '10sp'
+                                    text_size: self.size
+                                    id: current_playlist_track_number_label
+                                    text: '1 of 10'
+                                    halign: 'center'
+                                    valign: 'middle'
+                                Label:
+                                    id: current_track_totaltime_label
+                                    size_hint_x: 0.1
+                                    valign: 'center'
+                                    halign: 'right'
+                                    size: self.texture_size
+                                    text: "%02d:%02d" % (divmod(int(current_track_slider.max),60))
+                        BoxLayout:
+                            size_hint_x: 0.2
+                            id: song_star_layout
                 BoxLayout:
-                    size_hint_x: 0.2
-                    id: song_star_layout
+                    orientation: 'vertical'
+                    size_hint_x: 0.025
+                    ExtraSlider:
+                        orientation: 'vertical'
+                        cursor_width: sp(20)
             BoxLayout:
-                size_hint: (1,0.15)
+                size_hint: (1,0.10)
                 orientation: 'horizontal'
                 MediaButton:
                     id: prev_button
