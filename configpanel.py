@@ -44,7 +44,3 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         v=round(self.ids.mixrampdelay_slider.value,6)
         self.protocol.mixrampdelay(str(v)).addErrback(self.handle_mpd_error)
 
-    def change_backlight(self):
-        v=int(round(self.ids.backlight_slider.value))
-        Logger.info('Config: change_backlight('+str(v)+')')
-

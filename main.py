@@ -150,22 +150,6 @@ class KmpcInterface(TabbedPanel):
         self.ids.single_button.state=stflags[int(self.mpd_status['single'])]
         self.ids.random_button.state=stflags[int(self.mpd_status['random'])]
         self.ids.consume_button.state=stflags[int(self.mpd_status['consume'])]
-#        if int(self.mpd_status['repeat']):
-#            self.ids.repeat_button.state='down'
-#        else:
-#            self.ids.repeat_button.state='normal'
-#        if int(self.mpd_status['single']):
-#            self.ids.single_button.state='down'
-#        else:
-#            self.ids.single_button.state='normal'
-#        if int(self.mpd_status['random']):
-#            self.ids.random_button.state='down'
-#        else:
-#            self.ids.random_button.state='normal'
-#        if int(self.mpd_status['consume']):
-#            self.ids.consume_button.state='down'
-#        else:
-#            self.ids.consume_button.state='normal'
         if self.mpd_status['state']=='pause' or self.mpd_status['state']=='stop':
             self.ids.play_button.state='normal'
             self.ids.play_button.text=u"\uf04b"
@@ -384,6 +368,10 @@ class KmpcInterface(TabbedPanel):
         img = Image(texture=instance.texture,allow_stretch=True)
         layout.add_widget(img)
         popup.open()
+
+    def change_backlight(self):
+        v=int(round(self.ids.backlight_slider.value))
+        Logger.info('Application: change_backlight('+str(v)+')')
 
 class KmpcApp(App):
     def build_config(self,config):

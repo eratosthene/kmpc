@@ -202,27 +202,6 @@
                 max: 10
                 value: 0
                 on_release: root.change_mixrampdelay()
-        Label:
-            text: 'Backlight value'
-            text_size: self.size
-            halign: 'left'
-            valign: 'middle'
-            padding_x: sp(10)
-        BoxLayout:
-            orientation: 'horizontal'
-            Label:
-                text: str(int(round(backlight_slider.value)))
-                size_hint_x: 0.2
-                text_size: self.size
-                halign: 'right'
-                valign: 'middle'
-                padding_x: sp(10)
-            ExtraSlider:
-                id: backlight_slider
-                min: 50
-                max: 255
-                value: 255
-                on_release: root.change_backlight()
 
 <PlaylistRow>:
     canvas.before:
@@ -458,6 +437,7 @@
                                     text: "%02d:%02d" % (divmod(int(current_track_slider.max)-int(current_track_slider.value),60))
                             BoxLayout:
                                 orientation: 'horizontal'
+                                padding: sp(20),0,sp(20),0
                                 Label:
                                     id: current_track_time_label
                                     size_hint_x: 0.1
@@ -486,8 +466,30 @@
                     orientation: 'vertical'
                     size_hint_x: 0.025
                     ExtraSlider:
+                        id: backlight_slider
                         orientation: 'vertical'
                         cursor_width: sp(20)
+                        cursor_image: 'resources/backlight-slider-cursor.png'
+                        cursor_height: sp(40)
+                        padding: sp(20)
+                        min: 50
+                        max: 255
+                        value: 255
+                        on_release: root.change_backlight()
+                        Label:
+                            pos: (backlight_slider.center_x - sp(16), backlight_slider.value_pos[1] - sp(16))
+                            font_size: sp(16)
+                            size_hint: None, None
+                            size: sp(32), sp(32)
+                            text: str(int(round(backlight_slider.value)))
+                            canvas.before:
+                                Clear
+                                PushMatrix
+                                Rotate:
+                                    angle: -90
+                                    origin: self.center
+                            canvas.after:
+                                PopMatrix
             BoxLayout:
                 size_hint: (1,0.10)
                 orientation: 'horizontal'
