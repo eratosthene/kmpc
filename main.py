@@ -371,7 +371,10 @@ class KmpcInterface(TabbedPanel):
 
     def change_backlight(self):
         v=int(round(self.ids.backlight_slider.value))
-        Logger.info('Application: change_backlight('+str(v)+')')
+        if self.config.get('kmpc','rpienable'):
+            Logger.info('Application: change_backlight('+str(v)+')')
+            import rpi_backlight as bl
+            bl.set_brightness(v, smooth=True, duration=1)
 
 class KmpcApp(App):
     def build_config(self,config):
@@ -380,6 +383,9 @@ class KmpcApp(App):
             'port': 6600,
             'basepath': '/mnt/music',
             'fanartpath': '/mnt/fanart'
+        })
+        config.setdefaults('kmpc',{
+            'rpienable': False
         })
         config.setdefaults('kivy',{
             'log_level': 'info',
