@@ -39,7 +39,7 @@ from twisted.internet import task
 from twisted.internet.defer import inlineCallbacks
 
 from mpdfactory import MPDClientFactory
-from extra import songratings,getfontsize
+from extra import songratings,getfontsize,ExtraSlider
 from playlistpanel import PlaylistTabbedPanelItem
 
 class KmpcInterface(TabbedPanel):
@@ -55,7 +55,6 @@ class KmpcInterface(TabbedPanel):
         # bind callbacks for tab changes
         self.bind(current_tab=self.main_tab_changed)
         self.mpd_status={'state':'stop','repeat':0,'single':0,'random':0,'consume':0,'curpos':0}
-        self.update_slider=True
         self.currsong=None
         self.nextsong=None
         self.currfile=None
@@ -76,6 +75,7 @@ class KmpcInterface(TabbedPanel):
 #        self.protocol.playlistinfo().addCalLback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
         # same with this line
 #        self.protocol.status().addCallback(self.ids.config_tab.update_mpd_status).addErrback(self.ids.config_tab.handle_mpd_error)
+
     def main_tab_changed(self,obj,value):
         self.active_tab = value.text
         Logger.info("Application: Changed active tab to "+self.active_tab)
@@ -97,9 +97,20 @@ class KmpcInterface(TabbedPanel):
     def handle_mpd_error(self,result):
         Logger.error('Application: MPDIdleHandler Callback error: {}'.format(result))
 
+    def current_track_slider_release(self):
+        curpos = int(self.ids.current_track_slider.value)
+        Logger.debug("Application: touch up on track slider at "+str(curpos))
+        self.protocol.seekcur(str(curpos)).addErrback(self.handle_mpd_error)
+        self.ids.current_track_slider.update_slider=True
+
+    def current_track_slider_down(self):
+        Logger.debug("Application: touch down on track slider")
+        self.ids.current_track_slider.update_slider=False
+
     def stop_zero_stuff(self):
         self.ids.current_track_slider.value=0
         self.ids.current_track_slider.max=0
+        self.ids.current_track_slider.update_slider=True
         self.ids.current_playlist_track_number_label.text=''
         self.ids.next_song_artist_label.text = ''
         self.currfile = None
@@ -133,23 +144,28 @@ class KmpcInterface(TabbedPanel):
                 self.protocol.playlistinfo(self.nextsong).addCallback(self.update_mpd_nextsong).addErrback(self.handle_mpd_error)
             else:
                 self.nextsong=None
-        # check various flag states. there's probably a more efficient way to do this
-        if int(self.mpd_status['repeat']):
-            self.ids.repeat_button.state='down'
-        else:
-            self.ids.repeat_button.state='normal'
-        if int(self.mpd_status['single']):
-            self.ids.single_button.state='down'
-        else:
-            self.ids.single_button.state='normal'
-        if int(self.mpd_status['random']):
-            self.ids.random_button.state='down'
-        else:
-            self.ids.random_button.state='normal'
-        if int(self.mpd_status['consume']):
-            self.ids.consume_button.state='down'
-        else:
-            self.ids.consume_button.state='normal'
+        stflags=['normal','down']
+        # check various flag states
+        self.ids.repeat_button.state=stflags[int(self.mpd_status['repeat'])]
+        self.ids.single_button.state=stflags[int(self.mpd_status['single'])]
+        self.ids.random_button.state=stflags[int(self.mpd_status['random'])]
+        self.ids.consume_button.state=stflags[int(self.mpd_status['consume'])]
+#        if int(self.mpd_status['repeat']):
+#            self.ids.repeat_button.state='down'
+#        else:
+#            self.ids.repeat_button.state='normal'
+#        if int(self.mpd_status['single']):
+#            self.ids.single_button.state='down'
+#        else:
+#            self.ids.single_button.state='normal'
+#        if int(self.mpd_status['random']):
+#            self.ids.random_button.state='down'
+#        else:
+#            self.ids.random_button.state='normal'
+#        if int(self.mpd_status['consume']):
+#            self.ids.consume_button.state='down'
+#        else:
+#            self.ids.consume_button.state='normal'
         if self.mpd_status['state']=='pause' or self.mpd_status['state']=='stop':
             self.ids.play_button.state='normal'
             self.ids.play_button.text=u"\uf04b"
@@ -166,7 +182,7 @@ class KmpcInterface(TabbedPanel):
             self.ids.current_track_slider.max = int(t)
             # set the current slider value to the current seconds
             self.mpd_status['curpos']=int(c)
-            if self.update_slider:
+            if self.ids.current_track_slider.update_slider:
                 self.ids.current_track_slider.value = int(c)
             # throws an exception if i don't do this
             a=int(result['song'])+1
@@ -389,35 +405,6 @@ class KmpcApp(App):
         self.config=config
     def build(self):
         return KmpcInterface(self.config)
-
-class TrackSlider(Slider):
-
-    def on_touch_up(self, touch):
-        released = super(TrackSlider,self).on_touch_up(touch)
-        if released:
-            curpos = int(self.value)
-            Logger.debug("Application: touch up on track slider at "+str(curpos))
-            self.player.protocol.seekcur(str(curpos)).addErrback(self.player.handle_mpd_error)
-            self.player.update_slider=True
-        return released
-
-    def on_touch_down(self, touch):
-        td = super(TrackSlider,self).on_touch_down(touch)
-        if td:
-            Logger.debug("Application: touch down on track slider")
-            self.player.update_slider=False
-        return td
-
-    def current_track_slider_up(self):
-        curpos=int(self.ids.current_track_slider.value)
-        Logger.info('Application: current_track_slider_up('+str(curpos)+')')
-#        self.update_slider=False
-#        self.protocol.seekcur(str(curpos)).addErrback(self.handle_mpd_error)
-#        self.update_slider=True
-
-    def current_track_slider_down(self):
-        Logger.info('Application: current_track_slider_down()')
-        self.update_slider=False
 
 class InfoLargeLabel(Label):
     pass

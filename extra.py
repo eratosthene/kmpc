@@ -2,6 +2,7 @@ import kivy
 kivy.require('1.10.0')
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.slider import Slider
 
 def formatsong(rec):
     song = ''
@@ -41,3 +42,19 @@ def getfontsize(str):
     else:
 	rsize = sizearray[int(round((lr-33)/21*14))]
     return rsize
+
+class ExtraSlider(Slider):
+
+    def __init__(self,**kwargs):
+        super(self.__class__,self).__init__(**kwargs)
+        self.register_event_type('on_release')
+
+    def on_release(self):
+        pass
+
+    def on_touch_up(self, touch):
+        released = super(self.__class__,self).on_touch_up(touch)
+        if released:
+            self.dispatch('on_release')
+        return released
+

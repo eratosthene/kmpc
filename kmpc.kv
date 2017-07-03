@@ -4,6 +4,7 @@
 #:import PlaylistRow playlistpanel.PlaylistRow
 #:import PlaylistRecycleBoxLayout playlistpanel.PlaylistRecycleBoxLayout
 #:import LibraryTabbedPanelItem librarypanel.LibraryTabbedPanelItem
+#:import ExtraSlider extra.ExtraSlider
 
 <Label>:
     font_name: 'resources/DejaVuSans.ttf'
@@ -85,6 +86,13 @@
     font_name: 'resources/DejaVuSans.ttf'
     font_size: '20sp'
 
+<TrackSlider@Slider>:
+    Label:
+        pos: (root.value_pos[0] - sp(16), root.center_y - sp(27)) if root.orientation == 'horizontal' else (root.center_x - sp(27), root.value_pos[1] - sp(16))
+        size_hint: None, None
+        size: sp(32), sp(32)
+        text: "%02d:%02d" % (divmod(int(root.max)-int(root.value),60))
+
 <BackdropBoxLayout@BoxLayout>:
     canvas.before:
         Rectangle:
@@ -146,12 +154,12 @@
                 halign: 'right'
                 valign: 'middle'
                 padding_x: sp(10)
-            Slider:
+            ExtraSlider:
                 id: crossfade_slider
                 min: 0
                 max: 10
                 value: 0
-                on_touch_up: if self.collide_point(*args[1].pos): root.change_crossfade()
+                on_release: root.change_crossfade()
         Label:
             text: 'Mixramp threshold in DB'
             text_size: self.size
@@ -167,12 +175,12 @@
                 halign: 'right'
                 valign: 'middle'
                 padding_x: sp(10)
-            Slider:
+            ExtraSlider:
                 id: mixrampdb_slider
                 min: 0
                 max: 20
                 value: 0
-                on_touch_up: if self.collide_point(*args[1].pos): root.change_mixrampdb()
+                on_release: root.change_mixrampdb()
         Label:
             text: 'Mixramp delay in seconds'
             text_size: self.size
@@ -188,12 +196,12 @@
                 halign: 'right'
                 valign: 'middle'
                 padding_x: sp(10)
-            Slider:
+            ExtraSlider:
                 id: mixrampdelay_slider
                 min: 0
                 max: 10
                 value: 0
-                on_touch_up: if self.collide_point(*args[1].pos): root.change_mixrampdelay()
+                on_release: root.change_mixrampdelay()
         Label:
             text: 'Backlight value'
             text_size: self.size
@@ -203,18 +211,18 @@
         BoxLayout:
             orientation: 'horizontal'
             Label:
-                text: str(round(backlight_slider.value))
+                text: str(int(round(backlight_slider.value)))
                 size_hint_x: 0.2
                 text_size: self.size
                 halign: 'right'
                 valign: 'middle'
                 padding_x: sp(10)
-            Slider:
+            ExtraSlider:
                 id: backlight_slider
                 min: 50
                 max: 255
                 value: 255
-                on_touch_up: if self.collide_point(*args[1].pos): root.change_backlight()
+                on_release: root.change_backlight()
 
 <PlaylistRow>:
     canvas.before:
@@ -425,35 +433,45 @@
                     orientation: 'vertical'
                     InfoSmallLabel:
                         id: next_song_artist_label
+                    ExtraSlider:
+                        id: current_track_slider
+                        update_slider: True
+                        value_track: True
+                        valign: 'center'
+                        max: '1000'
+                        cursor_image: 'resources/track-slider-cursor.png'
+                        cursor_width: sp(80)
+                        cursor_height: sp(36)
+                        on_touch_down: root.current_track_slider_down()
+                        on_release: root.current_track_slider_release()
+                        Label:
+                            pos: (current_track_slider.value_pos[0] - sp(16), current_track_slider.center_y - sp(16))
+                            size_hint: None, None
+                            size: sp(32), sp(32)
+                            text: "%02d:%02d" % (divmod(int(current_track_slider.max)-int(current_track_slider.value),60))
                     BoxLayout:
                         orientation: 'horizontal'
                         Label:
                             id: current_track_time_label
                             size_hint_x: 0.1
                             valign: 'center'
+                            halign: 'left'
                             size: self.texture_size
                             text: "%02d:%02d" % (divmod(int(current_track_slider.value),60))
-                        TrackSlider:
-                            id: current_track_slider
-                            player: root
-                            value_track: True
-                            valign: 'center'
-                            max: '1000'
-                            #on_touch_down: if self.collide_point(*args[1].pos): root.current_track_slider_down()
-                            #on_touch_up: if self.collide_point(*args[1].pos): root.current_track_slider_up()
+                        Label:
+                            padding_x: '10sp'
+                            text_size: self.size
+                            id: current_playlist_track_number_label
+                            text: '1 of 10'
+                            halign: 'center'
+                            valign: 'middle'
                         Label:
                             id: current_track_totaltime_label
                             size_hint_x: 0.1
                             valign: 'center'
+                            halign: 'right'
                             size: self.texture_size
                             text: "%02d:%02d" % (divmod(int(current_track_slider.max),60))
-                    Label:
-                        padding_x: '10sp'
-                        text_size: self.size
-                        id: current_playlist_track_number_label
-                        text: '1 of 10'
-                        halign: 'center'
-                        valign: 'middle'
                 BoxLayout:
                     size_hint_x: 0.2
                     id: song_star_layout

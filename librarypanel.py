@@ -213,12 +213,12 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
     def refresh_view_attrs(self, rv, index, data):
         ''' Catch and handle the view changes '''
         self.index = index
-        return super(LibraryRow, self).refresh_view_attrs(
+        return super(self.__class__, self).refresh_view_attrs(
             rv, index, data)
 
     def on_touch_down(self, touch):
         ''' Add selection on touch down '''
-        if super(LibraryRow, self).on_touch_down(touch):
+        if super(self.__class__, self).on_touch_down(touch):
             return True
         if self.collide_point(*touch.pos) and self.selectable:
             # if we have a double-click, play from that location instead of selecting
