@@ -27,6 +27,7 @@ import traceback
 import mutagen
 import io
 import random
+import time
 
 #install twisted reactor to interface with mpd
 import sys
@@ -376,7 +377,17 @@ class KmpcInterface(TabbedPanel):
             import rpi_backlight as bl
             bl.set_brightness(v, smooth=True, duration=1)
 
+    def handle_acc_pin(self,channel):
+	time.sleep(1)
+	Logger.debug("RPIO: input on channel %s" % channel)
+	Logger.debug("RPIO: value is %s" % GPIO.input(channel))
+	if GPIO.input(channel): #unconnected
+	  Logger.debug("RPIO: accessory signal engaged")
+	else: #grounded
+	  Logger.debug("RPIO: accessory signal disengaged")
+
 class KmpcApp(App):
+
     def build_config(self,config):
         config.setdefaults('mpd',{
             'host': '127.0.0.1',
@@ -385,7 +396,8 @@ class KmpcApp(App):
             'fanartpath': '/mnt/fanart'
         })
         config.setdefaults('kmpc',{
-            'rpienable': False
+            'rpienable': 1,
+            'acc_pin': 17
         })
         config.setdefaults('kivy',{
             'log_level': 'info',
@@ -398,8 +410,22 @@ class KmpcApp(App):
         })
         Config.read(self.get_application_config())
         self.config=config
+
     def build(self):
         return KmpcInterface(self.config)
+
+    def on_start(self):
+        if int(self.config.get('kmpc','rpienable')):
+            import RPi.GPIO as GPIO
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(self.config.get('kmpc','acc_pin'),GPIO.IN,pull_up_down=GPIO.PUD_UP)
+            GPIO.add_event_detect(self.config.get('kmpc','acc_pin'),GPIO.BOTH,callback=self.handle_acc_pin,bouncetime=1000)
+        else:
+            Logger.info("Application: skipping rpi-specific code")
+
+    def on_stop(self):
+        if int(self.config.get('kmpc','rpienable')):
+            GPIO.cleanup()
 
 class InfoLargeLabel(Label):
     pass
@@ -412,4 +438,3 @@ class ImageButton(ButtonBehavior, AsyncImage):
 
 if __name__ == '__main__':
     KmpcApp().run()
-
