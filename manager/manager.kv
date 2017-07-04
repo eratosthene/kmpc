@@ -183,6 +183,7 @@
                 Button:
                     text: '/'
                     on_press: root.set_copy_flag('')
+
 <ManagerInterface>:
     do_default_tab: False
 #    tab_width: self.width / 4
@@ -226,6 +227,19 @@
                 SmallButton:
                     text: 'Pull art for all'
                     on_press: root.pull_art_for_all()
+                SmallButton:
+                    text: 'Generate rsync merge'
+                    id: generate_button
+                    on_press: root.generate_rsync()
+                SmallButton:
+                    text: 'Write rsync merge'
+                    id: write_rsync_button
+                    on_press: root.write_rsync()
+                Label:
+                    text: 'Minimum stars:'
+                TextInput:
+                    id: minimum_stars
+                    text: '5'
             RecycleView:
                 id: rv
                 size_hint_y: 1
