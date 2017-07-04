@@ -430,7 +430,7 @@
                                 cursor_image: 'resources/track-slider-cursor.png'
                                 cursor_width: sp(80)
                                 cursor_height: sp(36)
-                                on_touch_down: root.current_track_slider_down()
+                                on_touch_down: if self.collide_point(*args[1].pos): root.current_track_slider_down()
                                 on_release: root.current_track_slider_release()
                                 Label:
                                     pos: (current_track_slider.value_pos[0] - sp(16), current_track_slider.center_y - sp(16))
