@@ -124,7 +124,32 @@
         padding: 0
         spacing: 0
         BoxLayout:
-            size_hint_y: 0.1
+            size_hint_y: 0.05
+            Label:
+                id: status
+                text: ''
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.05
+            SmallButton:
+                text: 'Generate rsync merge'
+                id: generate_button
+                on_press: root.generate_rsync()
+            SmallButton:
+                text: 'Write rsync merge'
+                id: write_rsync_button
+                on_press: root.write_rsync()
+            SmallButton:
+                text: 'Generate playlist'
+                id: generate_playlist_button
+                on_press: root.generate_playlist()
+            Label:
+                text: 'Minimum stars:'
+            TextInput:
+                id: minimum_stars
+                text: '5'
+        BoxLayout:
+            size_hint_y: 0.05
             orientation: 'horizontal'
             ToggleButton:
                 text: 'Files'
@@ -227,19 +252,6 @@
                 SmallButton:
                     text: 'Pull art for all'
                     on_press: root.pull_art_for_all()
-                SmallButton:
-                    text: 'Generate rsync merge'
-                    id: generate_button
-                    on_press: root.generate_rsync()
-                SmallButton:
-                    text: 'Write rsync merge'
-                    id: write_rsync_button
-                    on_press: root.write_rsync()
-                Label:
-                    text: 'Minimum stars:'
-                TextInput:
-                    id: minimum_stars
-                    text: '5'
             RecycleView:
                 id: rv
                 size_hint_y: 1

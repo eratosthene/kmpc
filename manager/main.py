@@ -26,6 +26,7 @@ from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.textinput import TextInput
+from kivy.clock import Clock
 from mpd import MPDProtocol
 import os
 import traceback
@@ -97,12 +98,11 @@ class ManagerInterface(TabbedPanel):
         self.artist_name_hash={}
         self.media_hash={}
         self.file_hash={}
-        musicbrainzngs.set_rate_limit()
-        musicbrainzngs.set_useragent("kmpcmanager","1.0")
+        self.wr_hash={}
+#        musicbrainzngs.set_rate_limit()
+#        musicbrainzngs.set_useragent("kmpcmanager","1.0")
         self.totaldone=0
         self.selected_row=None
-        self.rsync_data={}
-        self.rsync_file=None
 
     def mpd_connectionMade(self,protocol):
         self.protocol = protocol
@@ -121,30 +121,20 @@ class ManagerInterface(TabbedPanel):
     def populate_artists(self,result):
         Logger.info("Manager: populate_artists")
         self.totaldone=0
+        waittime=1
+        self.wr_hash={}
         for row in result:
             if 'file' in row:
                 self.ids.status.text='looking for id'
                 if 'musicbrainz_artistid' in row:
                     aids = row['musicbrainz_artistid']
                     for aid in aids.split('/'):
-                        if aid not in self.artist_id_hash:
-                            #d = threads.deferToThread(partial(self.query_mb,aid))
-                            d = self.query_mb(aid)
-                            d.addCallback(partial(self.handle_mb_query,aid))
-                            d.addErrback(self.handle_mb_error)
-#                            Logger.debug("querying musicbrainz for aid "+aid)
-#                            try:
-#                                mbres=musicbrainzngs.get_artist_by_id(aid)
-#                            except musicbrainzngs.WebServiceError as e:
-#                                Logger.error("MusicBrainz: web service error "+format(e))
-#                            else:
-#                                aname=mbres['artist']['name']
-#                                self.artist_id_hash[aid]=aname
-#                                self.artist_name_hash[aname]=aid
-#                                data = {'artist_id':aid,'artist_name':aname}
-#                                self.ids.artist_tab.rv.data.append(data)
-                    self.totaldone=self.totaldone+1
-                    self.ids.status.text=aids+' ('+str(self.totaldone)+')'
+                        if aid not in self.artist_id_hash and aid not in self.wr_hash:
+                            #UrlRequest(req_headers={"User-Agent":"kmpc manager/1.0 ( eratosthene@gmail.com )"},url="http://musicbrainz.org/ws/2/artist/"+aid+"?fmt=json",on_success=partial(self.handle_mb_query,aid),on_failure=self.handle_mb_error)
+                            Logger.debug("MusicBrainz: scheduling query in "+str(waittime)+" seconds")
+                            Clock.schedule_once(partial(self.query_mb,aid),waittime)
+                            waittime=waittime+1
+                            self.wr_hash[aid]=True
                 else:
                     ef=open('manager.err.txt','a')
                     ef.write(row['file'].encode('UTF-8')+"\n")
@@ -152,21 +142,23 @@ class ManagerInterface(TabbedPanel):
                 self.file_hash[row['file']] = True
         self.ids.status.text=self.ids.status.text+' ('+str(len(self.artist_id_hash))+' total lines)'
 
-    def query_mb(self,aid):
-        d = defer.Deferred()
-        d.callback(musicbrainzngs.get_artist_by_id(aid))
-        return d
+    def query_mb(self,aid,*largs):
+        base="http://musicbrainz.org/ws/2/artist/"
+        Logger.info("MusicBrainz: querying "+base+aid+"?fmt=json")
+        UrlRequest(req_headers={"User-Agent":"kmpc manager/1.0 ( eratosthene@gmail.com )"},url=base+aid+"?fmt=json",on_success=partial(self.handle_mb_query,aid),on_failure=self.handle_mb_error)
 
-    def handle_mb_query(self,aid,mbres):
-        aname=mbres['artist']['name']
+    def handle_mb_query(self,aid,req,mbres):
+        aname=mbres['name']
         Logger.debug("result from musicbrainz for aid "+aid+": "+aname)
         self.artist_id_hash[aid]=aname
         self.artist_name_hash[aname]=aid
         data = {'artist_id':aid,'artist_name':aname}
         self.ids.artist_tab.rv.data.append(data)
         self.ids.artist_tab.rv.refresh_from_data()
+        self.totaldone=self.totaldone+1
+        self.ids.status.text=aid+' ('+str(self.totaldone)+')'
 
-    def handle_mb_error(self,result):
+    def handle_mb_error(self,req,result):
         Logger.error("MusicBrainz: web service error "+format(result))
 
     def write_artists_to_cache(self):
@@ -318,63 +310,6 @@ class ManagerInterface(TabbedPanel):
                 pass
         self.write_artists_to_cache()
 
-    def generate_rsync(self):
-        Logger.info('Rsync: generating with minimum stars '+self.ids.minimum_stars.text)
-        self.rsync_data={}
-        self.rsync_file=open('rsync.inc','w')
-#        self.rsync_file.write("/**/\n")
-        self.protocol.listallinfo('/').addCallback(self.generate2).addErrback(self.handle_mpd_error)
-
-    def generate2(self,result):
-        for row in result:
-            if 'file' in row:
-                uri=row['file']
-                self.protocol.sticker_list('song',uri).addCallback(partial(self.rsync_add_uri,uri)).addErrback(partial(self.rsync_add_uri,uri))
-
-    def rsync_add_uri(self,uri,result):
-        docopy = False
-        try:
-            if 'rating' in result:
-                if int(result['rating']) >= int(self.ids.minimum_stars.text):
-                    docopy=True
-            if 'copy_flag' in result:
-                if result['copy_flag'] == 'Y':
-                    docopy=True
-                elif result['copy_flag'] == 'N':
-                    docopy=False
-        except:
-            docopy = False
-#        paths=os.path.normpath(uri).split(os.sep)
-#        for idx,p in enumerate(paths):
-#            if idx<(len(paths)-1):
-#                mpath=''
-#                for i in range(0,idx+1):
-#                    if mpath=='':
-#                        mpath=mpath+paths[i]
-#                    else:
-#                        mpath=mpath+os.sep+paths[i]
-#                if mpath not in self.rsync_data:
-#                    self.rsync_data[mpath]=True
-#                    wline="+ "+mpath.encode("UTF-8")
-#                    self.rsync_file.write(wline+"\n")
-#                    Logger.debug("rsync: "+wline)
-#        self.rsync_data[uri]=True
-#        if docopy:
-#            wline="+ "
-#        else:
-#            wline="- "
-#        wline=wline+uri.encode("UTF-8")
-#        self.rsync_file.write(wline+"\n")
-#        Logger.debug("rsync: "+wline)
-        if docopy:
-            wline=uri.encode("UTF-8")
-            self.rsync_file.write(wline+"\n")
-            Logger.debug("rsync: "+wline)
-
-    def write_rsync(self):
-        Logger.info('Rsync: writing to disk')
-#        self.rsync_file.write("- *\n")
-        self.rsync_file.close()
 
 class ManagerApp(App):
     def build_config(self,config):
