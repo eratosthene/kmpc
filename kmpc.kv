@@ -1,4 +1,5 @@
 #:kivy 1.10.0
+#:import App kivy.app.App
 #:import ConfigTabbedPanelItem configpanel.ConfigTabbedPanelItem
 #:import PlaylistTabbedPanelItem playlistpanel.PlaylistTabbedPanelItem
 #:import PlaylistRow playlistpanel.PlaylistRow
@@ -202,6 +203,15 @@
                 max: 10
                 value: 0
                 on_release: root.change_mixrampdelay()
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.5
+            Button:
+                text: 'Update'
+                on_press: root.git_pull()
+            Button:
+                text: 'Exit'
+                on_press: App.get_running_app().stop()
 
 <PlaylistRow>:
     canvas.before:

@@ -2,6 +2,8 @@ import kivy
 kivy.require('1.10.0')
 from kivy.uix.tabbedpanel import TabbedPanelItem
 from kivy.logger import Logger
+import git
+import os
 
 class ConfigTabbedPanelItem(TabbedPanelItem):
 
@@ -44,3 +46,7 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         v=round(self.ids.mixrampdelay_slider.value,6)
         self.protocol.mixrampdelay(str(v)).addErrback(self.handle_mpd_error)
 
+    def git_pull(self):
+        Logger.info('Config: git_pull')
+        g = git.cmd.Git(os.getcwd())
+        Logger.info(g.pull())
