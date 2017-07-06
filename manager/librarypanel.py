@@ -231,17 +231,41 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
         else:
             Logger.info("Library: could not set song rating for "+self.rv.data[index]['base'])
 
-    def generate_rsync(self):
-        Logger.info('Rsync: generating with minimum stars '+self.ids.minimum_stars.text)
-        self.rsync_data={}
-        self.rsync_file=open('rsync.inc','w')
-        self.protocol.listallinfo('/').addCallback(self.generate2).addErrback(self.handle_mpd_error)
+    def generate_list(self,ltype):
+        Logger.info(ltype+': generating with minimum stars '+self.ids.minimum_stars.text)
+        if ltype=='rsync':
+            self.rsync_data={}
+            self.rsync_file=open('rsync.inc','w')
+        self.protocol.listallinfo('/').addCallback(partial(self.generate_list2,ltype)).addErrback(self.handle_mpd_error)
 
-    def generate2(self,result):
+    def generate_list2(self,ltype,result):
         for row in result:
             if 'file' in row:
                 uri=row['file']
-                self.protocol.sticker_list('song',uri).addCallback(partial(self.rsync_add_uri,uri)).addErrback(partial(self.rsync_add_uri,uri))
+                self.protocol.sticker_list('song',uri).addCallback(partial(self.list_add_uri,ltype,uri)).addErrback(partial(self.list_add_uri,ltype,uri))
+
+    def list_add_uri(self,ltype,uri,result):
+        docopy = False
+        try:
+            if 'rating' in result:
+                if int(result['rating']) >= int(self.ids.minimum_stars.text):
+                    docopy=True
+            if ltype == 'rsync':
+                if 'copy_flag' in result:
+                    if result['copy_flag'] == 'Y':
+                        docopy=True
+                    elif result['copy_flag'] == 'N':
+                        docopy=False
+        except:
+            docopy = False
+        if docopy:
+            self.ids.status.text=ltype+': '+uri
+            Logger.debug(ltype+': '+uri)
+            if ltype == 'rsync':
+                wline=uri.encode("UTF-8")
+                self.rsync_file.write(wline+"\n")
+            elif ltype == 'playlist':
+                self.protocol.playlistadd(self.ids.minimum_stars.text+" star or more",uri).addErrback(self.handle_mpd_error)
 
     def rsync_add_uri(self,uri,result):
         docopy = False
@@ -262,23 +286,6 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             Logger.debug("rsync: "+wline)
             self.ids.status.text="rsync: "+wline
 
-    def write_rsync(self):
-        Logger.info('Rsync: writing to disk')
-        self.rsync_file.close()
-
-    def generate_playlist(self):
-        Logger.info('Playlist: generating with minimum stars '+self.ids.minimum_stars.text)
-        self.rsync_data={}
-        self.rsync_file=open('rsync.inc','w')
-        self.protocol.listallinfo('/').addCallback(self.generate_playlist2).addErrback(self.handle_mpd_error)
-
-    def generate_playlist2(self,result):
-        self.protocol.playlistclear(self.ids.minimum_stars.text+" star or more")
-        for row in result:
-            if 'file' in row:
-                uri=row['file']
-                self.protocol.sticker_list('song',uri).addCallback(partial(self.playlist_add_uri,uri)).addErrback(partial(self.playlist_add_uri,uri))
-
     def playlist_add_uri(self,uri,result):
         doadd = False
         try:
@@ -290,6 +297,36 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
         if doadd:
             self.protocol.playlistadd(self.ids.minimum_stars.text+" star or more",uri).addErrback(self.handle_mpd_error)
             self.ids.status.text="playlist: "+uri
+
+    def write_rsync(self):
+        Logger.info('Rsync: writing to disk')
+        self.rsync_file.close()
+
+    def generate_rsync(self):
+        Logger.info('Rsync: generating with minimum stars '+self.ids.minimum_stars.text)
+        self.rsync_data={}
+        self.rsync_file=open('rsync.inc','w')
+        self.protocol.listallinfo('/').addCallback(self.generate2).addErrback(self.handle_mpd_error)
+
+    def generate_playlist(self):
+        Logger.info('Playlist: generating with minimum stars '+self.ids.minimum_stars.text)
+        self.rsync_data={}
+        self.rsync_file=open('rsync.inc','w')
+        self.protocol.listallinfo('/').addCallback(self.generate_playlist2).addErrback(self.handle_mpd_error)
+
+    def generate2(self,result):
+        for row in result:
+            if 'file' in row:
+                uri=row['file']
+                self.protocol.sticker_list('song',uri).addCallback(partial(self.rsync_add_uri,uri)).addErrback(partial(self.rsync_add_uri,uri))
+
+    def generate_playlist2(self,result):
+        self.protocol.playlistclear(self.ids.minimum_stars.text+" star or more")
+        for row in result:
+            if 'file' in row:
+                uri=row['file']
+                self.protocol.sticker_list('song',uri).addCallback(partial(self.playlist_add_uri,uri)).addErrback(partial(self.playlist_add_uri,uri))
+
 class LibraryRecycleBoxLayout(FocusBehavior,LayoutSelectionBehavior,RecycleBoxLayout):
     ''' Adds selection and focus behaviour to the view. '''
 

@@ -33,7 +33,6 @@ import traceback
 import mutagen
 import io
 import random
-import musicbrainzngs
 import pickle
 from functools import partial
 import json
@@ -97,10 +96,7 @@ class ManagerInterface(TabbedPanel):
         self.artist_id_hash={}
         self.artist_name_hash={}
         self.media_hash={}
-        self.file_hash={}
         self.wr_hash={}
-#        musicbrainzngs.set_rate_limit()
-#        musicbrainzngs.set_useragent("kmpcmanager","1.0")
         self.totaldone=0
         self.selected_row=None
 
@@ -108,6 +104,7 @@ class ManagerInterface(TabbedPanel):
         self.protocol = protocol
         Logger.info('Manager: Connected to mpd server host='+self.config.get('mpd','host')+' port='+self.config.get('mpd','port'))
         self.ids.library_tab.protocol = self.protocol
+        self.refresh_artists_from_cache()
 
     def mpd_connectionLost(self,protocol, reason):
         Logger.warn('Manager: Connection lost: %s' % reason)
@@ -116,7 +113,7 @@ class ManagerInterface(TabbedPanel):
         Logger.error('Manager: MPDIdleHandler Callback error: {}'.format(result))
 
     def refresh_artists(self):
-        self.protocol.listallinfo('/').addCallback(self.populate_artists).addErrback(self.handle_mpd_error)
+        self.protocol.list('musicbrainz_artistid').addCallback(self.populate_artists).addErrback(self.handle_mpd_error)
 
     def populate_artists(self,result):
         Logger.info("Manager: populate_artists")
@@ -124,23 +121,13 @@ class ManagerInterface(TabbedPanel):
         waittime=1
         self.wr_hash={}
         for row in result:
-            if 'file' in row:
-                self.ids.status.text='looking for id'
-                if 'musicbrainz_artistid' in row:
-                    aids = row['musicbrainz_artistid']
-                    for aid in aids.split('/'):
-                        if aid not in self.artist_id_hash and aid not in self.wr_hash:
-                            #UrlRequest(req_headers={"User-Agent":"kmpc manager/1.0 ( eratosthene@gmail.com )"},url="http://musicbrainz.org/ws/2/artist/"+aid+"?fmt=json",on_success=partial(self.handle_mb_query,aid),on_failure=self.handle_mb_error)
-                            Logger.debug("MusicBrainz: scheduling query in "+str(waittime)+" seconds")
-                            Clock.schedule_once(partial(self.query_mb,aid),waittime)
-                            waittime=waittime+1
-                            self.wr_hash[aid]=True
-                else:
-                    ef=open('manager.err.txt','a')
-                    ef.write(row['file'].encode('UTF-8')+"\n")
-                    ef.close()
-                self.file_hash[row['file']] = True
-        self.ids.status.text=self.ids.status.text+' ('+str(len(self.artist_id_hash))+' total lines)'
+            aids = str(row)
+            for aid in aids.split('/'):
+                if aid not in self.artist_id_hash and aid not in self.wr_hash and len(aid)>0:
+                    Logger.debug("MusicBrainz: scheduling query in "+str(waittime)+" seconds")
+                    Clock.schedule_once(partial(self.query_mb,aid),waittime)
+                    waittime=waittime+1
+                    self.wr_hash[aid]=True
 
     def query_mb(self,aid,*largs):
         base="http://musicbrainz.org/ws/2/artist/"
@@ -163,12 +150,12 @@ class ManagerInterface(TabbedPanel):
 
     def write_artists_to_cache(self):
         cachefile=open('artist_cache.pkl','w')
-        pickle.dump((self.artist_id_hash,self.artist_name_hash,self.media_hash,self.file_hash),cachefile,-1)
+        pickle.dump((self.artist_id_hash,self.artist_name_hash,self.media_hash),cachefile,-1)
         cachefile.close()
 
     def refresh_artists_from_cache(self):
         cachefile=open('artist_cache.pkl','r')
-        (self.artist_id_hash,self.artist_name_hash,self.media_hash,self.file_hash)=pickle.load(cachefile)
+        (self.artist_id_hash,self.artist_name_hash,self.media_hash)=pickle.load(cachefile)
         cachefile.close()
         self.ids.artist_tab.rv.data=[]
         newdata=[]
@@ -187,8 +174,7 @@ class ManagerInterface(TabbedPanel):
                 has_badge=False
             datum = {'artist_id':aid,'artist_name':aname,'has_artistbackground':has_artistbackground,'has_logo':has_logo,'has_badge':has_badge}
             newdata.append(datum)
-        self.totaldone=len(self.file_hash)
-        self.ids.status.text=str(self.totaldone)+' files checked, pulled '+str(len(self.artist_id_hash))+' lines from cache'
+        self.ids.status.text='pulled '+str(len(self.artist_id_hash))+' lines from cache'
         self.ids.artist_tab.rv.data=sorted(newdata,key=lambda k: k['artist_name'])
 
     def scan_for_media(self,index):
