@@ -58,3 +58,5 @@ class ExtraSlider(Slider):
             self.dispatch('on_release')
         return released
 
+class ClearButton(Button):
+    pass

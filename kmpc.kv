@@ -6,6 +6,7 @@
 #:import PlaylistRecycleBoxLayout playlistpanel.PlaylistRecycleBoxLayout
 #:import LibraryTabbedPanelItem librarypanel.LibraryTabbedPanelItem
 #:import ExtraSlider extra.ExtraSlider
+#:import ClearButton extra.ClearButton
 
 <Label>:
     font_name: 'resources/DejaVuSans.ttf'
@@ -86,6 +87,11 @@
     background_down: 'resources/button-down.png'
     font_name: 'resources/DejaVuSans.ttf'
     font_size: '20sp'
+
+<ClearButton>:
+    border: (1,1,1,1)
+    background_normal: 'resources/clear.png'
+    background_down: 'resources/clear.png'
 
 <TrackSlider@Slider>:
     Label:

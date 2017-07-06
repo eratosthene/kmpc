@@ -40,7 +40,7 @@ from twisted.internet import protocol
 from twisted.internet.defer import inlineCallbacks
 
 from mpdfactory import MPDClientFactory
-from extra import songratings,getfontsize,ExtraSlider
+from extra import songratings,getfontsize,ExtraSlider,ClearButton
 from playlistpanel import PlaylistTabbedPanelItem
 
 class KmpcInterface(TabbedPanel):
@@ -300,17 +300,23 @@ class KmpcInterface(TabbedPanel):
 
     def update_mpd_sticker_rating(self,result):
         Logger.debug('NowPlaying: update_mpd_sticker_rating')
-        btn = Label(padding_x='10sp',font_name='resources/FontAwesome.ttf',halign='center',valign='middle',markup=True)
-        btn.text = '[ref=rating]'+songratings[result]['stars']+'[/ref]'
-        btn.bind(on_ref_press=self.rating_popup)
+        #btn = Label(padding_x='10sp',font_name='resources/FontAwesome.ttf',halign='center',valign='middle',markup=True)
+        btn = ClearButton(padding_x='10sp',font_name='resources/FontAwesome.ttf',halign='center',valign='middle',markup=True)
+        #btn.text = '[ref=rating]'+songratings[result]['stars']+'[/ref]'
+        btn.text = songratings[result]['stars']
+        #btn.bind(on_ref_press=self.rating_popup)
+        btn.bind(on_press=self.rating_popup)
 	self.ids.song_star_layout.clear_widgets()
 	self.ids.song_star_layout.add_widget(btn)
 
     def handle_mpd_no_sticker(self,result):
         Logger.debug('NowPlaying: handle_mpd_no_sticker')
-        btn = Label(padding_x='10sp',font_name='resources/FontAwesome.ttf',halign='center',valign='middle',markup=True)
-        btn.text = '[ref=rating]'+u"\uf29c"+'[/ref]'
-	btn.bind(on_ref_press=self.rating_popup)
+        #btn = Label(padding_x='10sp',font_name='resources/FontAwesome.ttf',halign='center',valign='middle',markup=True)
+        btn = ClearButton(padding_x='10sp',font_name='resources/FontAwesome.ttf',halign='center',valign='middle',markup=True)
+        #btn.text = '[ref=rating]'+u"\uf29c"+'[/ref]'
+        btn.text = u"\uf29c"
+	#btn.bind(on_ref_press=self.rating_popup)
+	btn.bind(on_press=self.rating_popup)
 	self.ids.song_star_layout.clear_widgets()
 	self.ids.song_star_layout.add_widget(btn)
 
@@ -350,7 +356,8 @@ class KmpcInterface(TabbedPanel):
         Logger.debug('Application: consume_pressed()')
         self.protocol.consume(str(1-int(self.mpd_status['consume'])))
 
-    def rating_popup(self,instance,value):
+    #def rating_popup(self,instance,value):
+    def rating_popup(self,instance):
         Logger.debug('Application: rating_popup()')
         layout = GridLayout(cols=2,spacing=10)
         popup = Popup(title='Rating',content=layout,size_hint=(0.8,1))
