@@ -9,6 +9,7 @@ from kivy.logger import Logger
 from kivy.graphics import Color,Rectangle
 from kivy.core.image import Image as CoreImage
 from kivy.metrics import Metrics, sp
+from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 from kivy.uix.button import Button
@@ -35,7 +36,7 @@ if 'twisted.internet.reactor' in sys.modules:
 install_twisted_reactor()
 from twisted.internet import reactor
 from twisted.internet import protocol
-from twisted.internet import task
+#from twisted.internet import task
 from twisted.internet.defer import inlineCallbacks
 
 from mpdfactory import MPDClientFactory
@@ -58,6 +59,7 @@ class KmpcInterface(TabbedPanel):
         self.currsong=None
         self.nextsong=None
         self.currfile=None
+        self.track_slider_task=None
 
     def mpd_connectionMade(self,protocol):
         self.protocol = protocol
@@ -65,25 +67,17 @@ class KmpcInterface(TabbedPanel):
         self.ids.library_tab.protocol=protocol
         self.ids.config_tab.protocol=protocol
         Logger.info('Application: Connected to mpd server host='+self.config.get('mpd','host')+' port='+self.config.get('mpd','port'))
-        # start the interface update task after mpd connection
-        self.status_task=task.LoopingCall(self.protocol.status)
-        self.status_task.start(1.0)
-        # run the callbacks once to update the interface
-        self.protocol.currentsong().addCallback(self.update_mpd_currentsong).addErrback(self.handle_mpd_error)
-        # for some reason the next line causes an exception. it looks like it is trying to call MPDIdleHandler.__call__ instead, which is super weird
-        # so instead we run it once when the active_tab changes to Playlist
-#        self.protocol.playlistinfo().addCalLback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
-        # same with this line
-#        self.protocol.status().addCallback(self.ids.config_tab.update_mpd_status).addErrback(self.ids.config_tab.handle_mpd_error)
+        self.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
+        self.track_slider_task=Clock.schedule_interval(self.update_track_slider,1)
+        self.track_slider_task.cancel()
 
     def main_tab_changed(self,obj,value):
         self.active_tab = value.text
         Logger.info("Application: Changed active tab to "+self.active_tab)
         if self.active_tab == 'Now Playing':
-            # this is just to ensure the interface gets updated as soon as possible
-            if 'protocol' in locals():
-                self.protocol.status()
+            pass
         elif self.active_tab == 'Playlist':
+            pass
             # switching to the playlist tab repopulates it if it is empty
             if len(self.ids.playlist_tab.rv.data) == 0:
                 self.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
@@ -101,16 +95,22 @@ class KmpcInterface(TabbedPanel):
         curpos = int(self.ids.current_track_slider.value)
         Logger.debug("Application: touch up on track slider at "+str(curpos))
         self.protocol.seekcur(str(curpos)).addErrback(self.handle_mpd_error)
-        self.ids.current_track_slider.update_slider=True
 
     def current_track_slider_down(self):
         Logger.debug("Application: touch down on track slider")
-        self.ids.current_track_slider.update_slider=False
+#        try:
+        self.track_slider_task.cancel()
+#        except:
+#            pass
+
+    def update_track_slider(self,dt):
+        Logger.debug("Application: update_track_slider")
+        curpos=int(self.ids.current_track_slider.value)+1
+        self.ids.current_track_slider.value=curpos
 
     def stop_zero_stuff(self):
         self.ids.current_track_slider.value=0
         self.ids.current_track_slider.max=0
-        self.ids.current_track_slider.update_slider=True
         self.ids.current_playlist_track_number_label.text=''
         self.ids.next_song_artist_label.text = ''
         self.currfile = None
@@ -138,6 +138,7 @@ class KmpcInterface(TabbedPanel):
         else:
             # save current song, this is a 0-based index into the playlist
             self.currsong=result['song']
+            self.protocol.currentsong().addCallback(self.update_mpd_currentsong).addErrback(self.handle_mpd_error)
             # save next song, this is a 0-based index into the playlist
             if 'nextsong' in result:
                 self.nextsong=result['nextsong']
@@ -153,6 +154,10 @@ class KmpcInterface(TabbedPanel):
         if self.mpd_status['state']=='pause' or self.mpd_status['state']=='stop':
             self.ids.play_button.state='normal'
             self.ids.play_button.text=u"\uf04b"
+#            try:
+            self.track_slider_task.cancel()
+#            except:
+#                pass
         else:
             self.ids.play_button.state='down'
             self.ids.play_button.text=u"\uf04c"
@@ -166,12 +171,16 @@ class KmpcInterface(TabbedPanel):
             self.ids.current_track_slider.max = int(t)
             # set the current slider value to the current seconds
             self.mpd_status['curpos']=int(c)
-            if self.ids.current_track_slider.update_slider:
-                self.ids.current_track_slider.value = int(c)
+            self.ids.current_track_slider.value = int(c)
+            if self.mpd_status['state']!='pause':
+                self.track_slider_task()
+#                self.track_slider_task=Clock.schedule_interval(self.update_track_slider,1)
             # throws an exception if i don't do this
             a=int(result['song'])+1
             b=int(result['playlistlength'])
             self.ids.current_playlist_track_number_label.text = "%d of %d" % (a,b)
+        self.ids.playlist_tab.update_mpd_status(result)
+        self.ids.config_tab.update_mpd_status(result)
 
     def update_mpd_currentsong(self,result):
         Logger.debug('NowPlaying: update_mpd_currentsong()')

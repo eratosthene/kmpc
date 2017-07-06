@@ -28,19 +28,16 @@ class MPDIdleHandler(object):
                 self.protocol.playlistinfo().addCallback(app.root.ids.playlist_tab.populate_playlist).addErrback(app.root.ids.playlist_tab.handle_mpd_error)
                 # force a reload of nextsong if playlist changes
                 app.root.nextsong = None
+                self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
             elif format(s) == 'player':
-                self.protocol.currentsong().addCallback(app.root.update_mpd_currentsong).addErrback(app.root.handle_mpd_error)
-                self.protocol.status().addCallback(app.root.ids.playlist_tab.update_mpd_status).addErrback(app.root.ids.playlist_tab.handle_mpd_error)
+                self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
             elif format(s) == 'sticker':
-                self.protocol.currentsong().addCallback(app.root.update_mpd_currentsong).addErrback(app.root.handle_mpd_error)
+                self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
                 self.protocol.sticker_get('song',app.root.currfile,'rating').addCallback(app.root.update_mpd_sticker_rating).addErrback(app.root.handle_mpd_no_sticker)
             elif format(s) == 'options':
-                self.protocol.status().addCallback(app.root.ids.config_tab.update_mpd_status).addErrback(app.root.ids.config_tab.handle_mpd_error)
-
-        # the following is done no matter what, so that now playing updates at least every second
-        # update everything 'status' can tell us
-        self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
-        self.protocol.status().addCallback(app.root.ids.config_tab.update_mpd_status).addErrback(app.root.ids.config_tab.handle_mpd_error)
+                self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
+            else:
+                self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
 
 class MPDClientFactory(protocol.ReconnectingClientFactory):
     protocol = MPDFactoryProtocol
