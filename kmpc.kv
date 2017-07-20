@@ -216,6 +216,9 @@
                 text: 'Update'
                 on_press: root.git_pull()
             Button:
+                text: 'Sync'
+                on_press: root.filesync()
+            Button:
                 text: 'Exit'
                 on_press: App.get_running_app().stop()
 

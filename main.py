@@ -398,7 +398,8 @@ class KmpcApp(App):
             'host': '127.0.0.1',
             'port': 6600,
             'basepath': '/mnt/music',
-            'fanartpath': '/mnt/fanart'
+            'fanartpath': '/mnt/fanart',
+            'synchost': '127.0.0.1'
         })
         config.setdefaults('kmpc',{
             'rpienable': False
