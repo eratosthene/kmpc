@@ -250,12 +250,12 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             if 'rating' in result:
                 if int(result['rating']) >= int(self.ids.minimum_stars.text):
                     docopy=True
-            if ltype == 'rsync':
-                if 'copy_flag' in result:
+            if 'copy_flag' in result:
+                if ltype == 'rsync':
                     if result['copy_flag'] == 'Y':
                         docopy=True
-                    elif result['copy_flag'] == 'N':
-                        docopy=False
+                if result['copy_flag'] == 'N':
+                    docopy=False
         except:
             docopy = False
         if docopy:
@@ -267,65 +267,9 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             elif ltype == 'playlist':
                 self.protocol.playlistadd(self.ids.minimum_stars.text+" star or more",uri).addErrback(self.handle_mpd_error)
 
-    def rsync_add_uri(self,uri,result):
-        docopy = False
-        try:
-            if 'rating' in result:
-                if int(result['rating']) >= int(self.ids.minimum_stars.text):
-                    docopy=True
-            if 'copy_flag' in result:
-                if result['copy_flag'] == 'Y':
-                    docopy=True
-                elif result['copy_flag'] == 'N':
-                    docopy=False
-        except:
-            docopy = False
-        if docopy:
-            wline=uri.encode("UTF-8")
-            self.rsync_file.write(wline+"\n")
-            Logger.debug("rsync: "+wline)
-            self.ids.status.text="rsync: "+wline
-
-    def playlist_add_uri(self,uri,result):
-        doadd = False
-        try:
-            if 'rating' in result:
-                if int(result['rating']) >= int(self.ids.minimum_stars.text):
-                    doadd=True
-        except:
-            doadd = False
-        if doadd:
-            self.protocol.playlistadd(self.ids.minimum_stars.text+" star or more",uri).addErrback(self.handle_mpd_error)
-            self.ids.status.text="playlist: "+uri
-
     def write_rsync(self):
         Logger.info('Rsync: writing to disk')
         self.rsync_file.close()
-
-    def generate_rsync(self):
-        Logger.info('Rsync: generating with minimum stars '+self.ids.minimum_stars.text)
-        self.rsync_data={}
-        self.rsync_file=open('rsync.inc','w')
-        self.protocol.listallinfo('/').addCallback(self.generate2).addErrback(self.handle_mpd_error)
-
-    def generate_playlist(self):
-        Logger.info('Playlist: generating with minimum stars '+self.ids.minimum_stars.text)
-        self.rsync_data={}
-        self.rsync_file=open('rsync.inc','w')
-        self.protocol.listallinfo('/').addCallback(self.generate_playlist2).addErrback(self.handle_mpd_error)
-
-    def generate2(self,result):
-        for row in result:
-            if 'file' in row:
-                uri=row['file']
-                self.protocol.sticker_list('song',uri).addCallback(partial(self.rsync_add_uri,uri)).addErrback(partial(self.rsync_add_uri,uri))
-
-    def generate_playlist2(self,result):
-        self.protocol.playlistclear(self.ids.minimum_stars.text+" star or more")
-        for row in result:
-            if 'file' in row:
-                uri=row['file']
-                self.protocol.sticker_list('song',uri).addCallback(partial(self.playlist_add_uri,uri)).addErrback(partial(self.playlist_add_uri,uri))
 
 class LibraryRecycleBoxLayout(FocusBehavior,LayoutSelectionBehavior,RecycleBoxLayout):
     ''' Adds selection and focus behaviour to the view. '''
