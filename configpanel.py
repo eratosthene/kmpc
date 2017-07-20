@@ -59,23 +59,51 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         tpath="/tmp/rsync.inc"
         synchost = App.get_running_app().root.config.get('mpd','synchost')
         basepath = App.get_running_app().root.config.get('mpd','basepath')
-        Logger.info('Filesync: copying rsync file to carpi')
+        fanartpath= App.get_running_app().root.config.get('mpd','fanartpath')
+        Logger.info('Filesync: Copying rsync file to carpi')
         call(["scp",synchost+":rsync.inc",tpath])
         filelist={}
         with codecs.open(tpath,'r','utf-8') as f:
             for line in f:
-                filelist[u""+line.rstrip()]=True
-        os.remove(tpath)
-        Logger.info('Filesync: removing old files from carpi')
+                filelist[line.rstrip().encode(encoding='UTF-8')]=True
+        Logger.info('Filesync: Removing old files from carpi')
         for dirpath, dirnames, filenames in os.walk(basepath):
             if len(filenames)>0:
-                rpath = os.sep.join(dirpath.split(os.sep)[3:])
+                rpath = dirpath[len(basepath+os.sep):].encode(encoding='UTF-8')
                 for filename in filenames:
-                    fpath=u""+os.path.join(rpath,filename)
+                    fpath=os.path.join(rpath,filename.encode(encoding='UTF-8'))
+                    apath = os.path.join(dirpath.encode(encoding='UTF-8'),filename.encode(encoding='UTF-8'))
                     if fpath not in filelist:
-                        Logger.debug("Filesync: deleting "+fpath)
-                        #os.remove(u""+os.path.join(dirpath,filename))
-        Logger.info('Filesync: removing empty directories from carpi')
+                        Logger.debug("Filesync: Deleting "+apath)
+                        os.remove(apath)
+        Logger.info('Filesync: Removing empty directories from carpi')
         call(['find',basepath,'-type','d','-empty','-delete'])
         Logger.info('Filesync: Rsyncing new files to carpi')
         call(['rsync','-vruxhm','--progress','--files-from='+tpath,synchost+':/mnt/music/',basepath])
+        Logger.info('Filesync: Updating sticker databases')
+        Logger.debug('Filesync: Copying stickers from carpi')
+        call(['scp','/var/lib/mpd/sticker.sql',synchost+':/tmp'])
+        Logger.debug('Filesync: Merging sticker databases')
+        with open('/tmp/scmd','w') as f:
+            f.write("attach database \"/tmp/sticker.sql\" as carpi;\n")
+            f.write("replace into sticker select * from carpi.sticker;\n")
+            f.write("replace into carpi.sticker select * from sticker where name='rating';\n")
+            f.write(".quit\n")
+        call(['scp','/tmp/scmd',synchost+':/tmp'])
+        call(['ssh','-t',synchost,'sudo','sqlite3','/var/lib/mpd/sticker.sql','<','/tmp/scmd'])
+        Logger.debug('Filesync: Copying stickers to carpi')
+        call(['scp',synchost+':/tmp/sticker.sql','/tmp'])
+        with open('/tmp/scmd','w') as f:
+            f.write("attach database \"/tmp/sticker.sql\" as carpi;\n")
+            f.write("replace into sticker select * from carpi.sticker;\n")
+            f.write(".quit\n")
+        with open('/tmp/scmd','r') as f:
+            call(['sudo','sqlite3','/var/lib/mpd/sticker.sql'],stdin=f)
+        Logger.info('Filesync: Cleaning up')
+        os.remove(tpath)
+        os.remove('/tmp/sticker.sql')
+        os.remove('/tmp/scmd')
+        call(['ssh',synchost,'rm','-f','/tmp/sticker.sql'])
+        call(['ssh',synchost,'rm','-f','/tmp/scmd'])
+        Logger.info("Filesync: Syncing fanart")
+        call(['rsync','-vruxhm','--progress',synchost+':/mnt/filedump/fanart/',fanartpath])
