@@ -399,7 +399,9 @@ class KmpcApp(App):
             'port': 6600,
             'basepath': '/mnt/music',
             'fanartpath': '/mnt/fanart',
-            'synchost': '127.0.0.1'
+            'synchost': '127.0.0.1',
+            'syncbasepath': '/mnt/music',
+            'syncfanartpath': '/mnt/fanart'
         })
         config.setdefaults('kmpc',{
             'rpienable': False

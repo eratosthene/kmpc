@@ -58,6 +58,8 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         Logger.info('Config: filesync')
         tpath="/tmp/rsync.inc"
         synchost = App.get_running_app().root.config.get('mpd','synchost')
+        syncbasepath = App.get_running_app().root.config.get('mpd','syncbasepath')
+        syncfanartpath= App.get_running_app().root.config.get('mpd','syncfanartpath')
         basepath = App.get_running_app().root.config.get('mpd','basepath')
         fanartpath= App.get_running_app().root.config.get('mpd','fanartpath')
         Logger.info('Filesync: Copying rsync file to carpi')
@@ -79,7 +81,7 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         Logger.info('Filesync: Removing empty directories from carpi')
         call(['find',basepath,'-type','d','-empty','-delete'])
         Logger.info('Filesync: Rsyncing new files to carpi')
-        call(['rsync','-vruxhm','--progress','--files-from='+tpath,synchost+':/mnt/music/',basepath])
+        call(['rsync','-vruxhm','--progress','--files-from='+tpath,synchost+':'+syncbasepath+'/',basepath])
         Logger.info('Filesync: Updating sticker databases')
         Logger.debug('Filesync: Copying stickers from carpi')
         call(['scp','/var/lib/mpd/sticker.sql',synchost+':/tmp'])
@@ -106,4 +108,4 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         call(['ssh',synchost,'rm','-f','/tmp/sticker.sql'])
         call(['ssh',synchost,'rm','-f','/tmp/scmd'])
         Logger.info("Filesync: Syncing fanart")
-        call(['rsync','-vruxhm','--progress',synchost+':/mnt/filedump/fanart/',fanartpath])
+        call(['rsync','-vruxhm','--progress',synchost+':'+syncfanartpath+'/',fanartpath])
