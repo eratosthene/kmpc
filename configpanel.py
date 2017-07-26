@@ -1,11 +1,20 @@
 import kivy
 kivy.require('1.10.0')
 from kivy.uix.tabbedpanel import TabbedPanelItem
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.label import Label
+from kivy.uix.popup import Popup
 from kivy.logger import Logger
 from kivy.app import App
+from kivy.clock import Clock
 import git
 import os
-from subprocess import call
+import stat
+from subprocess import call, PIPE, Popen
+from threading import Thread
+from Queue import Queue, Empty
+from functools import partial
 import codecs
 
 class ConfigTabbedPanelItem(TabbedPanelItem):
@@ -54,8 +63,46 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         g = git.cmd.Git(os.getcwd())
         Logger.info(g.pull())
 
+    def enqueue_output(self,out,queue,event,popup,tpath,synchost,layout,sv):
+        for line in iter(out.readline, b''):
+            queue.put(line)
+        out.close()
+        event.cancel()
+        popup.dismiss()
+        Logger.info('Filesync: Cleaning up')
+        l=Label(text='Cleaning up temporary files',size_hint=(None,None),font_size='12sp',halign='left')
+        l.bind(texture_size=l.setter('size'))
+        layout.add_widget(l)
+        sv.scroll_to(l)
+        try:
+            os.remove(tpath)
+            os.remove('/tmp/sticker.sql')
+            os.remove('/tmp/scmd')
+            os.remove('sync.sh')
+            call(['ssh',synchost,'rm','-f','/tmp/sticker.sql'])
+            call(['ssh',synchost,'rm','-f','/tmp/scmd'])
+        except:
+            pass
+
+    def write_queue_line(self,q,layout,sv,dt):
+        try: line=q.get_nowait()
+        except Empty:
+            pass
+        else:
+            l=Label(text=line,size_hint=(None,None),font_size='12sp',halign='left')
+            l.bind(texture_size=l.setter('size'))
+            layout.add_widget(l)
+            sv.scroll_to(l)
+
     def filesync(self):
         Logger.info('Config: filesync')
+        layout = GridLayout(cols=1, spacing=1, padding=1, size_hint_y=None)
+        layout.bind(minimum_height=layout.setter('height'))
+        popup = Popup(title='Sync',size_hint=(0.8,1))
+        sv=ScrollView(size_hint=(1,1))
+        sv.add_widget(layout)
+        popup = Popup(title='Sync',content=sv,size_hint=(0.8,1))
+        popup.open()
         tpath="/tmp/rsync.inc"
         synchost = App.get_running_app().root.config.get('mpd','synchost')
         syncbasepath = App.get_running_app().root.config.get('mpd','syncbasepath')
@@ -63,12 +110,20 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         basepath = App.get_running_app().root.config.get('mpd','basepath')
         fanartpath= App.get_running_app().root.config.get('mpd','fanartpath')
         Logger.info('Filesync: Copying rsync file to carpi')
+        l=Label(text='Copying rsync file to carpi',size_hint=(None,None),font_size='12sp',halign='left')
+        l.bind(texture_size=l.setter('size'))
+        layout.add_widget(l)
+        sv.scroll_to(l)
         call(["scp",synchost+":rsync.inc",tpath])
         filelist={}
         with codecs.open(tpath,'r','utf-8') as f:
             for line in f:
                 filelist[line.rstrip().encode(encoding='UTF-8')]=True
         Logger.info('Filesync: Removing old files from carpi')
+        l=Label(text='Removing old files from carpi',size_hint=(None,None),font_size='12sp',halign='left')
+        l.bind(texture_size=l.setter('size'))
+        layout.add_widget(l)
+        sv.scroll_to(l)
         for dirpath, dirnames, filenames in os.walk(basepath):
             if len(filenames)>0:
                 rpath = dirpath[len(basepath+os.sep):].encode(encoding='UTF-8')
@@ -78,34 +133,45 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
                     if fpath not in filelist:
                         Logger.debug("Filesync: Deleting "+apath)
                         os.remove(apath)
-        Logger.info('Filesync: Removing empty directories from carpi')
-        call(['find',basepath,'-type','d','-empty','-delete'])
-        Logger.info('Filesync: Rsyncing new files to carpi')
-        call(['rsync','-vruxhm','--progress','--files-from='+tpath,synchost+':'+syncbasepath+'/',basepath])
-        Logger.info('Filesync: Updating sticker databases')
-        Logger.debug('Filesync: Copying stickers from carpi')
-        call(['scp','/var/lib/mpd/sticker.sql',synchost+':/tmp'])
-        Logger.debug('Filesync: Merging sticker databases')
-        with open('/tmp/scmd','w') as f:
-            f.write("attach database \"/tmp/sticker.sql\" as carpi;\n")
-            f.write("replace into sticker select * from carpi.sticker;\n")
-            f.write("replace into carpi.sticker select * from sticker where name='rating';\n")
-            f.write(".quit\n")
-        call(['scp','/tmp/scmd',synchost+':/tmp'])
-        call(['ssh','-t',synchost,'sudo','sqlite3','/var/lib/mpd/sticker.sql','<','/tmp/scmd'])
-        Logger.debug('Filesync: Copying stickers to carpi')
-        call(['scp',synchost+':/tmp/sticker.sql','/tmp'])
-        with open('/tmp/scmd','w') as f:
-            f.write("attach database \"/tmp/sticker.sql\" as carpi;\n")
-            f.write("replace into sticker select * from carpi.sticker;\n")
-            f.write(".quit\n")
-        with open('/tmp/scmd','r') as f:
-            call(['sudo','sqlite3','/var/lib/mpd/sticker.sql'],stdin=f)
-        Logger.info('Filesync: Cleaning up')
-        os.remove(tpath)
-        os.remove('/tmp/sticker.sql')
-        os.remove('/tmp/scmd')
-        call(['ssh',synchost,'rm','-f','/tmp/sticker.sql'])
-        call(['ssh',synchost,'rm','-f','/tmp/scmd'])
-        Logger.info("Filesync: Syncing fanart")
-        call(['rsync','-vruxhm','--progress',synchost+':'+syncfanartpath+'/',fanartpath])
+        with open('sync.sh','w') as sfile:
+            sfile.write("#!/bin/bash\n")
+#            Logger.info('Filesync: Removing empty directories from carpi')
+            sfile.write('find "'+basepath+'" -type d -empty -delete 2>/dev/null\n')
+#            call(['find',basepath,'-type','d','-empty','-delete'])
+#            Logger.info('Filesync: Rsyncing new files to carpi')
+            sfile.write('rsync -vruxhm --progress --files-from="'+tpath+'" '+synchost+':"'+syncbasepath+'"/ "'+basepath+'"\n')
+#            call(['rsync','-vruxhm','--progress','--files-from='+tpath,synchost+':'+syncbasepath+'/',basepath])
+#            Logger.info('Filesync: Updating sticker databases')
+#            Logger.debug('Filesync: Copying stickers from carpi')
+            sfile.write('scp /var/lib/mpd/sticker.sql '+synchost+':/tmp\n')
+#            call(['scp','/var/lib/mpd/sticker.sql',synchost+':/tmp'])
+#            Logger.debug('Filesync: Merging sticker databases')
+            with open('/tmp/scmd','w') as f:
+                f.write("attach database \"/tmp/sticker.sql\" as carpi;\n")
+                f.write("replace into sticker select * from carpi.sticker;\n")
+                f.write("replace into carpi.sticker select * from sticker where name='rating';\n")
+                f.write(".quit\n")
+            sfile.write('scp /tmp/scmd '+synchost+':/tmp\n')
+#            call(['scp','/tmp/scmd',synchost+':/tmp'])
+            sfile.write('ssh -t '+synchost+' sudo sqlite3 /var/lib/mpd/sticker.sql < /tmp/scmd\n')
+#            call(['ssh','-t',synchost,'sudo','sqlite3','/var/lib/mpd/sticker.sql','<','/tmp/scmd'])
+#            Logger.debug('Filesync: Copying stickers to carpi')
+            sfile.write('scp '+synchost+':/tmp/sticker.sql /tmp\n')
+#            call(['scp',synchost+':/tmp/sticker.sql','/tmp'])
+            with open('/tmp/scmd','w') as f:
+                f.write("attach database \"/tmp/sticker.sql\" as carpi;\n")
+                f.write("replace into sticker select * from carpi.sticker;\n")
+                f.write(".quit\n")
+            sfile.write('cat /tmp/scmd | sudo sqlite3 /var/lib/mpd/sticker.sql\n')
+#            with open('/tmp/scmd','r') as f:
+#                call(['sudo','sqlite3','/var/lib/mpd/sticker.sql'],stdin=f)
+#            Logger.info("Filesync: Syncing fanart")
+            sfile.write('rsync -vruxhm --progress '+synchost+':"'+syncfanartpath+'"/ "'+fanartpath+'"\n')
+#            call(['rsync','-vruxhm','--progress',synchost+':'+syncfanartpath+'/',fanartpath])
+        os.chmod('sync.sh',os.stat('sync.sh').st_mode|0111)
+        q = Queue()
+        p = Popen(['./sync.sh'],stdout=PIPE,bufsize=1,close_fds=True)
+        event=Clock.schedule_interval(partial(self.write_queue_line,q,layout,sv),0.1)
+        t = Thread(target=self.enqueue_output,args=(p.stdout,q,event,popup,tpath,synchost,layout,sv))
+        t.daemon = True
+        t.start()
