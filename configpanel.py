@@ -11,11 +11,11 @@ from kivy.clock import Clock
 import git
 import os
 import stat
+import codecs
 from subprocess import call, PIPE, Popen
 from threading import Thread
 from Queue import Queue, Empty
 from functools import partial
-import codecs
 
 class ConfigTabbedPanelItem(TabbedPanelItem):
 
@@ -75,6 +75,7 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         layout.add_widget(l)
         sv.scroll_to(l)
         try:
+            call(['sudo','cp',tpath,'/var/lib/mpd/playlists/root.m3u'])
             os.remove(tpath)
             os.remove('/tmp/sticker.sql')
             os.remove('/tmp/scmd')
@@ -135,39 +136,23 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
                         os.remove(apath)
         with open('sync.sh','w') as sfile:
             sfile.write("#!/bin/bash\n")
-#            Logger.info('Filesync: Removing empty directories from carpi')
             sfile.write('find "'+basepath+'" -type d -empty -delete 2>/dev/null\n')
-#            call(['find',basepath,'-type','d','-empty','-delete'])
-#            Logger.info('Filesync: Rsyncing new files to carpi')
-            sfile.write('rsync -vruxhm --progress --files-from="'+tpath+'" '+synchost+':"'+syncbasepath+'"/ "'+basepath+'"\n')
-#            call(['rsync','-vruxhm','--progress','--files-from='+tpath,synchost+':'+syncbasepath+'/',basepath])
-#            Logger.info('Filesync: Updating sticker databases')
-#            Logger.debug('Filesync: Copying stickers from carpi')
+            sfile.write('rsync -vruxhm --files-from="'+tpath+'" '+synchost+':"'+syncbasepath+'"/ "'+basepath+'"\n')
             sfile.write('scp /var/lib/mpd/sticker.sql '+synchost+':/tmp\n')
-#            call(['scp','/var/lib/mpd/sticker.sql',synchost+':/tmp'])
-#            Logger.debug('Filesync: Merging sticker databases')
             with open('/tmp/scmd','w') as f:
                 f.write("attach database \"/tmp/sticker.sql\" as carpi;\n")
                 f.write("replace into sticker select * from carpi.sticker;\n")
                 f.write("replace into carpi.sticker select * from sticker where name='rating';\n")
                 f.write(".quit\n")
             sfile.write('scp /tmp/scmd '+synchost+':/tmp\n')
-#            call(['scp','/tmp/scmd',synchost+':/tmp'])
             sfile.write('ssh -t '+synchost+' sudo sqlite3 /var/lib/mpd/sticker.sql < /tmp/scmd\n')
-#            call(['ssh','-t',synchost,'sudo','sqlite3','/var/lib/mpd/sticker.sql','<','/tmp/scmd'])
-#            Logger.debug('Filesync: Copying stickers to carpi')
             sfile.write('scp '+synchost+':/tmp/sticker.sql /tmp\n')
-#            call(['scp',synchost+':/tmp/sticker.sql','/tmp'])
             with open('/tmp/scmd','w') as f:
                 f.write("attach database \"/tmp/sticker.sql\" as carpi;\n")
                 f.write("replace into sticker select * from carpi.sticker;\n")
                 f.write(".quit\n")
             sfile.write('cat /tmp/scmd | sudo sqlite3 /var/lib/mpd/sticker.sql\n')
-#            with open('/tmp/scmd','r') as f:
-#                call(['sudo','sqlite3','/var/lib/mpd/sticker.sql'],stdin=f)
-#            Logger.info("Filesync: Syncing fanart")
-            sfile.write('rsync -vruxhm --progress '+synchost+':"'+syncfanartpath+'"/ "'+fanartpath+'"\n')
-#            call(['rsync','-vruxhm','--progress',synchost+':'+syncfanartpath+'/',fanartpath])
+            sfile.write('rsync -vruxhm '+synchost+':"'+syncfanartpath+'"/ "'+fanartpath+'"\n')
         os.chmod('sync.sh',os.stat('sync.sh').st_mode|0111)
         q = Queue()
         p = Popen(['./sync.sh'],stdout=PIPE,bufsize=1,close_fds=True)
