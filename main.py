@@ -87,6 +87,7 @@ class KmpcInterface(TabbedPanel):
 
     def mpd_connectionLost(self,protocol, reason):
         Logger.warn('Application: Connection lost: %s' % reason)
+        App.get_running_app().stop()
 
     def handle_mpd_error(self,result):
         Logger.error('Application: MPDIdleHandler Callback error: {}'.format(result))

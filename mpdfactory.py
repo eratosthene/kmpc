@@ -39,7 +39,7 @@ class MPDIdleHandler(object):
             else:
                 self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
 
-class MPDClientFactory(protocol.ReconnectingClientFactory):
+class MPDClientFactory(protocol.ClientFactory):
     protocol = MPDFactoryProtocol
     connectionMade = None
     connectionLost = None
