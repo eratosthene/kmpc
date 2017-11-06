@@ -14,7 +14,9 @@ from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 from kivy.uix.boxlayout import BoxLayout
+from kivy.clock import Clock
 from copy import deepcopy
+from functools import partial
 import os
 
 from extra import formatsong
@@ -125,8 +127,8 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
                 else:
                     Logger.warn("Library: not sure what to do with ["+format(row)+"]")
 
-    def handle_double_click(self,row,index):
-        Logger.debug("Library: handle_double_click("+format(row)+")")
+    def handle_long_touch(self,row,index):
+        Logger.debug("Library: handle_long_touch("+format(row)+")")
         self.current_view = deepcopy(row)
         if row['info']['type'] == 'uri':
             self.protocol.lsinfo(row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
@@ -150,7 +152,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             self.protocol.add(a)
             self.protocol.play(str(int(index)-1))
         else:
-            Logger.warn("Library: double click for ["+format(row)+"] not implemented")
+            Logger.warn("Library: long-touch for ["+format(row)+"] not implemented")
 
     def handle_mpd_error(self,result):
         Logger.error('Library: MPDIdleHandler Callback error: {}'.format(result))
@@ -210,6 +212,11 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
     selected = BooleanProperty(False)
     selectable = BooleanProperty(True)
 
+    def long_touch(self, touch, index, *args):
+        Logger.debug("Library: long-touch on "+str(index))
+        App.get_running_app().root.ids.library_tab.rbl.clear_selection()
+        App.get_running_app().root.ids.library_tab.handle_long_touch(App.get_running_app().root.ids.library_tab.rv.data[index],index)
+
     def refresh_view_attrs(self, rv, index, data):
         ''' Catch and handle the view changes '''
         self.index = index
@@ -221,13 +228,18 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
         if super(self.__class__, self).on_touch_down(touch):
             return True
         if self.collide_point(*touch.pos) and self.selectable:
-            # if we have a double-click, play from that location instead of selecting
-            if touch.is_double_tap:
-                Logger.debug("Library: double-click on "+str(self.index))
-                App.get_running_app().root.ids.library_tab.rbl.clear_selection()
-                App.get_running_app().root.ids.library_tab.handle_double_click(App.get_running_app().root.ids.library_tab.rv.data[self.index],self.index)
-            else:
-                return self.parent.select_with_touch(self.index, touch)
+            # these lines start a 1 second clock to detect long-presses
+            callback = partial(self.long_touch, touch, self.index)
+            Clock.schedule_once(callback, 1)
+            touch.ud['event'] = callback
+            return self.parent.select_with_touch(self.index, touch)
+
+    def on_touch_up(self, touch):
+        if super(self.__class__, self).on_touch_up(touch):
+            return True
+        # if i don't check for this, the app crashes when things scroll off screen
+        if 'event' in touch.ud:
+            Clock.unschedule(touch.ud['event'])
 
     def apply_selection(self, rv, index, is_selected):
         ''' Respond to the selection of items in the view. '''
