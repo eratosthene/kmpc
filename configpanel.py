@@ -153,6 +153,7 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
                 f.write(".quit\n")
             sfile.write('cat /tmp/scmd | sudo sqlite3 /var/lib/mpd/sticker.sql\n')
             sfile.write('rsync -vruxhm '+synchost+':"'+syncfanartpath+'"/ "'+fanartpath+'"\n')
+            sfile.write("mpc update\n")
         os.chmod('sync.sh',os.stat('sync.sh').st_mode|0111)
         q = Queue()
         p = Popen(['./sync.sh'],stdout=PIPE,bufsize=1,close_fds=True)
