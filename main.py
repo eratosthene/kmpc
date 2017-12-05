@@ -386,12 +386,12 @@ class KmpcInterface(TabbedPanel):
         layout.add_widget(img)
         popup.open()
 
-    def change_backlight(self):
-        v=int(round(self.ids.backlight_slider.value))
-        if self.config.get('kmpc','rpienable'):
-            Logger.info('Application: change_backlight('+str(v)+')')
+    def change_backlight(self,value):
+#        v=int(round(self.ids.backlight_slider.value))
+        Logger.info('Application: change_backlight('+str(value)+') rpienable = '+self.config.get('kmpc','rpienable'))
+        if bool(int(self.config.get('kmpc','rpienable'))):
             import rpi_backlight as bl
-            bl.set_brightness(v, smooth=True, duration=1)
+            bl.set_brightness(int(value), smooth=True, duration=1)
 
 class KmpcApp(App):
     def build_config(self,config):

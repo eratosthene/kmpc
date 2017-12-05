@@ -111,6 +111,89 @@
     font_name: 'resources/FontAwesome.ttf'
     font_size: '24sp'
 
+<BrightnessButton@Button>
+    font_name: 'resources/FontAwesome.ttf'
+    font_size: '24sp'
+    border: (1,1,1,1)
+    background_normal: 'resources/clear.png'
+    background_down: 'resources/clear.png'
+    canvas.before:
+        Clear
+        PushMatrix
+        Rotate:
+            angle: 90
+            origin: self.center
+        Color:
+            rgba: 0, 0, 0, 0.5
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) + 1, int(self.center_y - self.texture_size[1] / 2.) + 1
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) + 1, int(self.center_y - self.texture_size[1] / 2.) - 1
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) - 1, int(self.center_y - self.texture_size[1] / 2.) - 1
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) - 1, int(self.center_y - self.texture_size[1] / 2.) + 1 
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.) - 1
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.) + 1 
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) + 1, int(self.center_y - self.texture_size[1] / 2.)
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) - 1, int(self.center_y - self.texture_size[1] / 2.)
+            size: root.texture_size
+            texture: root.texture
+        Color:
+            rgba: 0, 0, 0, 0.25
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) + 2, int(self.center_y - self.texture_size[1] / 2.) + 2
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) + 2, int(self.center_y - self.texture_size[1] / 2.) - 2
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) - 2, int(self.center_y - self.texture_size[1] / 2.) - 2
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) - 2, int(self.center_y - self.texture_size[1] / 2.) + 2
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.) - 2
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.) + 2
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) + 2, int(self.center_y - self.texture_size[1] / 2.)
+            size: root.texture_size
+            texture: root.texture
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) - 2, int(self.center_y - self.texture_size[1] / 2.)
+            size: root.texture_size
+            texture: root.texture
+    canvas.after:
+        PopMatrix
+
 <LibraryBoxLayout@BoxLayout>:
     canvas.before:
         Rectangle:
@@ -486,31 +569,18 @@
                 BoxLayout:
                     orientation: 'vertical'
                     size_hint_x: 0.025
-                    ExtraSlider:
-                        id: backlight_slider
-                        orientation: 'vertical'
-                        cursor_width: sp(20)
-                        cursor_image: 'resources/backlight-slider-cursor.png'
-                        cursor_height: sp(40)
-                        padding: sp(20)
-                        min: root.backlight_min
-                        max: root.backlight_max
-                        value: 255
-                        on_release: root.change_backlight()
-                        Label:
-                            pos: (backlight_slider.center_x - sp(16), backlight_slider.value_pos[1] - sp(16))
-                            font_size: sp(16)
-                            size_hint: None, None
-                            size: sp(32), sp(32)
-                            text: str(int(round(backlight_slider.value)))
-                            canvas.before:
-                                Clear
-                                PushMatrix
-                                Rotate:
-                                    angle: -90
-                                    origin: self.center
-                            canvas.after:
-                                PopMatrix
+                    BrightnessButton:
+                        text: u'\uf240'
+                        on_press: root.change_backlight(root.backlight_max)
+                    BrightnessButton:
+                        text: u'\uf242'
+                        on_press: root.change_backlight(100)
+                    BrightnessButton:
+                        text: u'\uf243'
+                        on_press: root.change_backlight(35)
+                    BrightnessButton:
+                        text: u'\uf244'
+                        on_press: root.change_backlight(root.backlight_min)
             BoxLayout:
                 size_hint: (1,0.10)
                 orientation: 'horizontal'
