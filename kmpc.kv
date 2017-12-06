@@ -93,6 +93,19 @@
     background_normal: 'resources/clear.png'
     background_down: 'resources/clear.png'
 
+<AccessoryPopup@Popup>:
+    auto_dismiss: False
+    title: 'Accessory Power Off'
+    size_hint_x: 0.6
+    BoxLayout:
+        valign: 'top'
+        Label:
+            text: 'The system will power down after a predetermined time unless accessory power is restored.'
+            text_size: root.width, None
+            size: self.texture_size
+            halign: 'center'
+            valign: 'middle'
+
 <TrackSlider@Slider>:
     Label:
         pos: (root.value_pos[0] - sp(16), root.center_y - sp(27)) if root.orientation == 'horizontal' else (root.center_x - sp(27), root.value_pos[1] - sp(16))

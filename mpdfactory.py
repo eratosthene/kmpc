@@ -36,6 +36,8 @@ class MPDIdleHandler(object):
                 self.protocol.sticker_get('song',app.root.currfile,'rating').addCallback(app.root.update_mpd_sticker_rating).addErrback(app.root.handle_mpd_no_sticker)
             elif format(s) == 'options':
                 self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
+            elif format(s) == 'message':
+                self.protocol.readmessages().addCallback(app.root.handle_mpd_message).addErrback(app.root.handle_mpd_error)
             else:
                 self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
 
