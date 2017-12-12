@@ -317,6 +317,15 @@
             Button:
                 text: 'Exit'
                 on_press: App.get_running_app().stop()
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.5
+            Button:
+                text: 'Reboot'
+                on_press: root.do_reboot()
+            Button:
+                text: 'Poweroff'
+                on_press: root.do_poweroff()
 
 <PlaylistRow>:
     canvas.before:

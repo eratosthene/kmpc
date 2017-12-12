@@ -63,6 +63,14 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         g = git.cmd.Git(os.getcwd())
         Logger.info(g.pull())
 
+    def do_reboot(self):
+        Logger.info('Config: reboot')
+        call('reboot')
+
+    def do_poweroff(self):
+        Logger.info('Config: poweroff')
+        call('poweroff')
+
     def enqueue_output(self,out,queue,event,popup,tpath,synchost,layout,sv):
         for line in iter(out.readline, b''):
             queue.put(line)
