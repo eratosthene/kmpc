@@ -12,6 +12,7 @@ import git
 import os
 import stat
 import codecs
+import socket
 from subprocess import call, PIPE, Popen
 from threading import Thread
 from Queue import Queue, Empty
@@ -39,6 +40,7 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         else:
             v = 0.0
         self.ids.mixrampdelay_slider.value=v
+        self.ids.ip_label.text="IP Address: "+format(self.get_ip())
 
     def printit(self,result):
         print format(result)
@@ -70,6 +72,18 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
     def do_poweroff(self):
         Logger.info('Config: poweroff')
         call('poweroff')
+
+    def get_ip(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            # doesn't even have to be reachable
+            s.connect(('10.255.255.255', 1))
+            IP = s.getsockname()[0]
+        except:
+            IP = '127.0.0.1'
+        finally:
+            s.close()
+        return IP
 
     def enqueue_output(self,out,queue,event,popup,tpath,synchost,layout,sv):
         for line in iter(out.readline, b''):
