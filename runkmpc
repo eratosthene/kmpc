@@ -1,0 +1,8 @@
+#!/usr/bin/env python
+
+from kmpc import kmpcapp
+
+if __name__ == '__main__':
+    # run the app!
+    kmpcapp.KmpcApp().run()
+

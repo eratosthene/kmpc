@@ -153,11 +153,11 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         # this file describes exactly what songs should exist on the host, no more, no less
         tpath="/tmp/rsync.inc"
         # look in the ini file for all the relevant paths
-        synchost = App.get_running_app().root.config.get('mpd','synchost')
-        syncbasepath = App.get_running_app().root.config.get('mpd','syncbasepath')
-        syncfanartpath= App.get_running_app().root.config.get('mpd','syncfanartpath')
-        basepath = App.get_running_app().root.config.get('mpd','basepath')
-        fanartpath= App.get_running_app().root.config.get('mpd','fanartpath')
+        synchost = App.get_running_app().root.config.get('sync','synchost')
+        syncbasepath = App.get_running_app().root.config.get('sync','syncmusicpath')
+        syncfanartpath= App.get_running_app().root.config.get('sync','syncfanartpath')
+        basepath = App.get_running_app().root.config.get('paths','musicpath')
+        fanartpath= App.get_running_app().root.config.get('paths','fanartpath')
         Logger.info('Filesync: Copying rsync file to carpi')
         # TODO: figure out why this doesn't show up on the screen until after the os.walk has completed
         l=Label(text='Copying rsync file to carpi',size_hint=(None,None),font_size='12sp',halign='left')

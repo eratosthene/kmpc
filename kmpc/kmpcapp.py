@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # import dependencies
 from mpd import MPDProtocol
 import os
@@ -7,6 +5,7 @@ import traceback
 import mutagen
 import io
 import random
+import ConfigParser
 
 # make sure we are on an updated version of kivy
 import kivy
@@ -22,9 +21,15 @@ except AttributeError:
 from twisted.internet import reactor, protocol
 from twisted.internet.defer import inlineCallbacks
 
-# import all the kivy stuff
-from kivy.app import App
+# import config and set key values before other imports
 from kivy.config import Config
+Config.set('kivy','log_level','info') # set this to 'debug' to see more verbose debug messages
+Config.set('kivy','keyboard_mode','systemanddock')
+Config.set('graphics','width',800)
+Config.set('graphics','height',480)
+
+# import all the other kivy stuff
+from kivy.app import App
 from kivy.logger import Logger
 from kivy.graphics import Color,Rectangle
 from kivy.core.image import Image as CoreImage
@@ -49,18 +54,41 @@ from mpdfactory import MPDClientFactory
 from extra import songratings,getfontsize,ExtraSlider,ClearButton
 from playlistpanel import PlaylistTabbedPanelItem
 
+# sets the location of the config file
+configfile = os.path.expanduser('~')+"/.kmpcrc"
+
 class KmpcInterface(TabbedPanel):
     """The main class that ties it all together."""
 
-    def __init__(self,config):
-        """Pull the config from the ini file, hook up to mpd, zero out variables."""
+    def __init__(self):
+        """Pull the config from the config file, hook up to mpd, zero out variables."""
         super(self.__class__,self).__init__()
+        # set up config with default values
+        config=ConfigParser.SafeConfigParser()
+        config.add_section('mpd')
+        config.set('mpd','mpdhost','127.0.0.1')
+        config.set('mpd','mpdport','6600')
+        config.add_section('paths')
+        config.set('paths','musicpath','/mnt/music')
+        config.set('paths','fanartpath','/mnt/fanart')
+        config.add_section('sync')
+        config.set('sync','synchost','127.0.0.1')
+        config.set('sync','syncmusicpath','/mnt/music')
+        config.set('sync','syncfanartpath','/mnt/fanart')
+        config.add_section('flags')
+        config.set('flags','rpienable','False')
+        # try to read existing config file
+        config.read([configfile])
+        # write out config file in case it doesn't exist yet
+        with open(configfile,'wb') as cf:
+            config.write(cf)
+        # pull config into the class
         self.config = config
         # set up mpd connection
         self.factory = MPDClientFactory()
         self.factory.connectionMade = self.mpd_connectionMade
         self.factory.connectionLost = self.mpd_connectionLost
-        reactor.connectTCP(self.config.get('mpd','host'), self.config.getint('mpd','port'), self.factory)
+        reactor.connectTCP(self.config.get('mpd','mpdhost'), self.config.getint('mpd','mpdport'), self.factory)
         # bind callbacks for tab changes
         self.bind(current_tab=self.main_tab_changed)
         self.mpd_status={'state':'stop','repeat':0,'single':0,'random':0,'consume':0,'curpos':0}
@@ -77,7 +105,7 @@ class KmpcInterface(TabbedPanel):
         self.ids.playlist_tab.protocol=protocol
         self.ids.library_tab.protocol=protocol
         self.ids.config_tab.protocol=protocol
-        Logger.info('Application: Connected to mpd server host='+self.config.get('mpd','host')+' port='+self.config.get('mpd','port'))
+        Logger.info('Application: Connected to mpd server host='+self.config.get('mpd','mpdhost')+' port='+self.config.get('mpd','mpdport'))
         # get the initial mpd status
         self.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
         # create the once-per-second update of the track slider
@@ -245,7 +273,7 @@ class KmpcInterface(TabbedPanel):
                 # get the stored star rating
                 self.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
                 # figure out the full path of the file
-                bp=self.config.get('mpd','basepath')
+                bp=self.config.get('paths','musicpath')
                 # p is the absolute path
                 p=os.path.join(bp,result['file'])
                 haslogo=False
@@ -254,7 +282,7 @@ class KmpcInterface(TabbedPanel):
                 if 'date' in result:
                     year=result['date'][:4]
                 # pull the fanart folder from ini file
-                fa_path=self.config.get('mpd','fanartpath')
+                fa_path=self.config.get('paths','fanartpath')
                 # try to get the artistid, set it to 0000 if it doesn't exist
                 try:
                     aids=str(result['musicbrainz_artistid'])
@@ -503,9 +531,9 @@ class KmpcInterface(TabbedPanel):
 
     def change_backlight(self,value):
         """Method that sets the backlight to a certain value."""
-        Logger.info('Application: change_backlight('+str(value)+') rpienable = '+self.config.get('kmpc','rpienable'))
+        Logger.info('Application: change_backlight('+str(value)+') rpienable = '+self.config.get('flags','rpienable'))
         # only if the ini file says it's ok
-        if bool(int(self.config.get('kmpc','rpienable'))):
+        if self.config.getboolean('flags','rpienable'):
             import rpi_backlight as bl
             # set the brightness
             bl.set_brightness(int(value), smooth=True, duration=1)
@@ -513,38 +541,9 @@ class KmpcInterface(TabbedPanel):
 class KmpcApp(App):
     """The overall app class, builds the main interface widget."""
 
-    def build_config(self,config):
-        """Builds a config object from defaults/ini file."""
-        # set all the defaults in case ini file doesn't exist yet
-        config.setdefaults('mpd',{
-            'host': '127.0.0.1',
-            'port': 6600,
-            'basepath': '/mnt/music',
-            'fanartpath': '/mnt/fanart',
-            'synchost': '127.0.0.1',
-            'syncbasepath': '/mnt/music',
-            'syncfanartpath': '/mnt/fanart'
-        })
-        config.setdefaults('kmpc',{
-            'rpienable': False
-        })
-        config.setdefaults('kivy',{
-            'log_level': 'info',
-            'log_enable': 0,
-            'keyboard_mode': 'systemanddock'
-        })
-        config.setdefaults('graphics',{
-            'width': 800,
-            'height': 480
-        })
-        # read the ini file
-        Config.read(self.get_application_config())
-        # update the app config to what Config built
-        self.config=config
-
     def build(self):
-        """Instantiates KmpcInterface with the generated config."""
-        return KmpcInterface(self.config)
+        """Instantiates KmpcInterface."""
+        return KmpcInterface()
 
 class InfoLargeLabel(Label):
     """A label with large text."""
