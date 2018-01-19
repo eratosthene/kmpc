@@ -2,6 +2,6 @@
 *.swp
 *.ini
 .DS_Store
-docs/build
+_build
 _static
 _templates

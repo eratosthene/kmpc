@@ -4,6 +4,18 @@ import kivy
 kivy.require('1.10.0')
 from kivy.app import App
 from kivy.support import install_twisted_reactor
+
+
+#install twisted reactor to interface with mpd
+import sys
+if 'twisted.internet.reactor' in sys.modules:
+    del sys.modules['twisted.internet.reactor']
+install_twisted_reactor()
+from twisted.internet import reactor
+from twisted.internet import protocol
+#from twisted.internet import task
+from twisted.internet.defer import inlineCallbacks
+
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.graphics import Color,Rectangle
@@ -30,15 +42,6 @@ import mutagen
 import io
 import random
 
-#install twisted reactor to interface with mpd
-import sys
-if 'twisted.internet.reactor' in sys.modules:
-    del sys.modules['twisted.internet.reactor']
-install_twisted_reactor()
-from twisted.internet import reactor
-from twisted.internet import protocol
-#from twisted.internet import task
-from twisted.internet.defer import inlineCallbacks
 
 from mpdfactory import MPDClientFactory
 from extra import songratings,getfontsize,ExtraSlider,ClearButton
