@@ -169,8 +169,3 @@ texinfo_documents = [
 ]
 
 
-# -- Options for markdown support
-
-source_parsers = {
-    '.md': 'recommonmark.parser.CommonMarkParser',
-}
