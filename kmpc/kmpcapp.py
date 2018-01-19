@@ -48,6 +48,7 @@ from kivy.uix.popup import Popup
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.slider import Slider
 from kivy.factory import Factory
+from kivy.lang import Builder
 
 # import our local modules
 from mpdfactory import MPDClientFactory
@@ -56,6 +57,9 @@ from playlistpanel import PlaylistTabbedPanelItem
 
 # sets the location of the config file
 configfile = os.path.expanduser('~')+"/.kmpcrc"
+
+# load the interface.kv file
+Builder.load_file('resources/interface.kv')
 
 class KmpcInterface(TabbedPanel):
     """The main class that ties it all together."""
