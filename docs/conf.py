@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # kmpc documentation build configuration file, created by
-# sphinx-quickstart on Thu Jan 18 22:33:56 2018.
+# sphinx-quickstart on Thu Jan 18 23:32:12 2018.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -19,8 +19,7 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath('../'))
-sys.path.insert(0, os.path.abspath('../../'))
+sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- General configuration ------------------------------------------------
@@ -34,6 +33,7 @@ sys.path.insert(0, os.path.abspath('../../'))
 # ones.
 extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.todo',
+    'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages']
 
@@ -43,8 +43,7 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = ['.rst', '.md']
 
 # The master toctree document.
 master_doc = 'index'
@@ -73,7 +72,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = []
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -170,4 +169,8 @@ texinfo_documents = [
 ]
 
 
+# -- Options for markdown support
 
+source_parsers = {
+    '.md': 'recommonmark.parser.CommonMarkParser',
+}

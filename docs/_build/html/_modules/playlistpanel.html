@@ -1,0 +1,382 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>playlistpanel &mdash; kmpc 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="kmpc 1.0 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> kmpc
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">kmpc modules</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">kmpc</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>playlistpanel</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for playlistpanel</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">kivy</span>
+<span class="n">kivy</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="s1">&#39;1.10.0&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">kivy.app</span> <span class="k">import</span> <span class="n">App</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.tabbedpanel</span> <span class="k">import</span> <span class="n">TabbedPanelItem</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.label</span> <span class="k">import</span> <span class="n">Label</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.gridlayout</span> <span class="k">import</span> <span class="n">GridLayout</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.checkbox</span> <span class="k">import</span> <span class="n">CheckBox</span>
+<span class="kn">from</span> <span class="nn">kivy.logger</span> <span class="k">import</span> <span class="n">Logger</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.recycleview.views</span> <span class="k">import</span> <span class="n">RecycleDataViewBehavior</span>
+<span class="kn">from</span> <span class="nn">kivy.properties</span> <span class="k">import</span> <span class="n">BooleanProperty</span><span class="p">,</span><span class="n">StringProperty</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.recycleboxlayout</span> <span class="k">import</span> <span class="n">RecycleBoxLayout</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.behaviors</span> <span class="k">import</span> <span class="n">FocusBehavior</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.recycleview.layout</span> <span class="k">import</span> <span class="n">LayoutSelectionBehavior</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.boxlayout</span> <span class="k">import</span> <span class="n">BoxLayout</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.popup</span> <span class="k">import</span> <span class="n">Popup</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.textinput</span> <span class="k">import</span> <span class="n">TextInput</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.button</span> <span class="k">import</span> <span class="n">Button</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.vkeyboard</span> <span class="k">import</span> <span class="n">VKeyboard</span>
+<span class="kn">from</span> <span class="nn">kivy.clock</span> <span class="k">import</span> <span class="n">Clock</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
+
+<div class="viewcode-block" id="PlaylistTabbedPanelItem"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistTabbedPanelItem">[docs]</a><span class="k">class</span> <span class="nc">PlaylistTabbedPanelItem</span><span class="p">(</span><span class="n">TabbedPanelItem</span><span class="p">):</span>
+
+    <span class="n">playlist_selection</span><span class="o">=</span><span class="p">{}</span>
+
+<div class="viewcode-block" id="PlaylistTabbedPanelItem.playlist_clear_pressed"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistTabbedPanelItem.playlist_clear_pressed">[docs]</a>    <span class="k">def</span> <span class="nf">playlist_clear_pressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Playlist: clear&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PlaylistTabbedPanelItem.playlist_delete_pressed"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistTabbedPanelItem.playlist_delete_pressed">[docs]</a>    <span class="k">def</span> <span class="nf">playlist_delete_pressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Playlist: delete&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">playlist_selection</span><span class="p">:</span>
+            <span class="n">songid</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rv</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">pos</span><span class="p">][</span><span class="s1">&#39;songid&#39;</span><span class="p">])</span>
+            <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Playlist: deleting songid &quot;</span><span class="o">+</span><span class="n">songid</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">deleteid</span><span class="p">(</span><span class="n">songid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rbl</span><span class="o">.</span><span class="n">clear_selection</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PlaylistTabbedPanelItem.playlist_move_pressed"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistTabbedPanelItem.playlist_move_pressed">[docs]</a>    <span class="k">def</span> <span class="nf">playlist_move_pressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Playlist: move&quot;</span><span class="p">)</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Playlist: move not implemented&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rbl</span><span class="o">.</span><span class="n">clear_selection</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PlaylistTabbedPanelItem.playlist_shuffle_pressed"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistTabbedPanelItem.playlist_shuffle_pressed">[docs]</a>    <span class="k">def</span> <span class="nf">playlist_shuffle_pressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Playlist: shuffle&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">shuffle</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rbl</span><span class="o">.</span><span class="n">clear_selection</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PlaylistTabbedPanelItem.playlist_swap_pressed"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistTabbedPanelItem.playlist_swap_pressed">[docs]</a>    <span class="k">def</span> <span class="nf">playlist_swap_pressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Playlist: swap&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">playlist_selection</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">Logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Playlist: swap only works with two rows selected&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">s1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">playlist_selection</span><span class="o">.</span><span class="n">keys</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">s2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">playlist_selection</span><span class="o">.</span><span class="n">keys</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">swap</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">s1</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="n">s2</span><span class="p">))</span><span class="o">.</span><span class="n">addErrback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_mpd_error</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rbl</span><span class="o">.</span><span class="n">clear_selection</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PlaylistTabbedPanelItem.playlist_save_pressed"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistTabbedPanelItem.playlist_save_pressed">[docs]</a>    <span class="k">def</span> <span class="nf">playlist_save_pressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Playlist: save&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rbl</span><span class="o">.</span><span class="n">clear_selection</span><span class="p">()</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">BoxLayout</span><span class="p">(</span><span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">)</span>
+        <span class="n">popup</span> <span class="o">=</span> <span class="n">Popup</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Playlist Name&#39;</span><span class="p">,</span><span class="n">content</span><span class="o">=</span><span class="n">layout</span><span class="p">)</span>
+        <span class="n">l1</span> <span class="o">=</span> <span class="n">BoxLayout</span><span class="p">(</span><span class="n">size_hint_y</span><span class="o">=</span><span class="s1">&#39;0.1&#39;</span><span class="p">)</span>
+        <span class="n">ti</span> <span class="o">=</span> <span class="n">TextInput</span><span class="p">()</span>
+        <span class="n">l1</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">ti</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">l1</span><span class="p">)</span>
+        <span class="n">l2</span> <span class="o">=</span> <span class="n">BoxLayout</span><span class="p">(</span><span class="n">size_hint_y</span><span class="o">=</span><span class="s1">&#39;0.1&#39;</span><span class="p">,</span><span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;horizontal&#39;</span><span class="p">)</span>
+        <span class="n">btnok</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;OK&quot;</span><span class="p">)</span>
+        <span class="n">btncl</span> <span class="o">=</span> <span class="n">Button</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Cancel&quot;</span><span class="p">)</span>
+        <span class="n">btncl</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">on_press</span><span class="o">=</span><span class="n">popup</span><span class="o">.</span><span class="n">dismiss</span><span class="p">)</span>
+        <span class="n">btnok</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">on_press</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_playlist</span><span class="p">,</span><span class="n">ti</span><span class="p">,</span><span class="n">popup</span><span class="p">))</span>
+        <span class="n">l2</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">btnok</span><span class="p">)</span>
+        <span class="n">l2</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">btncl</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">l2</span><span class="p">)</span>
+        <span class="n">l3</span> <span class="o">=</span> <span class="n">BoxLayout</span><span class="p">()</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">l3</span><span class="p">)</span>
+        <span class="n">popup</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+        <span class="n">ti</span><span class="o">.</span><span class="n">show_keyboard</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PlaylistTabbedPanelItem.save_playlist"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistTabbedPanelItem.save_playlist">[docs]</a>    <span class="k">def</span> <span class="nf">save_playlist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">ti</span><span class="p">,</span><span class="n">popup</span><span class="p">,</span><span class="n">instance</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Playlist: save_playlist(&quot;</span><span class="o">+</span><span class="n">ti</span><span class="o">.</span><span class="n">text</span><span class="o">+</span><span class="s2">&quot;)&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">ti</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">addErrback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_mpd_error</span><span class="p">)</span>
+        <span class="n">popup</span><span class="o">.</span><span class="n">dismiss</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PlaylistTabbedPanelItem.populate_playlist"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistTabbedPanelItem.populate_playlist">[docs]</a>    <span class="k">def</span> <span class="nf">populate_playlist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Playlist: populate_playlist()&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rv</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Playlist: row &quot;</span><span class="o">+</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot; found = &quot;</span><span class="o">+</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">])</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;plpos&#39;</span><span class="p">:</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;pos&#39;</span><span class="p">],</span><span class="s1">&#39;rownum&#39;</span><span class="p">:</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;pos&#39;</span><span class="p">])</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span><span class="s1">&#39;artist&#39;</span><span class="p">:</span><span class="nb">format</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;artist&#39;</span><span class="p">]),</span><span class="s1">&#39;title&#39;</span><span class="p">:</span><span class="nb">format</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]),</span><span class="s1">&#39;songid&#39;</span><span class="p">:</span><span class="nb">format</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">])}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rv</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">status</span><span class="p">()</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_mpd_status</span><span class="p">)</span><span class="o">.</span><span class="n">addErrback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_mpd_error</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PlaylistTabbedPanelItem.update_mpd_status"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistTabbedPanelItem.update_mpd_status">[docs]</a>    <span class="k">def</span> <span class="nf">update_mpd_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Playlist: update_mpd_status()&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">currsong</span><span class="o">=</span><span class="kc">None</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rv</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                <span class="n">r</span><span class="p">[</span><span class="s1">&#39;iscurrent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">currsong</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;song&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rv</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;plpos&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;song&#39;</span><span class="p">]:</span>
+                    <span class="n">r</span><span class="p">[</span><span class="s1">&#39;iscurrent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">r</span><span class="p">[</span><span class="s1">&#39;iscurrent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rv</span><span class="o">.</span><span class="n">refresh_from_layout</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PlaylistTabbedPanelItem.handle_mpd_error"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistTabbedPanelItem.handle_mpd_error">[docs]</a>    <span class="k">def</span> <span class="nf">handle_mpd_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Playlist: MPDIdleHandler Callback error: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">result</span><span class="p">))</span></div></div>
+
+<div class="viewcode-block" id="PlaylistRecycleBoxLayout"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistRecycleBoxLayout">[docs]</a><span class="k">class</span> <span class="nc">PlaylistRecycleBoxLayout</span><span class="p">(</span><span class="n">LayoutSelectionBehavior</span><span class="p">,</span><span class="n">RecycleBoxLayout</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Adds selection and focus behaviour to the view. &#39;&#39;&#39;</span></div>
+
+<div class="viewcode-block" id="PlaylistRow"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistRow">[docs]</a><span class="k">class</span> <span class="nc">PlaylistRow</span><span class="p">(</span><span class="n">RecycleDataViewBehavior</span><span class="p">,</span><span class="n">BoxLayout</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Add selection support to the Label &#39;&#39;&#39;</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">selected</span> <span class="o">=</span> <span class="n">BooleanProperty</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">selectable</span> <span class="o">=</span> <span class="n">BooleanProperty</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PlaylistRow.playfrom"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistRow.playfrom">[docs]</a>    <span class="k">def</span> <span class="nf">playfrom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">touch</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Playlist: long-touch playfrom &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="n">App</span><span class="o">.</span><span class="n">get_running_app</span><span class="p">()</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">play</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="n">App</span><span class="o">.</span><span class="n">get_running_app</span><span class="p">()</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">playlist_tab</span><span class="o">.</span><span class="n">rbl</span><span class="o">.</span><span class="n">clear_selection</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PlaylistRow.refresh_view_attrs"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistRow.refresh_view_attrs">[docs]</a>    <span class="k">def</span> <span class="nf">refresh_view_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rv</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Catch and handle the view changes &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">refresh_view_attrs</span><span class="p">(</span>
+            <span class="n">rv</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PlaylistRow.on_touch_down"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistRow.on_touch_down">[docs]</a>    <span class="k">def</span> <span class="nf">on_touch_down</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">touch</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Add selection on touch down &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">on_touch_down</span><span class="p">(</span><span class="n">touch</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">collide_point</span><span class="p">(</span><span class="o">*</span><span class="n">touch</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">selectable</span><span class="p">:</span>
+            <span class="c1"># these lines start a 1 second clock to detect long-presses</span>
+            <span class="n">callback</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">playfrom</span><span class="p">,</span> <span class="n">touch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">Clock</span><span class="o">.</span><span class="n">schedule_once</span><span class="p">(</span><span class="n">callback</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">touch</span><span class="o">.</span><span class="n">ud</span><span class="p">[</span><span class="s1">&#39;event&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">callback</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">select_with_touch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">touch</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PlaylistRow.on_touch_up"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistRow.on_touch_up">[docs]</a>    <span class="k">def</span> <span class="nf">on_touch_up</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">touch</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">super</span><span class="p">(</span><span class="n">PlaylistRow</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">on_touch_up</span><span class="p">(</span><span class="n">touch</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="c1"># if i don&#39;t check for this, the app crashes when things scroll off screen</span>
+        <span class="k">if</span> <span class="s1">&#39;event&#39;</span> <span class="ow">in</span> <span class="n">touch</span><span class="o">.</span><span class="n">ud</span><span class="p">:</span>
+            <span class="n">Clock</span><span class="o">.</span><span class="n">unschedule</span><span class="p">(</span><span class="n">touch</span><span class="o">.</span><span class="n">ud</span><span class="p">[</span><span class="s1">&#39;event&#39;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="PlaylistRow.apply_selection"><a class="viewcode-back" href="../playlistpanel.html#playlistpanel.PlaylistRow.apply_selection">[docs]</a>    <span class="k">def</span> <span class="nf">apply_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rv</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">is_selected</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Respond to the selection of items in the view. &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selected</span> <span class="o">=</span> <span class="n">is_selected</span>
+        <span class="n">pt</span><span class="o">=</span><span class="n">App</span><span class="o">.</span><span class="n">get_running_app</span><span class="p">()</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">playlist_tab</span>
+        <span class="k">if</span> <span class="n">is_selected</span><span class="p">:</span>
+            <span class="n">pt</span><span class="o">.</span><span class="n">playlist_selection</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">pt</span><span class="o">.</span><span class="n">playlist_selection</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">pt</span><span class="o">.</span><span class="n">playlist_selection</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></div></div>
+
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Chris Graham.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

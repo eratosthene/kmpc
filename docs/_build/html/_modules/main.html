@@ -1,0 +1,782 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>main &mdash; kmpc 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="kmpc 1.0 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> kmpc
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">kmpc modules</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">kmpc</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>main</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for main</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="kn">import</span> <span class="nn">kivy</span>
+<span class="n">kivy</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="s1">&#39;1.10.0&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">kivy.app</span> <span class="k">import</span> <span class="n">App</span>
+<span class="kn">from</span> <span class="nn">kivy.support</span> <span class="k">import</span> <span class="n">install_twisted_reactor</span>
+<span class="kn">from</span> <span class="nn">kivy.config</span> <span class="k">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">kivy.logger</span> <span class="k">import</span> <span class="n">Logger</span>
+<span class="kn">from</span> <span class="nn">kivy.graphics</span> <span class="k">import</span> <span class="n">Color</span><span class="p">,</span><span class="n">Rectangle</span>
+<span class="kn">from</span> <span class="nn">kivy.core.image</span> <span class="k">import</span> <span class="n">Image</span> <span class="k">as</span> <span class="n">CoreImage</span>
+<span class="kn">from</span> <span class="nn">kivy.metrics</span> <span class="k">import</span> <span class="n">Metrics</span><span class="p">,</span> <span class="n">sp</span>
+<span class="kn">from</span> <span class="nn">kivy.clock</span> <span class="k">import</span> <span class="n">Clock</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.widget</span> <span class="k">import</span> <span class="n">Widget</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.tabbedpanel</span> <span class="k">import</span> <span class="n">TabbedPanel</span><span class="p">,</span> <span class="n">TabbedPanelItem</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.button</span> <span class="k">import</span> <span class="n">Button</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.label</span> <span class="k">import</span> <span class="n">Label</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.scrollview</span> <span class="k">import</span> <span class="n">ScrollView</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.gridlayout</span> <span class="k">import</span> <span class="n">GridLayout</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.checkbox</span> <span class="k">import</span> <span class="n">CheckBox</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.boxlayout</span> <span class="k">import</span> <span class="n">BoxLayout</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.image</span> <span class="k">import</span> <span class="n">Image</span><span class="p">,</span><span class="n">AsyncImage</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.popup</span> <span class="k">import</span> <span class="n">Popup</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.behaviors</span> <span class="k">import</span> <span class="n">ButtonBehavior</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.slider</span> <span class="k">import</span> <span class="n">Slider</span>
+<span class="kn">from</span> <span class="nn">kivy.factory</span> <span class="k">import</span> <span class="n">Factory</span>
+<span class="kn">from</span> <span class="nn">mpd</span> <span class="k">import</span> <span class="n">MPDProtocol</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">mutagen</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="c1">#install twisted reactor to interface with mpd</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="k">if</span> <span class="s1">&#39;twisted.internet.reactor&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
+    <span class="k">del</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s1">&#39;twisted.internet.reactor&#39;</span><span class="p">]</span>
+<span class="c1">#install_twisted_reactor()</span>
+<span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="k">import</span> <span class="n">reactor</span>
+<span class="kn">from</span> <span class="nn">twisted.internet</span> <span class="k">import</span> <span class="n">protocol</span>
+<span class="c1">#from twisted.internet import task</span>
+<span class="kn">from</span> <span class="nn">twisted.internet.defer</span> <span class="k">import</span> <span class="n">inlineCallbacks</span>
+
+<span class="kn">from</span> <span class="nn">mpdfactory</span> <span class="k">import</span> <span class="n">MPDClientFactory</span>
+<span class="kn">from</span> <span class="nn">extra</span> <span class="k">import</span> <span class="n">songratings</span><span class="p">,</span><span class="n">getfontsize</span><span class="p">,</span><span class="n">ExtraSlider</span><span class="p">,</span><span class="n">ClearButton</span>
+<span class="kn">from</span> <span class="nn">playlistpanel</span> <span class="k">import</span> <span class="n">PlaylistTabbedPanelItem</span>
+
+<div class="viewcode-block" id="KmpcInterface"><a class="viewcode-back" href="../main.html#main.KmpcInterface">[docs]</a><span class="k">class</span> <span class="nc">KmpcInterface</span><span class="p">(</span><span class="n">TabbedPanel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The main class that ties it all together.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">config</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pull the config from the ini file, hook up to mpd, zero out variables.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="c1"># set up mpd connection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">factory</span> <span class="o">=</span> <span class="n">MPDClientFactory</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">connectionMade</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpd_connectionMade</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">connectionLost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpd_connectionLost</span>
+        <span class="n">reactor</span><span class="o">.</span><span class="n">connectTCP</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mpd&#39;</span><span class="p">,</span><span class="s1">&#39;host&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;mpd&#39;</span><span class="p">,</span><span class="s1">&#39;port&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="p">)</span>
+        <span class="c1"># bind callbacks for tab changes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">current_tab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">main_tab_changed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;state&#39;</span><span class="p">:</span><span class="s1">&#39;stop&#39;</span><span class="p">,</span><span class="s1">&#39;repeat&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="s1">&#39;single&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="s1">&#39;random&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="s1">&#39;consume&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="s1">&#39;curpos&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currsong</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nextsong</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currfile</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">track_slider_task</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">accessoryPopup</span><span class="o">=</span><span class="n">Factory</span><span class="o">.</span><span class="n">AccessoryPopup</span><span class="p">()</span>
+
+<div class="viewcode-block" id="KmpcInterface.mpd_connectionMade"><a class="viewcode-back" href="../main.html#main.KmpcInterface.mpd_connectionMade">[docs]</a>    <span class="k">def</span> <span class="nf">mpd_connectionMade</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">protocol</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback when mpd is connected.&quot;&quot;&quot;</span>
+        <span class="c1"># copy the protocol to all the classes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="n">protocol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">playlist_tab</span><span class="o">.</span><span class="n">protocol</span><span class="o">=</span><span class="n">protocol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">library_tab</span><span class="o">.</span><span class="n">protocol</span><span class="o">=</span><span class="n">protocol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">config_tab</span><span class="o">.</span><span class="n">protocol</span><span class="o">=</span><span class="n">protocol</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Application: Connected to mpd server host=&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mpd&#39;</span><span class="p">,</span><span class="s1">&#39;host&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; port=&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mpd&#39;</span><span class="p">,</span><span class="s1">&#39;port&#39;</span><span class="p">))</span>
+        <span class="c1"># get the initial mpd status</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">status</span><span class="p">()</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_mpd_status</span><span class="p">)</span><span class="o">.</span><span class="n">addErrback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_mpd_error</span><span class="p">)</span>
+        <span class="c1"># create the once-per-second update of the track slider</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">track_slider_task</span><span class="o">=</span><span class="n">Clock</span><span class="o">.</span><span class="n">schedule_interval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_track_slider</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">track_slider_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+        <span class="c1"># subscribe to &#39;kmpc&#39; to check for messages from mpd</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="s1">&#39;kmpc&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.main_tab_changed"><a class="viewcode-back" href="../main.html#main.KmpcInterface.main_tab_changed">[docs]</a>    <span class="k">def</span> <span class="nf">main_tab_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">obj</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback when top tab is changed.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_tab</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Application: Changed active tab to &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">active_tab</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_tab</span> <span class="o">==</span> <span class="s1">&#39;Now Playing&#39;</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_tab</span> <span class="o">==</span> <span class="s1">&#39;Playlist&#39;</span><span class="p">:</span>
+            <span class="k">pass</span>
+            <span class="c1"># switching to the playlist tab repopulates it if it is empty</span>
+            <span class="c1"># this is skipped right now by the &#39;pass&#39; above, I can&#39;t remember why, I think it&#39;s handled a different way now</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">playlist_tab</span><span class="o">.</span><span class="n">rv</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">playlistinfo</span><span class="p">()</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">playlist_tab</span><span class="o">.</span><span class="n">populate_playlist</span><span class="p">)</span><span class="o">.</span><span class="n">addErrback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">playlist_tab</span><span class="o">.</span><span class="n">handle_mpd_error</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_tab</span> <span class="o">==</span> <span class="s1">&#39;Config&#39;</span><span class="p">:</span>
+            <span class="c1"># switching to the config tab repopulates options</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">status</span><span class="p">()</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">config_tab</span><span class="o">.</span><span class="n">update_mpd_status</span><span class="p">)</span><span class="o">.</span><span class="n">addErrback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">config_tab</span><span class="o">.</span><span class="n">handle_mpd_error</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.mpd_connectionLost"><a class="viewcode-back" href="../main.html#main.KmpcInterface.mpd_connectionLost">[docs]</a>    <span class="k">def</span> <span class="nf">mpd_connectionLost</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">protocol</span><span class="p">,</span> <span class="n">reason</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback when mpd connection is lost.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Application: Connection lost: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">reason</span><span class="p">)</span>
+        <span class="c1"># kills the app for now since I don&#39;t know how to handle this yet</span>
+        <span class="n">App</span><span class="o">.</span><span class="n">get_running_app</span><span class="p">()</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.handle_mpd_error"><a class="viewcode-back" href="../main.html#main.KmpcInterface.handle_mpd_error">[docs]</a>    <span class="k">def</span> <span class="nf">handle_mpd_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Prints handled errors to the error log.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Application: MPDIdleHandler Callback error: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">result</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.handle_mpd_message"><a class="viewcode-back" href="../main.html#main.KmpcInterface.handle_mpd_message">[docs]</a>    <span class="k">def</span> <span class="nf">handle_mpd_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback for mpd &#39;kmpc&#39; messages.&quot;&quot;&quot;</span>
+        <span class="c1"># result is an iterator although it only generally has one member</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="n">m</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]</span>
+            <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Application: MPD Message: &quot;</span><span class="o">+</span><span class="n">message</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">message</span> <span class="o">==</span> <span class="s1">&#39;AccessoryOff&#39;</span><span class="p">:</span>
+                <span class="c1"># generated by mausberry circuit, accessory power is off</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">accessoryPopup</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">message</span> <span class="o">==</span> <span class="s1">&#39;AccessoryOn&#39;</span><span class="p">:</span>
+                <span class="c1"># generated by mausberry circuit, accessory power is on</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">accessoryPopup</span><span class="o">.</span><span class="n">dismiss</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.current_track_slider_release"><a class="viewcode-back" href="../main.html#main.KmpcInterface.current_track_slider_release">[docs]</a>    <span class="k">def</span> <span class="nf">current_track_slider_release</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback when track slider is released.&quot;&quot;&quot;</span>
+        <span class="c1"># get the value of the track slider</span>
+        <span class="n">curpos</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">current_track_slider</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Application: touch up on track slider at &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">curpos</span><span class="p">))</span>
+        <span class="c1"># seek to that position in the track</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">seekcur</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">curpos</span><span class="p">))</span><span class="o">.</span><span class="n">addErrback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_mpd_error</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.current_track_slider_down"><a class="viewcode-back" href="../main.html#main.KmpcInterface.current_track_slider_down">[docs]</a>    <span class="k">def</span> <span class="nf">current_track_slider_down</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback when track slider is pressed.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Application: touch down on track slider&quot;</span><span class="p">)</span>
+        <span class="c1"># cancel the once-per-second update while finger is down so it doesn&#39;t move out from under it</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">track_slider_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.update_track_slider"><a class="viewcode-back" href="../main.html#main.KmpcInterface.update_track_slider">[docs]</a>    <span class="k">def</span> <span class="nf">update_track_slider</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">dt</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Increment the slider by 1 second every second.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Application: update_track_slider&quot;</span><span class="p">)</span>
+        <span class="n">curpos</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">current_track_slider</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">current_track_slider</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="n">curpos</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.stop_zero_stuff"><a class="viewcode-back" href="../main.html#main.KmpcInterface.stop_zero_stuff">[docs]</a>    <span class="k">def</span> <span class="nf">stop_zero_stuff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clear the screen and variables if playback is fully stopped.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">current_track_slider</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">current_track_slider</span><span class="o">.</span><span class="n">max</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">current_playlist_track_number_label</span><span class="o">.</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">next_song_artist_label</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currfile</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">currsong</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nextsong</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">song_star_layout</span><span class="o">.</span><span class="n">clear_widgets</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">album_cover_layout</span><span class="o">.</span><span class="n">clear_widgets</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">trackinfo</span><span class="o">.</span><span class="n">clear_widgets</span><span class="p">()</span>
+        <span class="n">lbl</span> <span class="o">=</span> <span class="n">Label</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Playback Stopped&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">trackinfo</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">before</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Rectangle</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;resources/backdrop.png&quot;</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="n">pos</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">pos</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.update_mpd_status"><a class="viewcode-back" href="../main.html#main.KmpcInterface.update_mpd_status">[docs]</a>    <span class="k">def</span> <span class="nf">update_mpd_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback when mpd status changes.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;NowPlaying: update_mpd_status()&#39;</span><span class="p">)</span>
+        <span class="c1"># probably state is the only one necessary, but hey</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;repeat&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;repeat&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;single&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;single&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;random&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;random&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;consume&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;consume&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span>
+            <span class="c1"># if stopped, there are no current or next songs</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">currsong</span><span class="o">=</span><span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nextsong</span><span class="o">=</span><span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># save current song, this is a 0-based index into the playlist</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">currsong</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;song&#39;</span><span class="p">]</span>
+            <span class="c1"># ask mpd for current song data</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">currentsong</span><span class="p">()</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_mpd_currentsong</span><span class="p">)</span><span class="o">.</span><span class="n">addErrback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_mpd_error</span><span class="p">)</span>
+            <span class="c1"># save next song, this is a 0-based index into the playlist</span>
+            <span class="k">if</span> <span class="s1">&#39;nextsong&#39;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">nextsong</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;nextsong&#39;</span><span class="p">]</span>
+                <span class="c1"># ask mpd for next song data</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">playlistinfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nextsong</span><span class="p">)</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_mpd_nextsong</span><span class="p">)</span><span class="o">.</span><span class="n">addErrback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_mpd_error</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">nextsong</span><span class="o">=</span><span class="kc">None</span>
+        <span class="n">stflags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span><span class="s1">&#39;down&#39;</span><span class="p">]</span>
+        <span class="c1"># check various flag states</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">repeat_button</span><span class="o">.</span><span class="n">state</span><span class="o">=</span><span class="n">stflags</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;repeat&#39;</span><span class="p">])]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">single_button</span><span class="o">.</span><span class="n">state</span><span class="o">=</span><span class="n">stflags</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;single&#39;</span><span class="p">])]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">random_button</span><span class="o">.</span><span class="n">state</span><span class="o">=</span><span class="n">stflags</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;random&#39;</span><span class="p">])]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">consume_button</span><span class="o">.</span><span class="n">state</span><span class="o">=</span><span class="n">stflags</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;consume&#39;</span><span class="p">])]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;pause&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;stop&#39;</span><span class="p">:</span>
+            <span class="c1"># play/pause button should be a play button that is unpressed</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">play_button</span><span class="o">.</span><span class="n">state</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">play_button</span><span class="o">.</span><span class="n">text</span><span class="o">=</span><span class="sa">u</span><span class="s2">&quot;</span><span class="se">\uf04b</span><span class="s2">&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">track_slider_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># play/pause button should be a pause button that is pressed</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">play_button</span><span class="o">.</span><span class="n">state</span><span class="o">=</span><span class="s1">&#39;down&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">play_button</span><span class="o">.</span><span class="n">text</span><span class="o">=</span><span class="sa">u</span><span class="s2">&quot;</span><span class="se">\uf04c</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span>
+            <span class="c1"># zero everything out if we are stopped</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stop_zero_stuff</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># mpd returns {elapsed seconds}:{total seconds}, the following splits each to minute:second</span>
+            <span class="n">c</span><span class="p">,</span><span class="n">t</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+            <span class="c1"># set the max slider value to the total seconds</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">current_track_slider</span><span class="o">.</span><span class="n">max</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="c1"># set the current slider value to the current seconds</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;curpos&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">current_track_slider</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;pause&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">track_slider_task</span><span class="p">()</span>
+            <span class="c1"># throws an exception if i don&#39;t do this</span>
+            <span class="n">a</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;song&#39;</span><span class="p">])</span><span class="o">+</span><span class="mi">1</span>
+            <span class="n">b</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;playlistlength&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">current_playlist_track_number_label</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> of </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+        <span class="c1"># update the playlist tab with status results</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">playlist_tab</span><span class="o">.</span><span class="n">update_mpd_status</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="c1"># update the config tab with status results</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">config_tab</span><span class="o">.</span><span class="n">update_mpd_status</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.update_mpd_currentsong"><a class="viewcode-back" href="../main.html#main.KmpcInterface.update_mpd_currentsong">[docs]</a>    <span class="k">def</span> <span class="nf">update_mpd_currentsong</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback for mpd currentsong data.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;NowPlaying: update_mpd_currentsong()&#39;</span><span class="p">)</span>
+        <span class="c1"># this is so expensive screen updates only happen if the song has changed since the last time this callback was called</span>
+        <span class="n">songchange</span><span class="o">=</span><span class="kc">False</span>
+        <span class="c1"># ti is the track info widget</span>
+        <span class="n">ti</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">trackinfo</span>
+        <span class="c1"># if result is undefined, there&#39;s not actually a song playing</span>
+        <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+            <span class="c1"># if class&#39;s current file doesn&#39;t match what mpd returns, the song has changed</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">currfile</span> <span class="o">!=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;file&#39;</span><span class="p">]:</span>
+                <span class="n">songchange</span><span class="o">=</span><span class="kc">True</span>
+            <span class="c1"># update class&#39;s current file</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">currfile</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;file&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">songchange</span><span class="p">:</span>
+                <span class="c1"># clear the track info widget</span>
+                <span class="n">ti</span><span class="o">.</span><span class="n">clear_widgets</span><span class="p">()</span>
+                <span class="c1"># clear the album cover</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">album_cover_layout</span><span class="o">.</span><span class="n">clear_widgets</span><span class="p">()</span>
+                <span class="c1"># get the stored star rating</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">sticker_get</span><span class="p">(</span><span class="s1">&#39;song&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">currfile</span><span class="p">,</span><span class="s1">&#39;rating&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">addCallback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_mpd_sticker_rating</span><span class="p">)</span><span class="o">.</span><span class="n">addErrback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_mpd_no_sticker</span><span class="p">)</span>
+                <span class="c1"># figure out the full path of the file</span>
+                <span class="n">bp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mpd&#39;</span><span class="p">,</span><span class="s1">&#39;basepath&#39;</span><span class="p">)</span>
+                <span class="c1"># p is the absolute path</span>
+                <span class="n">p</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bp</span><span class="p">,</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;file&#39;</span><span class="p">])</span>
+                <span class="n">haslogo</span><span class="o">=</span><span class="kc">False</span>
+                <span class="c1"># set the release year if mpd has it</span>
+                <span class="n">year</span><span class="o">=</span><span class="kc">None</span>
+                <span class="k">if</span> <span class="s1">&#39;date&#39;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                    <span class="n">year</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">][:</span><span class="mi">4</span><span class="p">]</span>
+                <span class="c1"># pull the fanart folder from ini file</span>
+                <span class="n">fa_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mpd&#39;</span><span class="p">,</span><span class="s1">&#39;fanartpath&#39;</span><span class="p">)</span>
+                <span class="c1"># try to get the artistid, set it to 0000 if it doesn&#39;t exist</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">aids</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;musicbrainz_artistid&#39;</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">aids</span><span class="o">=</span><span class="s1">&#39;0000&#39;</span>
+                <span class="c1"># if a track has multiple artists, split it up</span>
+                <span class="n">artistids</span><span class="o">=</span><span class="n">aids</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+                <span class="c1"># create a widget to hold the cover art</span>
+                <span class="n">cbl</span> <span class="o">=</span> <span class="n">BoxLayout</span><span class="p">(</span><span class="n">size_hint</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;horizontal&#39;</span><span class="p">)</span>
+                <span class="c1"># loop through artistids</span>
+                <span class="k">for</span> <span class="n">mb_aid</span> <span class="ow">in</span> <span class="n">artistids</span><span class="p">:</span>
+                    <span class="c1"># try to find a logo for this artist in the fanart folder</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="c1"># look in the &#39;logo&#39; subfolder of the artistid path</span>
+                        <span class="n">al_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fa_path</span><span class="p">,</span><span class="n">mb_aid</span><span class="p">,</span><span class="s1">&#39;logo&#39;</span><span class="p">)</span>
+                        <span class="c1"># pick one at random</span>
+                        <span class="n">img_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">al_path</span><span class="p">,</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">al_path</span><span class="p">)))</span>
+                        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">img_path</span><span class="p">):</span>
+                            <span class="c1"># create an image button out of the logo so you can press it</span>
+                            <span class="n">img</span> <span class="o">=</span> <span class="n">ImageButton</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">al_path</span><span class="p">,</span><span class="n">img_path</span><span class="p">),</span><span class="n">allow_stretch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.65</span><span class="p">))</span>
+                            <span class="n">cbl</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+                            <span class="n">haslogo</span><span class="o">=</span><span class="kc">True</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="k">pass</span>
+                <span class="k">if</span> <span class="n">haslogo</span><span class="p">:</span>
+                    <span class="c1"># we found a logo, show it</span>
+                    <span class="n">current_artist_label</span> <span class="o">=</span> <span class="n">cbl</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># no logo found, just print the artist name instead</span>
+                    <span class="n">current_artist_label</span> <span class="o">=</span> <span class="n">InfoLargeLabel</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;artist&#39;</span><span class="p">],</span><span class="n">font_size</span><span class="o">=</span><span class="n">getfontsize</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;artist&#39;</span><span class="p">]))</span>
+                <span class="c1"># clear the background of the player canvas so we can show the artist background</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">before</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+                <span class="c1"># pick an artistid at random for the background</span>
+                <span class="n">mb_aid</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">artistids</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># look in the &#39;artistbackground&#39; subfolder of the artistid path</span>
+                    <span class="n">ab_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fa_path</span><span class="p">,</span><span class="n">mb_aid</span><span class="p">,</span><span class="s1">&#39;artistbackground&#39;</span><span class="p">)</span>
+                    <span class="c1"># pick one at random</span>
+                    <span class="n">img_path</span><span class="o">=</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">ab_path</span><span class="p">))</span>
+                    <span class="c1"># update the player background with the image</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">before</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Rectangle</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ab_path</span><span class="p">,</span><span class="n">img_path</span><span class="p">),</span><span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="n">pos</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">pos</span><span class="p">))</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="c1"># update the player background with the default backdrop</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">before</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Rectangle</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="s2">&quot;resources/backdrop.png&quot;</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="n">pos</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">pos</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+                    <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;NowPlaying: found good file at path &#39;</span><span class="o">+</span><span class="n">p</span><span class="p">)</span>
+                    <span class="c1"># load up the file to read the tags</span>
+                    <span class="n">f</span> <span class="o">=</span> <span class="n">mutagen</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                    <span class="n">cimg</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="c1"># if the original year mp3 tag exists use it instead of mpd&#39;s year</span>
+                    <span class="c1"># I prefer this year to be displayed, rather than the year an album was remastered</span>
+                    <span class="k">if</span> <span class="s1">&#39;TXXX:originalyear&#39;</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="n">year</span><span class="o">=</span><span class="nb">format</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;TXXX:originalyear&#39;</span><span class="p">])</span>
+                    <span class="c1"># try to get mp3 cover, if this throws an exception it&#39;s not an mp3 or it doesn&#39;t have a cover</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">pframes</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">getall</span><span class="p">(</span><span class="s2">&quot;APIC&quot;</span><span class="p">)</span>
+                        <span class="c1"># id3v2 can store any number of image frames, we just want the first one</span>
+                        <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">pframes</span><span class="p">:</span>
+                            <span class="n">ext</span> <span class="o">=</span> <span class="s1">&#39;img&#39;</span>
+                            <span class="c1"># figure out the file type</span>
+                            <span class="k">if</span> <span class="n">frame</span><span class="o">.</span><span class="n">mime</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;jpeg&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">frame</span><span class="o">.</span><span class="n">mime</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;jpg&#39;</span><span class="p">):</span>
+                                <span class="n">ext</span> <span class="o">=</span> <span class="s1">&#39;jpg&#39;</span>
+                            <span class="k">elif</span> <span class="n">frame</span><span class="o">.</span><span class="n">mime</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;png&#39;</span><span class="p">):</span>
+                                <span class="n">ext</span> <span class="o">=</span> <span class="s1">&#39;png&#39;</span>
+                            <span class="k">elif</span> <span class="n">frame</span><span class="o">.</span><span class="n">mime</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;bmp&#39;</span><span class="p">):</span>
+                                <span class="n">ext</span> <span class="o">=</span> <span class="s1">&#39;bmp&#39;</span>
+                            <span class="k">elif</span> <span class="n">frame</span><span class="o">.</span><span class="n">mime</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;gif&#39;</span><span class="p">):</span>
+                                <span class="n">ext</span> <span class="o">=</span> <span class="s1">&#39;gif&#39;</span>
+                            <span class="c1"># pull the raw image data into a variable</span>
+                            <span class="n">data</span><span class="o">=</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+                            <span class="k">break</span>
+                    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                        <span class="k">pass</span>
+                    <span class="c1"># try to get mp4 cover</span>
+                    <span class="k">if</span> <span class="s1">&#39;covr&#39;</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="c1"># figure out the file type</span>
+                        <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;covr&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imageformat</span> <span class="o">==</span> <span class="n">mutagen</span><span class="o">.</span><span class="n">mp4</span><span class="o">.</span><span class="n">MP4Cover</span><span class="o">.</span><span class="n">FORMAT_PNG</span><span class="p">:</span>
+                            <span class="n">ext</span> <span class="o">=</span> <span class="s1">&#39;png&#39;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">ext</span> <span class="o">=</span> <span class="s1">&#39;jpg&#39;</span>
+                        <span class="c1"># pull the raw image data into a variable</span>
+                        <span class="n">data</span><span class="o">=</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;covr&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+                    <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+                        <span class="c1"># if we got image data, load it as a kivy.core.image</span>
+                        <span class="n">cimg</span> <span class="o">=</span> <span class="n">CoreImage</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">ext</span><span class="o">=</span><span class="n">ext</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">cimg</span><span class="p">:</span>
+                        <span class="c1"># if the image loading worked, create an image widget and fix up the layout</span>
+                        <span class="c1"># TODO: sometimes this just returns a black rectangle, i think i need to catch more specific exceptions</span>
+                        <span class="c1"># and figure out what exactly is happening</span>
+                        <span class="n">img</span><span class="o">=</span><span class="n">ImageButton</span><span class="p">(</span><span class="n">texture</span><span class="o">=</span><span class="n">cimg</span><span class="o">.</span><span class="n">texture</span><span class="p">,</span><span class="n">allow_stretch</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">album_cover_layout</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+                        <span class="c1"># popup the cover large if you press it</span>
+                        <span class="n">img</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">on_press</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cover_popup</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># this should _probably_ never happen</span>
+                    <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;NowPlaying: no file found at path &#39;</span><span class="o">+</span><span class="n">p</span><span class="p">)</span>
+                <span class="c1"># add the correct artist name widget</span>
+                <span class="n">ti</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">current_artist_label</span><span class="p">)</span>
+                <span class="c1"># if we got a year tag from somewhere, include it in the album label</span>
+                <span class="k">if</span> <span class="n">year</span><span class="p">:</span>
+                    <span class="n">yeartext</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;album&#39;</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39; [&#39;</span><span class="o">+</span><span class="n">year</span><span class="o">+</span><span class="s1">&#39;]&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">yeartext</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;album&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">haslogo</span><span class="p">:</span>
+                    <span class="c1"># we found an artist logo, put the song and album labels in a separate boxlayout to separate them a bit</span>
+                    <span class="n">lyt</span> <span class="o">=</span> <span class="n">BoxLayout</span><span class="p">(</span><span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">,</span><span class="n">padding_y</span><span class="o">=</span><span class="s1">&#39;10sp&#39;</span><span class="p">)</span>
+                    <span class="n">current_song_label</span> <span class="o">=</span> <span class="n">InfoLargeLabel</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">],</span><span class="n">font_size</span><span class="o">=</span><span class="n">getfontsize</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]))</span>
+                    <span class="n">lyt</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">current_song_label</span><span class="p">)</span>
+                    <span class="n">current_album_label</span> <span class="o">=</span> <span class="n">InfoLargeLabel</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="n">yeartext</span><span class="p">,</span><span class="n">font_size</span><span class="o">=</span><span class="n">getfontsize</span><span class="p">(</span><span class="n">yeartext</span><span class="p">))</span>
+                    <span class="n">lyt</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">current_album_label</span><span class="p">)</span>
+                    <span class="n">ti</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">lyt</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># no artist logo, just add the song and album labels directly to the track info widget</span>
+                    <span class="n">current_song_label</span> <span class="o">=</span> <span class="n">InfoLargeLabel</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">],</span><span class="n">font_size</span><span class="o">=</span><span class="n">getfontsize</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]))</span>
+                    <span class="n">ti</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">current_song_label</span><span class="p">)</span>
+                    <span class="n">current_album_label</span> <span class="o">=</span> <span class="n">InfoLargeLabel</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span> <span class="n">yeartext</span><span class="p">,</span><span class="n">font_size</span><span class="o">=</span><span class="n">getfontsize</span><span class="p">(</span><span class="n">yeartext</span><span class="p">))</span>
+                    <span class="n">ti</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">current_album_label</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># there&#39;s not a current song, so zero everything out</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stop_zero_stuff</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.update_mpd_sticker_rating"><a class="viewcode-back" href="../main.html#main.KmpcInterface.update_mpd_sticker_rating">[docs]</a>    <span class="k">def</span> <span class="nf">update_mpd_sticker_rating</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback for song that has a rating in mpd.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;NowPlaying: update_mpd_sticker_rating&#39;</span><span class="p">)</span>
+        <span class="c1"># make a clear button for the star rating</span>
+        <span class="n">btn</span> <span class="o">=</span> <span class="n">ClearButton</span><span class="p">(</span><span class="n">padding_x</span><span class="o">=</span><span class="s1">&#39;10sp&#39;</span><span class="p">,</span><span class="n">font_name</span><span class="o">=</span><span class="s1">&#39;resources/FontAwesome.ttf&#39;</span><span class="p">,</span><span class="n">halign</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span><span class="n">valign</span><span class="o">=</span><span class="s1">&#39;middle&#39;</span><span class="p">,</span><span class="n">markup</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># look up the correct string for the rating</span>
+        <span class="n">btn</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">songratings</span><span class="p">[</span><span class="n">result</span><span class="p">][</span><span class="s1">&#39;stars&#39;</span><span class="p">]</span>
+        <span class="c1"># bind the popup for setting rating</span>
+        <span class="n">btn</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">on_press</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rating_popup</span><span class="p">)</span>
+        <span class="c1"># clear the layout widget and add the new one</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">song_star_layout</span><span class="o">.</span><span class="n">clear_widgets</span><span class="p">()</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">song_star_layout</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">btn</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.handle_mpd_no_sticker"><a class="viewcode-back" href="../main.html#main.KmpcInterface.handle_mpd_no_sticker">[docs]</a>    <span class="k">def</span> <span class="nf">handle_mpd_no_sticker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback for song that has no rating in mpd.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;NowPlaying: handle_mpd_no_sticker&#39;</span><span class="p">)</span>
+        <span class="c1"># make a clear button for the star rating</span>
+        <span class="n">btn</span> <span class="o">=</span> <span class="n">ClearButton</span><span class="p">(</span><span class="n">padding_x</span><span class="o">=</span><span class="s1">&#39;10sp&#39;</span><span class="p">,</span><span class="n">font_name</span><span class="o">=</span><span class="s1">&#39;resources/FontAwesome.ttf&#39;</span><span class="p">,</span><span class="n">halign</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span><span class="n">valign</span><span class="o">=</span><span class="s1">&#39;middle&#39;</span><span class="p">,</span><span class="n">markup</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># set the string to the circled question mark icon</span>
+        <span class="n">btn</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="sa">u</span><span class="s2">&quot;</span><span class="se">\uf29c</span><span class="s2">&quot;</span>
+        <span class="c1"># bind the popup for setting rating</span>
+	<span class="n">btn</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">on_press</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rating_popup</span><span class="p">)</span>
+        <span class="c1"># clear the layout widget and add the new one</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">song_star_layout</span><span class="o">.</span><span class="n">clear_widgets</span><span class="p">()</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">song_star_layout</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">btn</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.update_mpd_nextsong"><a class="viewcode-back" href="../main.html#main.KmpcInterface.update_mpd_nextsong">[docs]</a>    <span class="k">def</span> <span class="nf">update_mpd_nextsong</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback for next song data from mpd.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;NowPlaying: update_mpd_nextsong()&#39;</span><span class="p">)</span>
+        <span class="c1"># result is a list with one member</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="c1"># set the next song label</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">next_song_artist_label</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;Up Next: &#39;</span><span class="o">+</span><span class="n">obj</span><span class="p">[</span><span class="s1">&#39;artist&#39;</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39; - &#39;</span><span class="o">+</span><span class="n">obj</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.prev_pressed"><a class="viewcode-back" href="../main.html#main.KmpcInterface.prev_pressed">[docs]</a>    <span class="k">def</span> <span class="nf">prev_pressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback for prev button pressed.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Application: prev_pressed()&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">previous</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.play_pressed"><a class="viewcode-back" href="../main.html#main.KmpcInterface.play_pressed">[docs]</a>    <span class="k">def</span> <span class="nf">play_pressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback for play/pause button pressed.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Application: play_pressed()&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;play&#39;</span><span class="p">:</span>
+            <span class="c1"># pause if playing</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">pause</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># play if paused or stopped</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">play</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.next_pressed"><a class="viewcode-back" href="../main.html#main.KmpcInterface.next_pressed">[docs]</a>    <span class="k">def</span> <span class="nf">next_pressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback for next button pressed.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Application: next_pressed()&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">next</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.repeat_pressed"><a class="viewcode-back" href="../main.html#main.KmpcInterface.repeat_pressed">[docs]</a>    <span class="k">def</span> <span class="nf">repeat_pressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback for repeat button pressed.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Application: repeat_pressed()&#39;</span><span class="p">)</span>
+        <span class="c1"># toggle on/off</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;repeat&#39;</span><span class="p">])))</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.single_pressed"><a class="viewcode-back" href="../main.html#main.KmpcInterface.single_pressed">[docs]</a>    <span class="k">def</span> <span class="nf">single_pressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback for single button pressed.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Application: single_pressed()&#39;</span><span class="p">)</span>
+        <span class="c1"># toggle on/off</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">single</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;single&#39;</span><span class="p">])))</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.random_pressed"><a class="viewcode-back" href="../main.html#main.KmpcInterface.random_pressed">[docs]</a>    <span class="k">def</span> <span class="nf">random_pressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback for random button pressed.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Application: random_pressed()&#39;</span><span class="p">)</span>
+        <span class="c1"># toggle on/off</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;random&#39;</span><span class="p">])))</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.consume_pressed"><a class="viewcode-back" href="../main.html#main.KmpcInterface.consume_pressed">[docs]</a>    <span class="k">def</span> <span class="nf">consume_pressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Callback for consume button pressed.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Application: consume_pressed()&#39;</span><span class="p">)</span>
+        <span class="c1"># toggle on/off</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mpd_status</span><span class="p">[</span><span class="s1">&#39;consume&#39;</span><span class="p">])))</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.rating_popup"><a class="viewcode-back" href="../main.html#main.KmpcInterface.rating_popup">[docs]</a>    <span class="k">def</span> <span class="nf">rating_popup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">instance</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Popup for setting song rating.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Application: rating_popup()&#39;</span><span class="p">)</span>
+        <span class="c1"># create a layout and add it to the popup</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">GridLayout</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">spacing</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">popup</span> <span class="o">=</span> <span class="n">Popup</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Rating&#39;</span><span class="p">,</span><span class="n">content</span><span class="o">=</span><span class="n">layout</span><span class="p">,</span><span class="n">size_hint</span><span class="o">=</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+        <span class="c1"># loop from 0-10</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">11</span><span class="p">)):</span>
+            <span class="c1"># make a button</span>
+            <span class="n">btn</span><span class="o">=</span><span class="n">Button</span><span class="p">(</span><span class="n">font_name</span><span class="o">=</span><span class="s1">&#39;resources/FontAwesome.ttf&#39;</span><span class="p">)</span>
+            <span class="c1"># look up the correct string for the rating</span>
+            <span class="n">btn</span><span class="o">.</span><span class="n">text</span><span class="o">=</span><span class="n">songratings</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)][</span><span class="s1">&#39;stars&#39;</span><span class="p">]</span>
+            <span class="c1"># set some widget variables</span>
+            <span class="n">btn</span><span class="o">.</span><span class="n">rating</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+            <span class="n">btn</span><span class="o">.</span><span class="n">popup</span><span class="o">=</span><span class="n">popup</span>
+            <span class="c1"># add the button to the layout</span>
+            <span class="n">layout</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">btn</span><span class="p">)</span>
+            <span class="c1"># bind the button press to set the rating</span>
+            <span class="n">btn</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">on_press</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rating_set</span><span class="p">)</span>
+            <span class="c1"># add a label to explain the ratings, this is pretty subjective</span>
+            <span class="n">lbl</span><span class="o">=</span><span class="n">Label</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">songratings</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)][</span><span class="s1">&#39;meaning&#39;</span><span class="p">],</span><span class="n">halign</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+            <span class="c1"># add the label to the layout</span>
+            <span class="n">layout</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span>
+        <span class="c1"># pop it on up, if you press outside the popup it just goes away without setting the rating</span>
+        <span class="n">popup</span><span class="o">.</span><span class="n">open</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.rating_set"><a class="viewcode-back" href="../main.html#main.KmpcInterface.rating_set">[docs]</a>    <span class="k">def</span> <span class="nf">rating_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">instance</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method that sets a song&#39;s rating.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Application: rating_set(&#39;</span><span class="o">+</span><span class="n">instance</span><span class="o">.</span><span class="n">rating</span><span class="o">+</span><span class="s1">&#39;)&#39;</span><span class="p">)</span>
+        <span class="c1"># close the rating popup</span>
+        <span class="n">instance</span><span class="o">.</span><span class="n">popup</span><span class="o">.</span><span class="n">dismiss</span><span class="p">()</span>
+        <span class="c1"># tell mpd to set the rating sticker</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">sticker_set</span><span class="p">(</span><span class="s1">&#39;song&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">currfile</span><span class="p">,</span><span class="s1">&#39;rating&#39;</span><span class="p">,</span><span class="n">instance</span><span class="o">.</span><span class="n">rating</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.cover_popup"><a class="viewcode-back" href="../main.html#main.KmpcInterface.cover_popup">[docs]</a>    <span class="k">def</span> <span class="nf">cover_popup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">instance</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Popup for showing a larger version of the album cover.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Application: cover_popup()&#39;</span><span class="p">)</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">BoxLayout</span><span class="p">()</span>
+        <span class="n">popup</span> <span class="o">=</span> <span class="n">Popup</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Cover&#39;</span><span class="p">,</span><span class="n">content</span><span class="o">=</span><span class="n">layout</span><span class="p">,</span><span class="n">size_hint</span><span class="o">=</span><span class="p">(</span><span class="mf">0.6</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+        <span class="c1"># pull the already loaded image texture</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">texture</span><span class="o">=</span><span class="n">instance</span><span class="o">.</span><span class="n">texture</span><span class="p">,</span><span class="n">allow_stretch</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># add it to the layout</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+        <span class="c1"># pop pop pop</span>
+        <span class="n">popup</span><span class="o">.</span><span class="n">open</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="KmpcInterface.change_backlight"><a class="viewcode-back" href="../main.html#main.KmpcInterface.change_backlight">[docs]</a>    <span class="k">def</span> <span class="nf">change_backlight</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method that sets the backlight to a certain value.&quot;&quot;&quot;</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Application: change_backlight(&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;) rpienable = &#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kmpc&#39;</span><span class="p">,</span><span class="s1">&#39;rpienable&#39;</span><span class="p">))</span>
+        <span class="c1"># only if the ini file says it&#39;s ok</span>
+        <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kmpc&#39;</span><span class="p">,</span><span class="s1">&#39;rpienable&#39;</span><span class="p">))):</span>
+            <span class="kn">import</span> <span class="nn">rpi_backlight</span> <span class="k">as</span> <span class="nn">bl</span>
+            <span class="c1"># set the brightness</span>
+            <span class="n">bl</span><span class="o">.</span><span class="n">set_brightness</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="n">smooth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="KmpcApp"><a class="viewcode-back" href="../main.html#main.KmpcApp">[docs]</a><span class="k">class</span> <span class="nc">KmpcApp</span><span class="p">(</span><span class="n">App</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The overall app class, builds the main interface widget.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="KmpcApp.build_config"><a class="viewcode-back" href="../main.html#main.KmpcApp.build_config">[docs]</a>    <span class="k">def</span> <span class="nf">build_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">config</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Builds a config object from defaults/ini file.&quot;&quot;&quot;</span>
+        <span class="c1"># set all the defaults in case ini file doesn&#39;t exist yet</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">setdefaults</span><span class="p">(</span><span class="s1">&#39;mpd&#39;</span><span class="p">,{</span>
+            <span class="s1">&#39;host&#39;</span><span class="p">:</span> <span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;port&#39;</span><span class="p">:</span> <span class="mi">6600</span><span class="p">,</span>
+            <span class="s1">&#39;basepath&#39;</span><span class="p">:</span> <span class="s1">&#39;/mnt/music&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;fanartpath&#39;</span><span class="p">:</span> <span class="s1">&#39;/mnt/fanart&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;synchost&#39;</span><span class="p">:</span> <span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;syncbasepath&#39;</span><span class="p">:</span> <span class="s1">&#39;/mnt/music&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;syncfanartpath&#39;</span><span class="p">:</span> <span class="s1">&#39;/mnt/fanart&#39;</span>
+        <span class="p">})</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">setdefaults</span><span class="p">(</span><span class="s1">&#39;kmpc&#39;</span><span class="p">,{</span>
+            <span class="s1">&#39;rpienable&#39;</span><span class="p">:</span> <span class="kc">False</span>
+        <span class="p">})</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">setdefaults</span><span class="p">(</span><span class="s1">&#39;kivy&#39;</span><span class="p">,{</span>
+            <span class="s1">&#39;log_level&#39;</span><span class="p">:</span> <span class="s1">&#39;info&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;log_enable&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;keyboard_mode&#39;</span><span class="p">:</span> <span class="s1">&#39;systemanddock&#39;</span>
+        <span class="p">})</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">setdefaults</span><span class="p">(</span><span class="s1">&#39;graphics&#39;</span><span class="p">,{</span>
+            <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="mi">800</span><span class="p">,</span>
+            <span class="s1">&#39;height&#39;</span><span class="p">:</span> <span class="mi">480</span>
+        <span class="p">})</span>
+        <span class="c1"># read the ini file</span>
+        <span class="n">Config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_application_config</span><span class="p">())</span>
+        <span class="c1"># update the app config to what Config built</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">=</span><span class="n">config</span></div>
+
+<div class="viewcode-block" id="KmpcApp.build"><a class="viewcode-back" href="../main.html#main.KmpcApp.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Instantiates KmpcInterface with the generated config.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">KmpcInterface</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="InfoLargeLabel"><a class="viewcode-back" href="../main.html#main.InfoLargeLabel">[docs]</a><span class="k">class</span> <span class="nc">InfoLargeLabel</span><span class="p">(</span><span class="n">Label</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A label with large text.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="InfoSmallLabel"><a class="viewcode-back" href="../main.html#main.InfoSmallLabel">[docs]</a><span class="k">class</span> <span class="nc">InfoSmallLabel</span><span class="p">(</span><span class="n">Label</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A label with small text.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ImageButton"><a class="viewcode-back" href="../main.html#main.ImageButton">[docs]</a><span class="k">class</span> <span class="nc">ImageButton</span><span class="p">(</span><span class="n">ButtonBehavior</span><span class="p">,</span> <span class="n">AsyncImage</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An image that you can press.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c1"># run the app!</span>
+    <span class="n">KmpcApp</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Chris Graham.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,5 +1,5 @@
-kmpc
-====
+kmpc modules
+============
 
 .. toctree::
    :maxdepth: 4

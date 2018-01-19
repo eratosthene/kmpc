@@ -1,0 +1,285 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>extra &mdash; kmpc 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="kmpc 1.0 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> kmpc
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">kmpc modules</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">kmpc</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>extra</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for extra</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">kivy</span>
+<span class="n">kivy</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="s1">&#39;1.10.0&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.button</span> <span class="k">import</span> <span class="n">Button</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.boxlayout</span> <span class="k">import</span> <span class="n">BoxLayout</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.slider</span> <span class="k">import</span> <span class="n">Slider</span>
+
+<div class="viewcode-block" id="formatsong"><a class="viewcode-back" href="../extra.html#extra.formatsong">[docs]</a><span class="k">def</span> <span class="nf">formatsong</span><span class="p">(</span><span class="n">rec</span><span class="p">):</span>
+    <span class="n">song</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="p">(</span><span class="n">d1</span><span class="p">,</span><span class="n">d2</span><span class="p">)</span><span class="o">=</span><span class="n">rec</span><span class="p">[</span><span class="s1">&#39;disc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">d2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">song</span><span class="o">+=</span><span class="s1">&#39;(Disc &#39;</span><span class="o">+</span><span class="s1">&#39;</span><span class="si">%02d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">int</span><span class="p">(</span><span class="n">d1</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;) &#39;</span>
+    <span class="p">(</span><span class="n">t1</span><span class="p">,</span><span class="n">t2</span><span class="p">)</span><span class="o">=</span><span class="n">rec</span><span class="p">[</span><span class="s1">&#39;track&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+    <span class="n">song</span><span class="o">+=</span><span class="s1">&#39;</span><span class="si">%02d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">int</span><span class="p">(</span><span class="n">t1</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39; &#39;</span>
+    <span class="k">if</span> <span class="n">rec</span><span class="p">[</span><span class="s1">&#39;artist&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">rec</span><span class="p">[</span><span class="s1">&#39;albumartist&#39;</span><span class="p">]:</span>
+        <span class="n">song</span><span class="o">+=</span><span class="n">rec</span><span class="p">[</span><span class="s1">&#39;artist&#39;</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39; - &#39;</span>
+    <span class="n">song</span><span class="o">+=</span><span class="n">rec</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">song</span></div>
+
+<span class="n">songratings</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;0&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;stars&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s2">&quot;</span><span class="se">\uf006\uf006\uf006\uf006\uf006</span><span class="s2">&quot;</span><span class="p">,</span><span class="s1">&#39;meaning&#39;</span><span class="p">:</span><span class="s1">&#39;Noise/silence/useless&#39;</span><span class="p">},</span>
+        <span class="s1">&#39;1&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;stars&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s2">&quot;</span><span class="se">\uf123\uf006\uf006\uf006\uf006</span><span class="s2">&quot;</span><span class="p">,</span><span class="s1">&#39;meaning&#39;</span><span class="p">:</span><span class="s1">&#39;Songs that should never be heard&#39;</span><span class="p">},</span>
+        <span class="s1">&#39;2&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;stars&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s2">&quot;</span><span class="se">\uf005\uf006\uf006\uf006\uf006</span><span class="s2">&quot;</span><span class="p">,</span><span class="s1">&#39;meaning&#39;</span><span class="p">:</span><span class="s1">&#39;Songs no one likes&#39;</span><span class="p">},</span>
+        <span class="s1">&#39;3&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;stars&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s2">&quot;</span><span class="se">\uf005\uf123\uf006\uf006\uf006</span><span class="s2">&quot;</span><span class="p">,</span><span class="s1">&#39;meaning&#39;</span><span class="p">:</span><span class="s1">&#39;Songs for certain occasions&#39;</span><span class="p">},</span>
+        <span class="s1">&#39;4&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;stars&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s2">&quot;</span><span class="se">\uf005\uf005\uf006\uf006\uf006</span><span class="s2">&quot;</span><span class="p">,</span><span class="s1">&#39;meaning&#39;</span><span class="p">:</span><span class="s1">&#39;Songs someone else likes&#39;</span><span class="p">},</span>
+        <span class="s1">&#39;5&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;stars&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s2">&quot;</span><span class="se">\uf005\uf005\uf123\uf006\uf006</span><span class="s2">&quot;</span><span class="p">,</span><span class="s1">&#39;meaning&#39;</span><span class="p">:</span><span class="s1">&#39;Only included for discography&#39;</span><span class="p">},</span>
+        <span class="s1">&#39;6&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;stars&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s2">&quot;</span><span class="se">\uf005\uf005\uf005\uf006\uf006</span><span class="s2">&quot;</span><span class="p">,</span><span class="s1">&#39;meaning&#39;</span><span class="p">:</span><span class="s1">&#39;Okay on a random playlist&#39;</span><span class="p">},</span>
+        <span class="s1">&#39;7&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;stars&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s2">&quot;</span><span class="se">\uf005\uf005\uf005\uf123\uf006</span><span class="s2">&quot;</span><span class="p">,</span><span class="s1">&#39;meaning&#39;</span><span class="p">:</span><span class="s1">&#39;Good songs by all artists&#39;</span><span class="p">},</span>
+        <span class="s1">&#39;8&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;stars&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s2">&quot;</span><span class="se">\uf005\uf005\uf005\uf005\uf006</span><span class="s2">&quot;</span><span class="p">,</span><span class="s1">&#39;meaning&#39;</span><span class="p">:</span><span class="s1">&#39;Great songs by all artists&#39;</span><span class="p">},</span>
+        <span class="s1">&#39;9&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;stars&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s2">&quot;</span><span class="se">\uf005\uf005\uf005\uf005\uf123</span><span class="s2">&quot;</span><span class="p">,</span><span class="s1">&#39;meaning&#39;</span><span class="p">:</span><span class="s1">&#39;Best songs by all artists&#39;</span><span class="p">},</span>
+        <span class="s1">&#39;10&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;stars&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s2">&quot;</span><span class="se">\uf005\uf005\uf005\uf005\uf005</span><span class="s2">&quot;</span><span class="p">,</span><span class="s1">&#39;meaning&#39;</span><span class="p">:</span><span class="s1">&#39;Best songs by favorite artists&#39;</span><span class="p">},</span>
+        <span class="s1">&#39;&#39;</span> <span class="p">:</span> <span class="p">{</span><span class="s1">&#39;stars&#39;</span><span class="p">:</span> <span class="sa">u</span><span class="s2">&quot;</span><span class="se">\uf29c</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s1">&#39;meaning&#39;</span><span class="p">:</span><span class="s1">&#39;No sticker set&#39;</span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">sizearray</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;39sp&#39;</span><span class="p">,</span><span class="s1">&#39;38sp&#39;</span><span class="p">,</span><span class="s1">&#39;37sp&#39;</span><span class="p">,</span><span class="s1">&#39;36sp&#39;</span><span class="p">,</span><span class="s1">&#39;35sp&#39;</span><span class="p">,</span><span class="s1">&#39;34sp&#39;</span><span class="p">,</span><span class="s1">&#39;33sp&#39;</span><span class="p">,</span><span class="s1">&#39;32sp&#39;</span><span class="p">,</span><span class="s1">&#39;31sp&#39;</span><span class="p">,</span><span class="s1">&#39;30sp&#39;</span><span class="p">,</span><span class="s1">&#39;29sp&#39;</span><span class="p">,</span><span class="s1">&#39;28sp&#39;</span><span class="p">,</span><span class="s1">&#39;27sp&#39;</span><span class="p">,</span><span class="s1">&#39;26sp&#39;</span><span class="p">,</span><span class="s1">&#39;25sp&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="getfontsize"><a class="viewcode-back" href="../extra.html#extra.getfontsize">[docs]</a><span class="k">def</span> <span class="nf">getfontsize</span><span class="p">(</span><span class="nb">str</span><span class="p">):</span>
+    <span class="n">lr</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">lr</span> <span class="o">&lt;</span> <span class="mi">33</span><span class="p">:</span>
+	<span class="n">rsize</span> <span class="o">=</span> <span class="s1">&#39;40sp&#39;</span>
+    <span class="k">elif</span> <span class="n">lr</span> <span class="o">&gt;=</span> <span class="mi">55</span><span class="p">:</span>
+	<span class="n">rsize</span> <span class="o">=</span> <span class="s1">&#39;24sp&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+	<span class="n">rsize</span> <span class="o">=</span> <span class="n">sizearray</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">((</span><span class="n">lr</span><span class="o">-</span><span class="mi">33</span><span class="p">)</span><span class="o">/</span><span class="mi">21</span><span class="o">*</span><span class="mi">14</span><span class="p">))]</span>
+    <span class="k">return</span> <span class="n">rsize</span></div>
+
+<div class="viewcode-block" id="ExtraSlider"><a class="viewcode-back" href="../extra.html#extra.ExtraSlider">[docs]</a><span class="k">class</span> <span class="nc">ExtraSlider</span><span class="p">(</span><span class="n">Slider</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_event_type</span><span class="p">(</span><span class="s1">&#39;on_release&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ExtraSlider.on_release"><a class="viewcode-back" href="../extra.html#extra.ExtraSlider.on_release">[docs]</a>    <span class="k">def</span> <span class="nf">on_release</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ExtraSlider.on_touch_up"><a class="viewcode-back" href="../extra.html#extra.ExtraSlider.on_touch_up">[docs]</a>    <span class="k">def</span> <span class="nf">on_touch_up</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">touch</span><span class="p">):</span>
+        <span class="n">released</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">on_touch_up</span><span class="p">(</span><span class="n">touch</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">released</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="s1">&#39;on_release&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">released</span></div></div>
+
+<div class="viewcode-block" id="ClearButton"><a class="viewcode-back" href="../extra.html#extra.ClearButton">[docs]</a><span class="k">class</span> <span class="nc">ClearButton</span><span class="p">(</span><span class="n">Button</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Chris Graham.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

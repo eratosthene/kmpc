@@ -1,0 +1,408 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>configpanel &mdash; kmpc 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="kmpc 1.0 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> kmpc
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">kmpc modules</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">kmpc</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>configpanel</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for configpanel</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">kivy</span>
+<span class="n">kivy</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="s1">&#39;1.10.0&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.tabbedpanel</span> <span class="k">import</span> <span class="n">TabbedPanelItem</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.gridlayout</span> <span class="k">import</span> <span class="n">GridLayout</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.scrollview</span> <span class="k">import</span> <span class="n">ScrollView</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.label</span> <span class="k">import</span> <span class="n">Label</span>
+<span class="kn">from</span> <span class="nn">kivy.uix.popup</span> <span class="k">import</span> <span class="n">Popup</span>
+<span class="kn">from</span> <span class="nn">kivy.logger</span> <span class="k">import</span> <span class="n">Logger</span>
+<span class="kn">from</span> <span class="nn">kivy.app</span> <span class="k">import</span> <span class="n">App</span>
+<span class="kn">from</span> <span class="nn">kivy.clock</span> <span class="k">import</span> <span class="n">Clock</span>
+<span class="kn">import</span> <span class="nn">git</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">stat</span>
+<span class="kn">import</span> <span class="nn">codecs</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">call</span><span class="p">,</span> <span class="n">PIPE</span><span class="p">,</span> <span class="n">Popen</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">Thread</span>
+<span class="kn">from</span> <span class="nn">Queue</span> <span class="k">import</span> <span class="n">Queue</span><span class="p">,</span> <span class="n">Empty</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
+
+<div class="viewcode-block" id="ConfigTabbedPanelItem"><a class="viewcode-back" href="../configpanel.html#configpanel.ConfigTabbedPanelItem">[docs]</a><span class="k">class</span> <span class="nc">ConfigTabbedPanelItem</span><span class="p">(</span><span class="n">TabbedPanelItem</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ConfigTabbedPanelItem.handle_mpd_error"><a class="viewcode-back" href="../configpanel.html#configpanel.ConfigTabbedPanelItem.handle_mpd_error">[docs]</a>    <span class="k">def</span> <span class="nf">handle_mpd_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Config: MPDIdleHandler Callback error: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">result</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="ConfigTabbedPanelItem.update_mpd_status"><a class="viewcode-back" href="../configpanel.html#configpanel.ConfigTabbedPanelItem.update_mpd_status">[docs]</a>    <span class="k">def</span> <span class="nf">update_mpd_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Config: update_mpd_status&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;xfade&#39;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;xfade&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">crossfade_slider</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="n">v</span>
+        <span class="k">if</span> <span class="s1">&#39;mixrampdb&#39;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;mixrampdb&#39;</span><span class="p">]),</span><span class="mi">6</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">mixrampdb_slider</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">if</span> <span class="s1">&#39;mixrampdelay&#39;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;mixrampdelay&#39;</span><span class="p">]),</span><span class="mi">6</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">mixrampdelay_slider</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="n">v</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">ip_label</span><span class="o">.</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;IP Address: &quot;</span><span class="o">+</span><span class="nb">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_ip</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ConfigTabbedPanelItem.printit"><a class="viewcode-back" href="../configpanel.html#configpanel.ConfigTabbedPanelItem.printit">[docs]</a>    <span class="k">def</span> <span class="nf">printit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">):</span>
+        <span class="nb">print</span> <span class="nb">format</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ConfigTabbedPanelItem.change_crossfade"><a class="viewcode-back" href="../configpanel.html#configpanel.ConfigTabbedPanelItem.change_crossfade">[docs]</a>    <span class="k">def</span> <span class="nf">change_crossfade</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Config: change_crossfade&#39;</span><span class="p">)</span>
+        <span class="n">v</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">crossfade_slider</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">crossfade</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">))</span><span class="o">.</span><span class="n">addErrback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_mpd_error</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ConfigTabbedPanelItem.change_mixrampdb"><a class="viewcode-back" href="../configpanel.html#configpanel.ConfigTabbedPanelItem.change_mixrampdb">[docs]</a>    <span class="k">def</span> <span class="nf">change_mixrampdb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Config: change_mixrampdb&#39;</span><span class="p">)</span>
+        <span class="n">v</span><span class="o">=</span><span class="mf">0.0</span><span class="o">-</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">mixrampdb_slider</span><span class="o">.</span><span class="n">value</span><span class="p">,</span><span class="mi">6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">mixrampdb</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">))</span><span class="o">.</span><span class="n">addErrback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_mpd_error</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ConfigTabbedPanelItem.change_mixrampdelay"><a class="viewcode-back" href="../configpanel.html#configpanel.ConfigTabbedPanelItem.change_mixrampdelay">[docs]</a>    <span class="k">def</span> <span class="nf">change_mixrampdelay</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Config: change_mixrampdelay&#39;</span><span class="p">)</span>
+        <span class="n">v</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">mixrampdelay_slider</span><span class="o">.</span><span class="n">value</span><span class="p">,</span><span class="mi">6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">mixrampdelay</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">))</span><span class="o">.</span><span class="n">addErrback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_mpd_error</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ConfigTabbedPanelItem.git_pull"><a class="viewcode-back" href="../configpanel.html#configpanel.ConfigTabbedPanelItem.git_pull">[docs]</a>    <span class="k">def</span> <span class="nf">git_pull</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Config: git_pull&#39;</span><span class="p">)</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">git</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">Git</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">pull</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ConfigTabbedPanelItem.do_reboot"><a class="viewcode-back" href="../configpanel.html#configpanel.ConfigTabbedPanelItem.do_reboot">[docs]</a>    <span class="k">def</span> <span class="nf">do_reboot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Config: reboot&#39;</span><span class="p">)</span>
+        <span class="n">call</span><span class="p">(</span><span class="s1">&#39;reboot&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ConfigTabbedPanelItem.do_poweroff"><a class="viewcode-back" href="../configpanel.html#configpanel.ConfigTabbedPanelItem.do_poweroff">[docs]</a>    <span class="k">def</span> <span class="nf">do_poweroff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Config: poweroff&#39;</span><span class="p">)</span>
+        <span class="n">call</span><span class="p">(</span><span class="s1">&#39;poweroff&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ConfigTabbedPanelItem.get_ip"><a class="viewcode-back" href="../configpanel.html#configpanel.ConfigTabbedPanelItem.get_ip">[docs]</a>    <span class="k">def</span> <span class="nf">get_ip</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_DGRAM</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># doesn&#39;t even have to be reachable</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="s1">&#39;10.255.255.255&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">IP</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">getsockname</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">IP</span> <span class="o">=</span> <span class="s1">&#39;127.0.0.1&#39;</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">IP</span></div>
+
+<div class="viewcode-block" id="ConfigTabbedPanelItem.enqueue_output"><a class="viewcode-back" href="../configpanel.html#configpanel.ConfigTabbedPanelItem.enqueue_output">[docs]</a>    <span class="k">def</span> <span class="nf">enqueue_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">out</span><span class="p">,</span><span class="n">queue</span><span class="p">,</span><span class="n">event</span><span class="p">,</span><span class="n">popup</span><span class="p">,</span><span class="n">tpath</span><span class="p">,</span><span class="n">synchost</span><span class="p">,</span><span class="n">layout</span><span class="p">,</span><span class="n">sv</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">readline</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+            <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+        <span class="n">popup</span><span class="o">.</span><span class="n">dismiss</span><span class="p">()</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Filesync: Cleaning up&#39;</span><span class="p">)</span>
+        <span class="n">l</span><span class="o">=</span><span class="n">Label</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Cleaning up temporary files&#39;</span><span class="p">,</span><span class="n">size_hint</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span><span class="n">font_size</span><span class="o">=</span><span class="s1">&#39;12sp&#39;</span><span class="p">,</span><span class="n">halign</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">texture_size</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">setter</span><span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">))</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">sv</span><span class="o">.</span><span class="n">scroll_to</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">call</span><span class="p">([</span><span class="s1">&#39;sudo&#39;</span><span class="p">,</span><span class="s1">&#39;cp&#39;</span><span class="p">,</span><span class="n">tpath</span><span class="p">,</span><span class="s1">&#39;/var/lib/mpd/playlists/root.m3u&#39;</span><span class="p">])</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tpath</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;/tmp/sticker.sql&#39;</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;/tmp/scmd&#39;</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;sync.sh&#39;</span><span class="p">)</span>
+            <span class="n">call</span><span class="p">([</span><span class="s1">&#39;ssh&#39;</span><span class="p">,</span><span class="n">synchost</span><span class="p">,</span><span class="s1">&#39;rm&#39;</span><span class="p">,</span><span class="s1">&#39;-f&#39;</span><span class="p">,</span><span class="s1">&#39;/tmp/sticker.sql&#39;</span><span class="p">])</span>
+            <span class="n">call</span><span class="p">([</span><span class="s1">&#39;ssh&#39;</span><span class="p">,</span><span class="n">synchost</span><span class="p">,</span><span class="s1">&#39;rm&#39;</span><span class="p">,</span><span class="s1">&#39;-f&#39;</span><span class="p">,</span><span class="s1">&#39;/tmp/scmd&#39;</span><span class="p">])</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ConfigTabbedPanelItem.write_queue_line"><a class="viewcode-back" href="../configpanel.html#configpanel.ConfigTabbedPanelItem.write_queue_line">[docs]</a>    <span class="k">def</span> <span class="nf">write_queue_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">q</span><span class="p">,</span><span class="n">layout</span><span class="p">,</span><span class="n">sv</span><span class="p">,</span><span class="n">dt</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span> <span class="n">line</span><span class="o">=</span><span class="n">q</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">Empty</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">l</span><span class="o">=</span><span class="n">Label</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">line</span><span class="p">,</span><span class="n">size_hint</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span><span class="n">font_size</span><span class="o">=</span><span class="s1">&#39;12sp&#39;</span><span class="p">,</span><span class="n">halign</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">texture_size</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">setter</span><span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">))</span>
+            <span class="n">layout</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+            <span class="n">sv</span><span class="o">.</span><span class="n">scroll_to</span><span class="p">(</span><span class="n">l</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ConfigTabbedPanelItem.filesync"><a class="viewcode-back" href="../configpanel.html#configpanel.ConfigTabbedPanelItem.filesync">[docs]</a>    <span class="k">def</span> <span class="nf">filesync</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Config: filesync&#39;</span><span class="p">)</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">GridLayout</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size_hint_y</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">minimum_height</span><span class="o">=</span><span class="n">layout</span><span class="o">.</span><span class="n">setter</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">))</span>
+        <span class="n">popup</span> <span class="o">=</span> <span class="n">Popup</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Sync&#39;</span><span class="p">,</span><span class="n">size_hint</span><span class="o">=</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">sv</span><span class="o">=</span><span class="n">ScrollView</span><span class="p">(</span><span class="n">size_hint</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">sv</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>
+        <span class="n">popup</span> <span class="o">=</span> <span class="n">Popup</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Sync&#39;</span><span class="p">,</span><span class="n">content</span><span class="o">=</span><span class="n">sv</span><span class="p">,</span><span class="n">size_hint</span><span class="o">=</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">popup</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+        <span class="n">tpath</span><span class="o">=</span><span class="s2">&quot;/tmp/rsync.inc&quot;</span>
+        <span class="n">synchost</span> <span class="o">=</span> <span class="n">App</span><span class="o">.</span><span class="n">get_running_app</span><span class="p">()</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mpd&#39;</span><span class="p">,</span><span class="s1">&#39;synchost&#39;</span><span class="p">)</span>
+        <span class="n">syncbasepath</span> <span class="o">=</span> <span class="n">App</span><span class="o">.</span><span class="n">get_running_app</span><span class="p">()</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mpd&#39;</span><span class="p">,</span><span class="s1">&#39;syncbasepath&#39;</span><span class="p">)</span>
+        <span class="n">syncfanartpath</span><span class="o">=</span> <span class="n">App</span><span class="o">.</span><span class="n">get_running_app</span><span class="p">()</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mpd&#39;</span><span class="p">,</span><span class="s1">&#39;syncfanartpath&#39;</span><span class="p">)</span>
+        <span class="n">basepath</span> <span class="o">=</span> <span class="n">App</span><span class="o">.</span><span class="n">get_running_app</span><span class="p">()</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mpd&#39;</span><span class="p">,</span><span class="s1">&#39;basepath&#39;</span><span class="p">)</span>
+        <span class="n">fanartpath</span><span class="o">=</span> <span class="n">App</span><span class="o">.</span><span class="n">get_running_app</span><span class="p">()</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mpd&#39;</span><span class="p">,</span><span class="s1">&#39;fanartpath&#39;</span><span class="p">)</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Filesync: Copying rsync file to carpi&#39;</span><span class="p">)</span>
+        <span class="n">l</span><span class="o">=</span><span class="n">Label</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Copying rsync file to carpi&#39;</span><span class="p">,</span><span class="n">size_hint</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span><span class="n">font_size</span><span class="o">=</span><span class="s1">&#39;12sp&#39;</span><span class="p">,</span><span class="n">halign</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">texture_size</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">setter</span><span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">))</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">sv</span><span class="o">.</span><span class="n">scroll_to</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">call</span><span class="p">([</span><span class="s2">&quot;scp&quot;</span><span class="p">,</span><span class="n">synchost</span><span class="o">+</span><span class="s2">&quot;:rsync.inc&quot;</span><span class="p">,</span><span class="n">tpath</span><span class="p">])</span>
+        <span class="n">filelist</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">with</span> <span class="n">codecs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">tpath</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">,</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">filelist</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">)]</span><span class="o">=</span><span class="kc">True</span>
+        <span class="n">Logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Filesync: Removing old files from carpi&#39;</span><span class="p">)</span>
+        <span class="n">l</span><span class="o">=</span><span class="n">Label</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s1">&#39;Removing old files from carpi&#39;</span><span class="p">,</span><span class="n">size_hint</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span><span class="n">font_size</span><span class="o">=</span><span class="s1">&#39;12sp&#39;</span><span class="p">,</span><span class="n">halign</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">texture_size</span><span class="o">=</span><span class="n">l</span><span class="o">.</span><span class="n">setter</span><span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">))</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">add_widget</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">sv</span><span class="o">.</span><span class="n">scroll_to</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">basepath</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filenames</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">rpath</span> <span class="o">=</span> <span class="n">dirpath</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">basepath</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">):]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">:</span>
+                    <span class="n">fpath</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rpath</span><span class="p">,</span><span class="n">filename</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">))</span>
+                    <span class="n">apath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">),</span><span class="n">filename</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">fpath</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">filelist</span><span class="p">:</span>
+                        <span class="n">Logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Filesync: Deleting &quot;</span><span class="o">+</span><span class="n">apath</span><span class="p">)</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">apath</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;sync.sh&#39;</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">sfile</span><span class="p">:</span>
+            <span class="n">sfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#!/bin/bash</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">sfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;find &quot;&#39;</span><span class="o">+</span><span class="n">basepath</span><span class="o">+</span><span class="s1">&#39;&quot; -type d -empty -delete 2&gt;/dev/null</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">sfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;rsync -vruxhm --files-from=&quot;&#39;</span><span class="o">+</span><span class="n">tpath</span><span class="o">+</span><span class="s1">&#39;&quot; &#39;</span><span class="o">+</span><span class="n">synchost</span><span class="o">+</span><span class="s1">&#39;:&quot;&#39;</span><span class="o">+</span><span class="n">syncbasepath</span><span class="o">+</span><span class="s1">&#39;&quot;/ &quot;&#39;</span><span class="o">+</span><span class="n">basepath</span><span class="o">+</span><span class="s1">&#39;&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">sfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;scp /var/lib/mpd/sticker.sql &#39;</span><span class="o">+</span><span class="n">synchost</span><span class="o">+</span><span class="s1">&#39;:/tmp</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/tmp/scmd&#39;</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;attach database </span><span class="se">\&quot;</span><span class="s2">/tmp/sticker.sql</span><span class="se">\&quot;</span><span class="s2"> as carpi;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;replace into sticker select * from carpi.sticker;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;replace into carpi.sticker select * from sticker where name=&#39;rating&#39;;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;.quit</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">sfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;scp /tmp/scmd &#39;</span><span class="o">+</span><span class="n">synchost</span><span class="o">+</span><span class="s1">&#39;:/tmp</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">sfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;ssh -t &#39;</span><span class="o">+</span><span class="n">synchost</span><span class="o">+</span><span class="s1">&#39; sudo sqlite3 /var/lib/mpd/sticker.sql &lt; /tmp/scmd</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">sfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;scp &#39;</span><span class="o">+</span><span class="n">synchost</span><span class="o">+</span><span class="s1">&#39;:/tmp/sticker.sql /tmp</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/tmp/scmd&#39;</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;attach database </span><span class="se">\&quot;</span><span class="s2">/tmp/sticker.sql</span><span class="se">\&quot;</span><span class="s2"> as carpi;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;replace into sticker select * from carpi.sticker;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;.quit</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">sfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;cat /tmp/scmd | sudo sqlite3 /var/lib/mpd/sticker.sql</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">sfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;rsync -vruxhm &#39;</span><span class="o">+</span><span class="n">synchost</span><span class="o">+</span><span class="s1">&#39;:&quot;&#39;</span><span class="o">+</span><span class="n">syncfanartpath</span><span class="o">+</span><span class="s1">&#39;&quot;/ &quot;&#39;</span><span class="o">+</span><span class="n">fanartpath</span><span class="o">+</span><span class="s1">&#39;&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">sfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;mpc update</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="s1">&#39;sync.sh&#39;</span><span class="p">,</span><span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="s1">&#39;sync.sh&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">st_mode</span><span class="o">|</span><span class="mi">0111</span><span class="p">)</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">([</span><span class="s1">&#39;./sync.sh&#39;</span><span class="p">],</span><span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span><span class="n">bufsize</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">close_fds</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">event</span><span class="o">=</span><span class="n">Clock</span><span class="o">.</span><span class="n">schedule_interval</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">write_queue_line</span><span class="p">,</span><span class="n">q</span><span class="p">,</span><span class="n">layout</span><span class="p">,</span><span class="n">sv</span><span class="p">),</span><span class="mf">0.1</span><span class="p">)</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">enqueue_output</span><span class="p">,</span><span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span><span class="n">q</span><span class="p">,</span><span class="n">event</span><span class="p">,</span><span class="n">popup</span><span class="p">,</span><span class="n">tpath</span><span class="p">,</span><span class="n">synchost</span><span class="p">,</span><span class="n">layout</span><span class="p">,</span><span class="n">sv</span><span class="p">))</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Chris Graham.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
