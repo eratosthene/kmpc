@@ -285,7 +285,7 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
         layout = GridLayout(cols=2,spacing=10)
         popup = Popup(title='Rating',content=layout,size_hint=(0.8,1))
         for r in list(range(0,11)):
-            btn=Button(font_name='../resources/FontAwesome.ttf')
+            btn=Button(font_name='../kmpc/resources/FontAwesome.ttf')
             btn.text=songratings[str(r)]['stars']
             btn.rating=str(r)
             btn.popup=popup
