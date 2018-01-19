@@ -1,9 +1,29 @@
 #!/usr/bin/env python
 
+# import dependencies
+from mpd import MPDProtocol
+import os
+import traceback
+import mutagen
+import io
+import random
+
+# make sure we are on an updated version of kivy
 import kivy
 kivy.require('1.10.0')
-from kivy.app import App
+
+#install twisted reactor to interface with mpd
 from kivy.support import install_twisted_reactor
+# this try/catch block is specifically because sphinx docs fail otherwise
+try:
+    install_twisted_reactor()
+except AttributeError:
+    pass
+from twisted.internet import reactor, protocol
+from twisted.internet.defer import inlineCallbacks
+
+# import all the kivy stuff
+from kivy.app import App
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.graphics import Color,Rectangle
@@ -23,19 +43,8 @@ from kivy.uix.popup import Popup
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.slider import Slider
 from kivy.factory import Factory
-from mpd import MPDProtocol
-import os
-import traceback
-import mutagen
-import io
-import random
 
-#install twisted reactor to interface with mpd
-install_twisted_reactor()
-from twisted.internet import reactor
-from twisted.internet import protocol
-from twisted.internet.defer import inlineCallbacks
-
+# import our local modules
 from mpdfactory import MPDClientFactory
 from extra import songratings,getfontsize,ExtraSlider,ClearButton
 from playlistpanel import PlaylistTabbedPanelItem
