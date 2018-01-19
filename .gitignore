@@ -6,3 +6,4 @@ _static
 _templates
 build
 dist
+*.egg-info

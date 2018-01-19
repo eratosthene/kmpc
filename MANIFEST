@@ -4,7 +4,6 @@ bin/kmpc
 kmpc/__init__.py
 kmpc/configpanel.py
 kmpc/extra.py
-kmpc/kmpc.kv
 kmpc/kmpcapp.py
 kmpc/librarypanel.py
 kmpc/mpdfactory.py
@@ -17,6 +16,7 @@ resources/backdrop.png
 resources/button-down.png
 resources/button-normal.png
 resources/clear.png
+resources/interface.kv
 resources/list-backdrop-selected.png
 resources/list-backdrop.png
 resources/track-slider-cursor.png
