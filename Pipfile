@@ -1,0 +1,19 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+
+[dev-packages]
+
+
+
+[packages]
+
+cython = "==0.25.*"
+kivy = "==1.10.*"
+twisted = "*"
+"python-mpd2" = {git = "https://github.com/Mic92/python-mpd2.git", ref = "master"}
+mutagen = "*"
+gitpython = "*"

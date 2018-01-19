@@ -1,0 +1,6 @@
+cython==0.25.*
+kivy==1.10.*
+twisted
+-e git+https://github.com/Mic92/python-mpd2.git@master#egg=python-mpd2
+mutagen
+gitpython

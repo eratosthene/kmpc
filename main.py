@@ -4,18 +4,6 @@ import kivy
 kivy.require('1.10.0')
 from kivy.app import App
 from kivy.support import install_twisted_reactor
-
-
-#install twisted reactor to interface with mpd
-import sys
-if 'twisted.internet.reactor' in sys.modules:
-    del sys.modules['twisted.internet.reactor']
-install_twisted_reactor()
-from twisted.internet import reactor
-from twisted.internet import protocol
-#from twisted.internet import task
-from twisted.internet.defer import inlineCallbacks
-
 from kivy.config import Config
 from kivy.logger import Logger
 from kivy.graphics import Color,Rectangle
@@ -42,6 +30,11 @@ import mutagen
 import io
 import random
 
+#install twisted reactor to interface with mpd
+install_twisted_reactor()
+from twisted.internet import reactor
+from twisted.internet import protocol
+from twisted.internet.defer import inlineCallbacks
 
 from mpdfactory import MPDClientFactory
 from extra import songratings,getfontsize,ExtraSlider,ClearButton
@@ -385,8 +378,8 @@ class KmpcInterface(TabbedPanel):
         # bind the popup for setting rating
         btn.bind(on_press=self.rating_popup)
         # clear the layout widget and add the new one
-	self.ids.song_star_layout.clear_widgets()
-	self.ids.song_star_layout.add_widget(btn)
+        self.ids.song_star_layout.clear_widgets()
+        self.ids.song_star_layout.add_widget(btn)
 
     def handle_mpd_no_sticker(self,result):
         """Callback for song that has no rating in mpd."""
@@ -396,10 +389,10 @@ class KmpcInterface(TabbedPanel):
         # set the string to the circled question mark icon
         btn.text = u"\uf29c"
         # bind the popup for setting rating
-	btn.bind(on_press=self.rating_popup)
+        btn.bind(on_press=self.rating_popup)
         # clear the layout widget and add the new one
-	self.ids.song_star_layout.clear_widgets()
-	self.ids.song_star_layout.add_widget(btn)
+        self.ids.song_star_layout.clear_widgets()
+        self.ids.song_star_layout.add_widget(btn)
 
     def update_mpd_nextsong(self,result):
         """Callback for next song data from mpd."""
