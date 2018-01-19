@@ -1,6 +1,7 @@
 *.pyc
 *.swp
 *.ini
-_build
+.DS_Store
+docs/build
 _static
 _templates

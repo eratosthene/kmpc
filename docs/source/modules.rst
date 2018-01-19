@@ -10,4 +10,3 @@ kmpc
    main
    mpdfactory
    playlistpanel
-   t
