@@ -19,7 +19,9 @@ from copy import deepcopy
 from functools import partial
 import os
 
-from extra import formatsong,songratings
+from extra import KmpcHelpers
+
+Helpers=KmpcHelpers()
 
 # sets the location of the config folder
 configdir = os.path.expanduser('~')+"/.kmpc"
@@ -122,7 +124,7 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
                 self.rv.data.append(r)
             elif 'file' in row:
                 Logger.debug("FileBrowser: file found: ["+row['file']+"]")
-                r={'value':formatsong(row),'base':row['file'],'info':{'type':'file'}}
+                r={'value':Helpers.formatsong(row),'base':row['file'],'info':{'type':'file'}}
                 self.protocol.sticker_get('song',row['file'],'copy_flag').addCallback(partial(self.render_row,r,True)).addErrback(partial(self.render_row,r,False))
             else:
                 if self.current_view['info']['type'] == 'rootalbums':
@@ -289,12 +291,12 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
         popup = Popup(title='Rating',content=layout,size_hint=(0.8,1))
         for r in list(range(0,11)):
             btn=Button(font_name='../kmpc/resources/FontAwesome.ttf')
-            btn.text=songratings[str(r)]['stars']
+            btn.text=Helpers.songratings(App.get_running_app().config)[str(r)]['stars']
             btn.rating=str(r)
             btn.popup=popup
             layout.add_widget(btn)
             btn.bind(on_press=partial(App.get_running_app().root.ids.library_tab.rating_set,instance.base,self.index))
-            lbl=Label(text=songratings[str(r)]['meaning'],halign='left')
+            lbl=Label(text=Helpers.songratings(App.get_running_app().config)[str(r)]['meaning'],halign='left')
             layout.add_widget(lbl)
         popup.open()
 

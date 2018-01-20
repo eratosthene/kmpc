@@ -68,13 +68,15 @@ from kivy.lang import Builder
 
 # import our local modules
 from mpdfactory import MPDClientFactory
-from extra import songratings,getfontsize
+from extra import KmpcHelpers
 
 # sets the location of the config folder
 configdir = os.path.expanduser('~')+"/.kmpc"
 
 # load the manager.kv file
 Builder.load_file(resource_filename(__name__,'resources/manager.kv'))
+
+Helpers=KmpcHelpers()
 
 class ArtistRecycleBoxLayout(FocusBehavior,LayoutSelectionBehavior,RecycleBoxLayout):
     ''' Adds selection and focus behaviour to the view. '''
@@ -110,32 +112,8 @@ class UneditTextInput(TextInput):
 
 class ManagerInterface(TabbedPanel):
 
-    def __init__(self):
+    def __init__(self,config):
         super(self.__class__,self).__init__()
-        # set up config with default values
-        config=ConfigParser.SafeConfigParser()
-        config.add_section('mpd')
-        config.set('mpd','mpdhost','127.0.0.1')
-        config.set('mpd','mpdport','6600')
-        config.add_section('paths')
-        config.set('paths','musicpath','/mnt/music')
-        config.set('paths','fanartpath','/mnt/fanart')
-        config.set('paths','tmppath','/tmp')
-        config.add_section('api')
-        config.set('api','fanarturl','http://webservice.fanart.tv/v3/music/')
-        config.set('api','api_key','CHANGEME')
-        # check if config folder exists
-        if os.path.isdir(configdir):
-            # try to read existing config file
-            config.read([configdir+'/config.ini'])
-            # write out config file in case it doesn't exist yet
-            with open(configdir+'/config.ini','wb') as cf:
-                config.write(cf)
-        else:
-            os.mkdir(configdir)
-            # write out config file
-            with open(configdir+'/config.ini','wb') as cf:
-                config.write(cf)
         # pull config into the class
         self.config = config
         # set up mpd connection
@@ -349,11 +327,13 @@ class ManagerInterface(TabbedPanel):
 
 class ManagerApp(App):
     def build(self):
+        config=Helpers.loadconfigfile()
         # setup some variables that interface.kv will use
         # this is necessary to support packaging the app
+        self.songratings = Helpers.songratings(config)
         self.normalfont = resource_filename(__name__,'resources/DejaVuSans.ttf')
         self.fontawesomefont = resource_filename(__name__,'resources/FontAwesome.ttf')
-        return ManagerInterface()
+        return ManagerInterface(config)
 
 if __name__ == '__main__':
     ManagerApp().run()

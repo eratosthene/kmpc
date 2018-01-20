@@ -57,7 +57,7 @@ from kivy.lang import Builder
 
 # import our local modules
 from mpdfactory import MPDClientFactory
-from extra import songratings,getfontsize,ExtraSlider,ClearButton
+from extra import KmpcHelpers,ExtraSlider,ClearButton
 from playlistpanel import PlaylistTabbedPanelItem
 
 # sets the location of the config folder
@@ -66,40 +66,16 @@ configdir = os.path.expanduser('~')+"/.kmpc"
 # load the interface.kv file
 Builder.load_file(resource_filename(__name__,'resources/interface.kv'))
 
+Helpers=KmpcHelpers()
+
 class KmpcInterface(TabbedPanel):
     """The main class that ties it all together."""
 
     def __init__(self):
         """Pull the config from the config file, hook up to mpd, zero out variables."""
         super(self.__class__,self).__init__()
-        # set up config with default values
-        config=ConfigParser.SafeConfigParser()
-        config.add_section('mpd')
-        config.set('mpd','mpdhost','127.0.0.1')
-        config.set('mpd','mpdport','6600')
-        config.add_section('paths')
-        config.set('paths','musicpath','/mnt/music')
-        config.set('paths','fanartpath','/mnt/fanart')
-        config.add_section('sync')
-        config.set('sync','synchost','127.0.0.1')
-        config.set('sync','syncmusicpath','/mnt/music')
-        config.set('sync','syncfanartpath','/mnt/fanart')
-        config.add_section('flags')
-        config.set('flags','rpienable','False')
-        # check if config folder exists
-        if os.path.isdir(configdir):
-            # try to read existing config file
-            config.read([configdir+'/config.ini'])
-            # write out config file in case it doesn't exist yet
-            with open(configdir+'/config.ini','wb') as cf:
-                config.write(cf)
-        else:
-            os.mkdir(configdir)
-            # write out config file
-            with open(configdir+'/config.ini','wb') as cf:
-                config.write(cf)
         # pull config into the class
-        self.config = config
+        self.config = Helpers.loadconfigfile()
         # set up mpd connection
         self.factory = MPDClientFactory()
         self.factory.connectionMade = self.mpd_connectionMade
@@ -328,7 +304,7 @@ class KmpcInterface(TabbedPanel):
                     current_artist_label = cbl
                 else:
                     # no logo found, just print the artist name instead
-                    current_artist_label = InfoLargeLabel(text = result['artist'],font_size=getfontsize(result['artist']))
+                    current_artist_label = InfoLargeLabel(text = result['artist'],font_size=Helpers.getfontsize(result['artist']))
                 # clear the background of the player canvas so we can show the artist background
                 self.ids.player.canvas.before.clear()
                 # pick an artistid at random for the background
@@ -406,16 +382,16 @@ class KmpcInterface(TabbedPanel):
                 if haslogo:
                     # we found an artist logo, put the song and album labels in a separate boxlayout to separate them a bit
                     lyt = BoxLayout(orientation='vertical',padding_y='10sp')
-                    current_song_label = InfoLargeLabel(text = result['title'],font_size=getfontsize(result['title']))
+                    current_song_label = InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title']))
                     lyt.add_widget(current_song_label)
-                    current_album_label = InfoLargeLabel(text = yeartext,font_size=getfontsize(yeartext))
+                    current_album_label = InfoLargeLabel(text = yeartext,font_size=Helpers.getfontsize(yeartext))
                     lyt.add_widget(current_album_label)
                     ti.add_widget(lyt)
                 else:
                     # no artist logo, just add the song and album labels directly to the track info widget
-                    current_song_label = InfoLargeLabel(text = result['title'],font_size=getfontsize(result['title']))
+                    current_song_label = InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title']))
                     ti.add_widget(current_song_label)
-                    current_album_label = InfoLargeLabel(text = yeartext,font_size=getfontsize(yeartext))
+                    current_album_label = InfoLargeLabel(text = yeartext,font_size=Helpers.getfontsize(yeartext))
                     ti.add_widget(current_album_label)
         else:
             # there's not a current song, so zero everything out
@@ -427,7 +403,7 @@ class KmpcInterface(TabbedPanel):
         # make a clear button for the star rating
         btn = ClearButton(padding_x='10sp',font_name=resource_filename(__name__,'resources/FontAwesome.ttf'),halign='center',valign='middle',markup=True)
         # look up the correct string for the rating
-        btn.text = songratings[result]['stars']
+        btn.text = Helpers.songratings(self.config)[result]['stars']
         # bind the popup for setting rating
         btn.bind(on_press=self.rating_popup)
         # clear the layout widget and add the new one
@@ -510,7 +486,7 @@ class KmpcInterface(TabbedPanel):
             # make a button
             btn=Button(font_name=resource_filename(__name__,'resources/FontAwesome.ttf'))
             # look up the correct string for the rating
-            btn.text=songratings[str(r)]['stars']
+            btn.text=Helpers.songratings(self.config)[str(r)]['stars']
             # set some widget variables
             btn.rating=str(r)
             btn.popup=popup
@@ -519,7 +495,7 @@ class KmpcInterface(TabbedPanel):
             # bind the button press to set the rating
             btn.bind(on_press=self.rating_set)
             # add a label to explain the ratings, this is pretty subjective
-            lbl=Label(text=songratings[str(r)]['meaning'],halign='left')
+            lbl=Label(text=Helpers.songratings(self.config)[str(r)]['meaning'],halign='left')
             # add the label to the layout
             layout.add_widget(lbl)
         # pop it on up, if you press outside the popup it just goes away without setting the rating

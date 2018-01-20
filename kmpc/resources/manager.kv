@@ -1,7 +1,6 @@
 #:kivy 1.10.0
 #:import App kivy.app.App
 #:import ManagerLibraryTabbedPanelItem kmpc.managerlibrarypanel.ManagerLibraryTabbedPanelItem
-#:import songratings kmpc.extra.songratings
 
 <Label>:
     font_name: app.normalfont
@@ -98,6 +97,7 @@
     info: {}
     copy_flag: ''
     rating: ''
+    songratings: App.get_running_app().songratings
     BoxLayout:
         orientation: 'horizontal'
         Label:
@@ -109,7 +109,7 @@
             padding_x: sp(10)
         StarLabel:
             size_hint_x: 0.2
-            text: '[ref=rating]'+songratings[root.rating]['stars']+'[/ref]'
+            text: '[ref=rating]'+root.songratings[root.rating]['stars']+'[/ref]'
             on_ref_press: root.rating_popup(root)
         Label:
             size_hint_x: 0.2
