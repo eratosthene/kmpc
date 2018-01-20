@@ -19,9 +19,14 @@ from copy import deepcopy
 from functools import partial
 import os
 
-from extra import formatsong,songratings
+from extra import KmpcHelpers
 
-class LibraryTabbedPanelItem(TabbedPanelItem):
+Helpers=KmpcHelpers()
+
+# sets the location of the config folder
+configdir = os.path.expanduser('~')+"/.kmpc"
+
+class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
     current_view = {'value': 'root', 'base':'/','info':{'type':'uri'}}
     library_selection = {}
     rsync_data={}
@@ -119,7 +124,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
                 self.rv.data.append(r)
             elif 'file' in row:
                 Logger.debug("FileBrowser: file found: ["+row['file']+"]")
-                r={'value':formatsong(row),'base':row['file'],'info':{'type':'file'}}
+                r={'value':Helpers.formatsong(row),'base':row['file'],'info':{'type':'file'}}
                 self.protocol.sticker_get('song',row['file'],'copy_flag').addCallback(partial(self.render_row,r,True)).addErrback(partial(self.render_row,r,False))
             else:
                 if self.current_view['info']['type'] == 'rootalbums':
@@ -235,7 +240,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
         Logger.info(ltype+': generating with minimum stars '+self.ids.minimum_stars.text)
         if ltype=='rsync':
             self.rsync_data={}
-            self.rsync_file=open('rsync.inc','w')
+            self.rsync_file=open(configdir+'/rsync.inc','w')
         self.protocol.listallinfo('/').addCallback(partial(self.generate_list2,ltype)).addErrback(self.handle_mpd_error)
 
     def generate_list2(self,ltype,result):
@@ -285,13 +290,13 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
         layout = GridLayout(cols=2,spacing=10)
         popup = Popup(title='Rating',content=layout,size_hint=(0.8,1))
         for r in list(range(0,11)):
-            btn=Button(font_name='../resources/FontAwesome.ttf')
-            btn.text=songratings[str(r)]['stars']
+            btn=Button(font_name='../kmpc/resources/FontAwesome.ttf')
+            btn.text=Helpers.songratings(App.get_running_app().config)[str(r)]['stars']
             btn.rating=str(r)
             btn.popup=popup
             layout.add_widget(btn)
             btn.bind(on_press=partial(App.get_running_app().root.ids.library_tab.rating_set,instance.base,self.index))
-            lbl=Label(text=songratings[str(r)]['meaning'],halign='left')
+            lbl=Label(text=Helpers.songratings(App.get_running_app().config)[str(r)]['meaning'],halign='left')
             layout.add_widget(lbl)
         popup.open()
 

@@ -1,16 +1,16 @@
 #:kivy 1.10.0
-#:import LibraryTabbedPanelItem librarypanel.LibraryTabbedPanelItem
-#:import songratings extra.songratings
+#:import App kivy.app.App
+#:import ManagerLibraryTabbedPanelItem kmpc.managerlibrarypanel.ManagerLibraryTabbedPanelItem
 
 <Label>:
-    font_name: '../resources/DejaVuSans.ttf'
+    font_name: app.normalfont
     font_size: '20sp'
 
 <SmallButton@Button>:
     font_size: '16sp'
 
 <StarLabel@Label>:
-    font_name: '../resources/FontAwesome.ttf'
+    font_name: app.fontawesomefont
     markup: True
 
 <ArtistRow>:
@@ -97,6 +97,7 @@
     info: {}
     copy_flag: ''
     rating: ''
+    songratings: App.get_running_app().songratings
     BoxLayout:
         orientation: 'horizontal'
         Label:
@@ -108,13 +109,13 @@
             padding_x: sp(10)
         StarLabel:
             size_hint_x: 0.2
-            text: '[ref=rating]'+songratings[root.rating]['stars']+'[/ref]'
+            text: '[ref=rating]'+root.songratings[root.rating]['stars']+'[/ref]'
             on_ref_press: root.rating_popup(root)
         Label:
             size_hint_x: 0.2
             text: root.copy_flag
 
-<LibraryTabbedPanelItem>:
+<ManagerLibraryTabbedPanelItem>:
     text: 'Library'
     rv: rv
     rbl: rbl
@@ -270,5 +271,5 @@
                     spacing: sp(2)
                     multiselect: False
                     touch_multiselect: False
-    LibraryTabbedPanelItem:
+    ManagerLibraryTabbedPanelItem:
         id: library_tab

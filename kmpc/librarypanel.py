@@ -19,7 +19,9 @@ from copy import deepcopy
 from functools import partial
 import os
 
-from extra import formatsong
+from extra import KmpcHelpers
+
+Helpers=KmpcHelpers()
 
 class LibraryTabbedPanelItem(TabbedPanelItem):
     """The Library tab, for browsing through mpd's library."""
@@ -126,7 +128,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
             elif 'file' in row:
                 # we found a song, format and display it
                 Logger.debug("FileBrowser: file found: ["+row['file']+"]")
-                r={'value':formatsong(row),'base':row['file'],'info':{'type':'file'}}
+                r={'value':Helpers.formatsong(row),'base':row['file'],'info':{'type':'file'}}
                 self.rv.data.append(r)
             else:
                 # we found something else, figure out what it is based on our current view type
@@ -147,7 +149,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
                     self.rv.data.append(r)
                 elif self.current_view['info']['type'] == 'artistsort':
                     # we found a track, display it
-                    # note that tracks are not parsed by formatsong like filenames are
+                    # note that tracks are not parsed by Helpers.formatsong like filenames are
                     # mpd formats a track itself
                     Logger.debug("Library: track found: ["+row+"]")
                     r={'value':row,'base':row,'info':{'type':'track','artistsort':self.current_view['base']}}

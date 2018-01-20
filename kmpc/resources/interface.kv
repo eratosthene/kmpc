@@ -1,15 +1,15 @@
 #:kivy 1.10.0
 #:import App kivy.app.App
-#:import ConfigTabbedPanelItem configpanel.ConfigTabbedPanelItem
-#:import PlaylistTabbedPanelItem playlistpanel.PlaylistTabbedPanelItem
-#:import PlaylistRow playlistpanel.PlaylistRow
-#:import PlaylistRecycleBoxLayout playlistpanel.PlaylistRecycleBoxLayout
-#:import LibraryTabbedPanelItem librarypanel.LibraryTabbedPanelItem
-#:import ExtraSlider extra.ExtraSlider
-#:import ClearButton extra.ClearButton
+#:import ConfigTabbedPanelItem kmpc.configpanel.ConfigTabbedPanelItem
+#:import PlaylistTabbedPanelItem kmpc.playlistpanel.PlaylistTabbedPanelItem
+#:import PlaylistRow kmpc.playlistpanel.PlaylistRow
+#:import PlaylistRecycleBoxLayout kmpc.playlistpanel.PlaylistRecycleBoxLayout
+#:import LibraryTabbedPanelItem kmpc.librarypanel.LibraryTabbedPanelItem
+#:import ExtraSlider kmpc.extra.ExtraSlider
+#:import ClearButton kmpc.extra.ClearButton
 
 <Label>:
-    font_name: 'resources/DejaVuSans.ttf'
+    font_name: app.normalfont
     font_size: '20sp'
     canvas.before:
         Color:
@@ -83,15 +83,15 @@
 
 <Button>:
     border: (4,4,4,4)
-    background_normal: 'resources/button-normal.png'
-    background_down: 'resources/button-down.png'
-    font_name: 'resources/DejaVuSans.ttf'
+    background_normal: app.buttonnormal
+    background_down: app.buttondown
+    font_name: app.normalfont
     font_size: '20sp'
 
 <ClearButton>:
     border: (1,1,1,1)
-    background_normal: 'resources/clear.png'
-    background_down: 'resources/clear.png'
+    background_normal: app.clear
+    background_down: app.clear
 
 <AccessoryPopup@Popup>:
     auto_dismiss: False
@@ -116,20 +116,20 @@
 <BackdropBoxLayout@BoxLayout>:
     canvas.before:
         Rectangle:
-            source: "resources/backdrop.png"
+            source: app.backdrop
             size: self.size
             pos: self.pos
 
 <MediaButton@Button,MediaToggleButton@ToggleButton>:
-    font_name: 'resources/FontAwesome.ttf'
+    font_name: app.fontawesomefont
     font_size: '24sp'
 
 <BrightnessButton@Button>
-    font_name: 'resources/FontAwesome.ttf'
+    font_name: app.fontawesomefont
     font_size: '24sp'
     border: (1,1,1,1)
-    background_normal: 'resources/clear.png'
-    background_down: 'resources/clear.png'
+    background_normal: app.clear
+    background_down: app.clear
     canvas.before:
         Clear
         PushMatrix
@@ -210,7 +210,7 @@
 <LibraryBoxLayout@BoxLayout>:
     canvas.before:
         Rectangle:
-            source: "resources/list-backdrop.png"
+            source: app.listbackdrop
             size: self.size
             pos: self.pos
 
@@ -223,7 +223,7 @@
     text_size: self.width, None
     height: self.texture_size[1]
     halign: 'center'
-    font_name: 'resources/DejaVuSans-Bold.ttf'
+    font_name: app.boldfont
     canvas.before:
         Color:
             rgba: 0, 0, 0, 0.75
@@ -333,7 +333,7 @@
 <PlaylistRow>:
     canvas.before:
         Rectangle:
-            source: "resources/list-backdrop-selected.png" if self.iscurrent else "resources/list-backdrop.png"          
+            source: app.listbackdropselected if self.iscurrent else app.listbackdrop
             size: self.size
             pos: self.pos
         Color:
@@ -367,7 +367,7 @@
 <LibraryRow>:
     canvas.before:
         Rectangle:
-            source: "resources/list-backdrop.png"          
+            source: app.listbackdrop
             size: self.size
             pos: self.pos
         Color:
@@ -554,7 +554,7 @@
                                 value_track: True
                                 valign: 'center'
                                 max: '1000'
-                                cursor_image: 'resources/track-slider-cursor.png'
+                                cursor_image: app.trackslidercursor
                                 cursor_width: sp(80)
                                 cursor_height: sp(36)
                                 on_touch_down: if self.collide_point(*args[1].pos): root.current_track_slider_down()

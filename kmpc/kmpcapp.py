@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # import dependencies
 from mpd import MPDProtocol
 import os
@@ -7,6 +5,8 @@ import traceback
 import mutagen
 import io
 import random
+import ConfigParser
+from pkg_resources import resource_filename
 
 # make sure we are on an updated version of kivy
 import kivy
@@ -22,9 +22,19 @@ except AttributeError:
 from twisted.internet import reactor, protocol
 from twisted.internet.defer import inlineCallbacks
 
-# import all the kivy stuff
-from kivy.app import App
+# import config and set key values before other imports
 from kivy.config import Config
+# this try/catch block is specifically because sphinx docs fail otherwise
+try:
+    Config.set('kivy','log_level','info') # set this to 'debug' to see more verbose debug messages
+    Config.set('kivy','keyboard_mode','systemanddock')
+    Config.set('graphics','width',800)
+    Config.set('graphics','height',480)
+except AttributeError:
+    pass
+
+# import all the other kivy stuff
+from kivy.app import App
 from kivy.logger import Logger
 from kivy.graphics import Color,Rectangle
 from kivy.core.image import Image as CoreImage
@@ -43,24 +53,34 @@ from kivy.uix.popup import Popup
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.slider import Slider
 from kivy.factory import Factory
+from kivy.lang import Builder
 
 # import our local modules
 from mpdfactory import MPDClientFactory
-from extra import songratings,getfontsize,ExtraSlider,ClearButton
+from extra import KmpcHelpers,ExtraSlider,ClearButton
 from playlistpanel import PlaylistTabbedPanelItem
+
+# sets the location of the config folder
+configdir = os.path.expanduser('~')+"/.kmpc"
+
+# load the interface.kv file
+Builder.load_file(resource_filename(__name__,'resources/interface.kv'))
+
+Helpers=KmpcHelpers()
 
 class KmpcInterface(TabbedPanel):
     """The main class that ties it all together."""
 
-    def __init__(self,config):
-        """Pull the config from the ini file, hook up to mpd, zero out variables."""
+    def __init__(self):
+        """Pull the config from the config file, hook up to mpd, zero out variables."""
         super(self.__class__,self).__init__()
-        self.config = config
+        # pull config into the class
+        self.config = Helpers.loadconfigfile()
         # set up mpd connection
         self.factory = MPDClientFactory()
         self.factory.connectionMade = self.mpd_connectionMade
         self.factory.connectionLost = self.mpd_connectionLost
-        reactor.connectTCP(self.config.get('mpd','host'), self.config.getint('mpd','port'), self.factory)
+        reactor.connectTCP(self.config.get('mpd','mpdhost'), self.config.getint('mpd','mpdport'), self.factory)
         # bind callbacks for tab changes
         self.bind(current_tab=self.main_tab_changed)
         self.mpd_status={'state':'stop','repeat':0,'single':0,'random':0,'consume':0,'curpos':0}
@@ -77,7 +97,7 @@ class KmpcInterface(TabbedPanel):
         self.ids.playlist_tab.protocol=protocol
         self.ids.library_tab.protocol=protocol
         self.ids.config_tab.protocol=protocol
-        Logger.info('Application: Connected to mpd server host='+self.config.get('mpd','host')+' port='+self.config.get('mpd','port'))
+        Logger.info('Application: Connected to mpd server host='+self.config.get('mpd','mpdhost')+' port='+self.config.get('mpd','mpdport'))
         # get the initial mpd status
         self.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
         # create the once-per-second update of the track slider
@@ -159,7 +179,7 @@ class KmpcInterface(TabbedPanel):
         self.ids.trackinfo.clear_widgets()
         lbl = Label(text="Playback Stopped")
         self.ids.trackinfo.add_widget(lbl)
-        self.ids.player.canvas.before.add(Rectangle(source="resources/backdrop.png",size=self.ids.player.size,pos=self.ids.player.pos))
+        self.ids.player.canvas.before.add(Rectangle(source=resource_filename(__name__,"resources/backdrop.png"),size=self.ids.player.size,pos=self.ids.player.pos))
 
     def update_mpd_status(self,result):
         """Callback when mpd status changes."""
@@ -245,7 +265,7 @@ class KmpcInterface(TabbedPanel):
                 # get the stored star rating
                 self.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
                 # figure out the full path of the file
-                bp=self.config.get('mpd','basepath')
+                bp=self.config.get('paths','musicpath')
                 # p is the absolute path
                 p=os.path.join(bp,result['file'])
                 haslogo=False
@@ -254,7 +274,7 @@ class KmpcInterface(TabbedPanel):
                 if 'date' in result:
                     year=result['date'][:4]
                 # pull the fanart folder from ini file
-                fa_path=self.config.get('mpd','fanartpath')
+                fa_path=self.config.get('paths','fanartpath')
                 # try to get the artistid, set it to 0000 if it doesn't exist
                 try:
                     aids=str(result['musicbrainz_artistid'])
@@ -284,7 +304,7 @@ class KmpcInterface(TabbedPanel):
                     current_artist_label = cbl
                 else:
                     # no logo found, just print the artist name instead
-                    current_artist_label = InfoLargeLabel(text = result['artist'],font_size=getfontsize(result['artist']))
+                    current_artist_label = InfoLargeLabel(text = result['artist'],font_size=Helpers.getfontsize(result['artist']))
                 # clear the background of the player canvas so we can show the artist background
                 self.ids.player.canvas.before.clear()
                 # pick an artistid at random for the background
@@ -298,7 +318,7 @@ class KmpcInterface(TabbedPanel):
                     self.ids.player.canvas.before.add(Rectangle(source=os.path.join(ab_path,img_path),size=self.ids.player.size,pos=self.ids.player.pos))
                 except:
                     # update the player background with the default backdrop
-                    self.ids.player.canvas.before.add(Rectangle(source="resources/backdrop.png",size=self.ids.player.size,pos=self.ids.player.pos))
+                    self.ids.player.canvas.before.add(Rectangle(source=resource_filename(__name__,"resources/backdrop.png"),size=self.ids.player.size,pos=self.ids.player.pos))
                 if os.path.isfile(p):
                     Logger.debug('NowPlaying: found good file at path '+p)
                     # load up the file to read the tags
@@ -362,16 +382,16 @@ class KmpcInterface(TabbedPanel):
                 if haslogo:
                     # we found an artist logo, put the song and album labels in a separate boxlayout to separate them a bit
                     lyt = BoxLayout(orientation='vertical',padding_y='10sp')
-                    current_song_label = InfoLargeLabel(text = result['title'],font_size=getfontsize(result['title']))
+                    current_song_label = InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title']))
                     lyt.add_widget(current_song_label)
-                    current_album_label = InfoLargeLabel(text = yeartext,font_size=getfontsize(yeartext))
+                    current_album_label = InfoLargeLabel(text = yeartext,font_size=Helpers.getfontsize(yeartext))
                     lyt.add_widget(current_album_label)
                     ti.add_widget(lyt)
                 else:
                     # no artist logo, just add the song and album labels directly to the track info widget
-                    current_song_label = InfoLargeLabel(text = result['title'],font_size=getfontsize(result['title']))
+                    current_song_label = InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title']))
                     ti.add_widget(current_song_label)
-                    current_album_label = InfoLargeLabel(text = yeartext,font_size=getfontsize(yeartext))
+                    current_album_label = InfoLargeLabel(text = yeartext,font_size=Helpers.getfontsize(yeartext))
                     ti.add_widget(current_album_label)
         else:
             # there's not a current song, so zero everything out
@@ -381,9 +401,9 @@ class KmpcInterface(TabbedPanel):
         """Callback for song that has a rating in mpd."""
         Logger.debug('NowPlaying: update_mpd_sticker_rating')
         # make a clear button for the star rating
-        btn = ClearButton(padding_x='10sp',font_name='resources/FontAwesome.ttf',halign='center',valign='middle',markup=True)
+        btn = ClearButton(padding_x='10sp',font_name=resource_filename(__name__,'resources/FontAwesome.ttf'),halign='center',valign='middle',markup=True)
         # look up the correct string for the rating
-        btn.text = songratings[result]['stars']
+        btn.text = Helpers.songratings(self.config)[result]['stars']
         # bind the popup for setting rating
         btn.bind(on_press=self.rating_popup)
         # clear the layout widget and add the new one
@@ -394,7 +414,7 @@ class KmpcInterface(TabbedPanel):
         """Callback for song that has no rating in mpd."""
         Logger.debug('NowPlaying: handle_mpd_no_sticker')
         # make a clear button for the star rating
-        btn = ClearButton(padding_x='10sp',font_name='resources/FontAwesome.ttf',halign='center',valign='middle',markup=True)
+        btn = ClearButton(padding_x='10sp',font_name=resource_filename(__name__,'resources/FontAwesome.ttf'),halign='center',valign='middle',markup=True)
         # set the string to the circled question mark icon
         btn.text = u"\uf29c"
         # bind the popup for setting rating
@@ -464,9 +484,9 @@ class KmpcInterface(TabbedPanel):
         # loop from 0-10
         for r in list(range(0,11)):
             # make a button
-            btn=Button(font_name='resources/FontAwesome.ttf')
+            btn=Button(font_name=resource_filename(__name__,'resources/FontAwesome.ttf'))
             # look up the correct string for the rating
-            btn.text=songratings[str(r)]['stars']
+            btn.text=Helpers.songratings(self.config)[str(r)]['stars']
             # set some widget variables
             btn.rating=str(r)
             btn.popup=popup
@@ -475,7 +495,7 @@ class KmpcInterface(TabbedPanel):
             # bind the button press to set the rating
             btn.bind(on_press=self.rating_set)
             # add a label to explain the ratings, this is pretty subjective
-            lbl=Label(text=songratings[str(r)]['meaning'],halign='left')
+            lbl=Label(text=Helpers.songratings(self.config)[str(r)]['meaning'],halign='left')
             # add the label to the layout
             layout.add_widget(lbl)
         # pop it on up, if you press outside the popup it just goes away without setting the rating
@@ -503,9 +523,9 @@ class KmpcInterface(TabbedPanel):
 
     def change_backlight(self,value):
         """Method that sets the backlight to a certain value."""
-        Logger.info('Application: change_backlight('+str(value)+') rpienable = '+self.config.get('kmpc','rpienable'))
+        Logger.info('Application: change_backlight('+str(value)+') rpienable = '+self.config.get('flags','rpienable'))
         # only if the ini file says it's ok
-        if bool(int(self.config.get('kmpc','rpienable'))):
+        if self.config.getboolean('flags','rpienable'):
             import rpi_backlight as bl
             # set the brightness
             bl.set_brightness(int(value), smooth=True, duration=1)
@@ -513,38 +533,21 @@ class KmpcInterface(TabbedPanel):
 class KmpcApp(App):
     """The overall app class, builds the main interface widget."""
 
-    def build_config(self,config):
-        """Builds a config object from defaults/ini file."""
-        # set all the defaults in case ini file doesn't exist yet
-        config.setdefaults('mpd',{
-            'host': '127.0.0.1',
-            'port': 6600,
-            'basepath': '/mnt/music',
-            'fanartpath': '/mnt/fanart',
-            'synchost': '127.0.0.1',
-            'syncbasepath': '/mnt/music',
-            'syncfanartpath': '/mnt/fanart'
-        })
-        config.setdefaults('kmpc',{
-            'rpienable': False
-        })
-        config.setdefaults('kivy',{
-            'log_level': 'info',
-            'log_enable': 0,
-            'keyboard_mode': 'systemanddock'
-        })
-        config.setdefaults('graphics',{
-            'width': 800,
-            'height': 480
-        })
-        # read the ini file
-        Config.read(self.get_application_config())
-        # update the app config to what Config built
-        self.config=config
-
     def build(self):
-        """Instantiates KmpcInterface with the generated config."""
-        return KmpcInterface(self.config)
+        """Instantiates KmpcInterface."""
+        # setup some variables that interface.kv will use
+        # this is necessary to support packaging the app
+        self.normalfont = resource_filename(__name__,'resources/DejaVuSans.ttf')
+        self.boldfont = resource_filename(__name__,'resources/DejaVuSans-Bold.ttf')
+        self.fontawesomefont = resource_filename(__name__,'resources/FontAwesome.ttf')
+        self.buttonnormal = resource_filename(__name__,'resources/button-normal.png')
+        self.buttondown = resource_filename(__name__,'resources/button-down.png')
+        self.clear = resource_filename(__name__,'resources/clear.png')
+        self.backdrop = resource_filename(__name__,'resources/backdrop.png')
+        self.listbackdrop = resource_filename(__name__,'resources/list-backdrop.png')
+        self.listbackdropselected = resource_filename(__name__,'resources/list-backdrop-selected.png')
+        self.trackslidercursor = resource_filename(__name__,'resources/track-slider-cursor.png')
+        return KmpcInterface()
 
 class InfoLargeLabel(Label):
     """A label with large text."""
