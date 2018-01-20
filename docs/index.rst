@@ -10,6 +10,7 @@ Welcome to kmpc's documentation!
    :maxdepth: 2
 
    readme
+   install
 
 
 
