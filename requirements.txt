@@ -1,5 +1,0 @@
-cython==0.25.*
-kivy==1.10.*
-twisted==17.9.*
-mutagen==1.*
-gitpython==2.1.*
