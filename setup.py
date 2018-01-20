@@ -17,6 +17,7 @@ setup(
         "cython == 0.25.2",
     ],
     install_requires=[
+        "cython == 0.25.2",
         "kivy == 1.10.0",
         "twisted == 17.9.0",
         "mutagen == 1.39",
