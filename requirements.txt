@@ -1,2 +1,6 @@
 cython==0.25.2
+kivy==1.10.0
+twisted==17.9.0
 -e git+https://github.com/Mic92/python-mpd2.git@master#egg=python-mpd2
+mutagen==1.39
+gitpython==2.1.8
