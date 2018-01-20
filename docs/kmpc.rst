@@ -28,10 +28,26 @@ kmpc\.kmpcapp module
     :undoc-members:
     :show-inheritance:
 
+kmpc\.kmpcmanager module
+------------------------
+
+.. automodule:: kmpc.kmpcmanager
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 kmpc\.librarypanel module
 -------------------------
 
 .. automodule:: kmpc.librarypanel
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+kmpc\.managerlibrarypanel module
+--------------------------------
+
+.. automodule:: kmpc.managerlibrarypanel
     :members:
     :undoc-members:
     :show-inheritance:
