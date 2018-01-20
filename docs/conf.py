@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # kmpc documentation build configuration file, created by
-# sphinx-quickstart on Thu Jan 18 23:32:12 2018.
+# sphinx-quickstart on Fri Jan 19 17:55:27 2018.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -43,7 +43,8 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-source_suffix = ['.rst', '.md']
+# source_suffix = ['.rst', '.md']
+source_suffix = '.rst'
 
 # The master toctree document.
 master_doc = 'index'
@@ -167,5 +168,6 @@ texinfo_documents = [
      author, 'kmpc', 'One line description of project.',
      'Miscellaneous'),
 ]
+
 
 

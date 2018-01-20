@@ -24,10 +24,14 @@ from twisted.internet.defer import inlineCallbacks
 
 # import config and set key values before other imports
 from kivy.config import Config
-Config.set('kivy','log_level','info') # set this to 'debug' to see more verbose debug messages
-Config.set('kivy','keyboard_mode','systemanddock')
-Config.set('graphics','width',800)
-Config.set('graphics','height',480)
+# this try/catch block is specifically because sphinx docs fail otherwise
+try:
+    Config.set('kivy','log_level','info') # set this to 'debug' to see more verbose debug messages
+    Config.set('kivy','keyboard_mode','systemanddock')
+    Config.set('graphics','width',800)
+    Config.set('graphics','height',480)
+except AttributeError:
+    pass
 
 # import all the other kivy stuff
 from kivy.app import App
