@@ -13,5 +13,11 @@ setup(
     license="Creative Commons Attribution-Noncommercial-Share Alike license",
     description="kmpc is a Kivy-based mpd client, primarily meant for use on a Raspberry Pi mounted in a car.",
     long_description=open('README.rst').read(),
-    install_requires=[],
+    install_requires=[
+        "cython == 0.25.2",
+        "kivy == 1.10.0",
+        "twisted == 17.9.0",
+        "mutagen == 1.39",
+        "gitpython == 2.1.8"
+    ],
 )
