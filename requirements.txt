@@ -1,6 +1,5 @@
-cython==0.25.2
--e git+https://github.com/eratosthene/kivy.git@1.10.2#egg=Kivy-1.10.2
-twisted==17.9.0
--e git+https://github.com/eratosthene/python-mpd2.git@v0.6.1#egg=python-mpd2-0.6.1
-mutagen==1.39
-gitpython==2.1.8
+cython==0.25.*
+kivy==1.10.*
+twisted==17.9.*
+mutagen==1.*
+gitpython==2.1.*

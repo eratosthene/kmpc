@@ -12,8 +12,7 @@ name = "pypi"
 [packages]
 
 cython = "==0.25.*"
-"kivy" = {git = "https://github.com/eratosthene/kivy.git", ref = "1.10.2"}
-twisted = "*"
-"python-mpd2" = {git = "https://github.com/eratosthene/python-mpd2.git", ref = "v0.6.1"}
-mutagen = "*"
-gitpython = "*"
+kivy = "==1.10.*"
+twisted = "17.9.*"
+mutagen = "1.*"
+gitpython = "2.1.*"
