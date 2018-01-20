@@ -19,13 +19,13 @@ setup(
     install_requires=[
         "cython == 0.25.2",
         "kivy == 1.10.1",
-        "python-mpd2 == 0.5.6",
+        "python-mpd2 == 0.6.1",
         "twisted == 17.9.0",
         "mutagen == 1.39",
         "gitpython == 2.1.8"
     ],
     dependency_links=[
         "git+https://github.com/eratosthene/kivy.git@issue-4350#egg=Kivy-1.10.1",
-        "git+https://github.com/Mic92/python-mpd2.git@master#egg=python-mpd2-0.5.6",
+        "git+https://github.com/eratosthene/python-mpd2.git@v0.6.1#egg=python-mpd2-0.6.1",
     ],
 )
