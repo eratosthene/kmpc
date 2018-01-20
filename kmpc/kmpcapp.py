@@ -60,8 +60,8 @@ from mpdfactory import MPDClientFactory
 from extra import songratings,getfontsize,ExtraSlider,ClearButton
 from playlistpanel import PlaylistTabbedPanelItem
 
-# sets the location of the config file
-configfile = os.path.expanduser('~')+"/.kmpcrc"
+# sets the location of the config folder
+configdir = os.path.expanduser('~')+"/.kmpc"
 
 # load the interface.kv file
 Builder.load_file(resource_filename(__name__,'resources/interface.kv'))
@@ -86,11 +86,18 @@ class KmpcInterface(TabbedPanel):
         config.set('sync','syncfanartpath','/mnt/fanart')
         config.add_section('flags')
         config.set('flags','rpienable','False')
-        # try to read existing config file
-        config.read([configfile])
-        # write out config file in case it doesn't exist yet
-        with open(configfile,'wb') as cf:
-            config.write(cf)
+        # check if config folder exists
+        if os.path.isdir(configdir):
+            # try to read existing config file
+            config.read([configdir+'/config.ini'])
+            # write out config file in case it doesn't exist yet
+            with open(configdir+'/config.ini','wb') as cf:
+                config.write(cf)
+        else:
+            os.mkdir(configdir)
+            # write out config file
+            with open(configdir+'/config.ini','wb') as cf:
+                config.write(cf)
         # pull config into the class
         self.config = config
         # set up mpd connection

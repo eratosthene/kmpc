@@ -21,7 +21,10 @@ import os
 
 from extra import formatsong,songratings
 
-class LibraryTabbedPanelItem(TabbedPanelItem):
+# sets the location of the config folder
+configdir = os.path.expanduser('~')+"/.kmpc"
+
+class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
     current_view = {'value': 'root', 'base':'/','info':{'type':'uri'}}
     library_selection = {}
     rsync_data={}
@@ -235,7 +238,7 @@ class LibraryTabbedPanelItem(TabbedPanelItem):
         Logger.info(ltype+': generating with minimum stars '+self.ids.minimum_stars.text)
         if ltype=='rsync':
             self.rsync_data={}
-            self.rsync_file=open('rsync.inc','w')
+            self.rsync_file=open(configdir+'/rsync.inc','w')
         self.protocol.listallinfo('/').addCallback(partial(self.generate_list2,ltype)).addErrback(self.handle_mpd_error)
 
     def generate_list2(self,ltype,result):

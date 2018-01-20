@@ -1,16 +1,17 @@
 #:kivy 1.10.0
-#:import LibraryTabbedPanelItem librarypanel.LibraryTabbedPanelItem
-#:import songratings extra.songratings
+#:import App kivy.app.App
+#:import ManagerLibraryTabbedPanelItem kmpc.managerlibrarypanel.ManagerLibraryTabbedPanelItem
+#:import songratings kmpc.extra.songratings
 
 <Label>:
-    font_name: '../kmpc/resources/DejaVuSans.ttf'
+    font_name: app.normalfont
     font_size: '20sp'
 
 <SmallButton@Button>:
     font_size: '16sp'
 
 <StarLabel@Label>:
-    font_name: '../kmpc/resources/FontAwesome.ttf'
+    font_name: app.fontawesomefont
     markup: True
 
 <ArtistRow>:
@@ -114,7 +115,7 @@
             size_hint_x: 0.2
             text: root.copy_flag
 
-<LibraryTabbedPanelItem>:
+<ManagerLibraryTabbedPanelItem>:
     text: 'Library'
     rv: rv
     rbl: rbl
@@ -270,5 +271,5 @@
                     spacing: sp(2)
                     multiselect: False
                     touch_multiselect: False
-    LibraryTabbedPanelItem:
+    ManagerLibraryTabbedPanelItem:
         id: library_tab

@@ -1,7 +1,44 @@
-#!/usr/bin/env python
+# import dependencies
+from mpd import MPDProtocol
+import os
+import traceback
+import mutagen
+import io
+import random
+import pickle
+from functools import partial
+import json
+import subprocess
+import tempfile
+import shutil
+import ConfigParser
+from pkg_resources import resource_filename
 
+# make sure we are on an updated version of kivy
 import kivy
 kivy.require('1.10.0')
+
+#install twisted reactor to interface with mpd
+from kivy.support import install_twisted_reactor
+# this try/catch block is specifically because sphinx docs fail otherwise
+try:
+    install_twisted_reactor()
+except AttributeError:
+    pass
+from twisted.internet import reactor, protocol, task, defer, threads
+
+# import config and set key values before other imports
+from kivy.config import Config
+# this try/catch block is specifically because sphinx docs fail otherwise
+try:
+    Config.set('kivy','log_level','info') # set this to 'debug' to see more verbose debug messages
+    Config.set('graphics','width',1280)
+    Config.set('graphics','height',720)
+    Config.set('kivy','keyboard_mode','system')
+except AttributeError:
+    pass
+
+# import all the other kivy stuff
 from kivy.app import App
 from kivy.support import install_twisted_reactor
 from kivy.config import Config
@@ -27,29 +64,17 @@ from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.textinput import TextInput
 from kivy.clock import Clock
-from mpd import MPDProtocol
-import os
-import traceback
-import mutagen
-import io
-import random
-import pickle
-from functools import partial
-import json
-import subprocess
-import tempfile
-import shutil
+from kivy.lang import Builder
 
-#install twisted reactor to interface with mpd
-import sys
-if 'twisted.internet.reactor' in sys.modules:
-    del sys.modules['twisted.internet.reactor']
-install_twisted_reactor()
-from twisted.internet import reactor, protocol, task, defer, threads
-from twisted.internet.defer import inlineCallbacks
-
+# import our local modules
 from mpdfactory import MPDClientFactory
 from extra import songratings,getfontsize
+
+# sets the location of the config folder
+configdir = os.path.expanduser('~')+"/.kmpc"
+
+# load the manager.kv file
+Builder.load_file(resource_filename(__name__,'resources/manager.kv'))
 
 class ArtistRecycleBoxLayout(FocusBehavior,LayoutSelectionBehavior,RecycleBoxLayout):
     ''' Adds selection and focus behaviour to the view. '''
@@ -85,14 +110,39 @@ class UneditTextInput(TextInput):
 
 class ManagerInterface(TabbedPanel):
 
-    def __init__(self,config):
+    def __init__(self):
         super(self.__class__,self).__init__()
+        # set up config with default values
+        config=ConfigParser.SafeConfigParser()
+        config.add_section('mpd')
+        config.set('mpd','mpdhost','127.0.0.1')
+        config.set('mpd','mpdport','6600')
+        config.add_section('paths')
+        config.set('paths','musicpath','/mnt/music')
+        config.set('paths','fanartpath','/mnt/fanart')
+        config.set('paths','tmppath','/tmp')
+        config.add_section('api')
+        config.set('api','fanarturl','http://webservice.fanart.tv/v3/music/')
+        config.set('api','api_key','CHANGEME')
+        # check if config folder exists
+        if os.path.isdir(configdir):
+            # try to read existing config file
+            config.read([configdir+'/config.ini'])
+            # write out config file in case it doesn't exist yet
+            with open(configdir+'/config.ini','wb') as cf:
+                config.write(cf)
+        else:
+            os.mkdir(configdir)
+            # write out config file
+            with open(configdir+'/config.ini','wb') as cf:
+                config.write(cf)
+        # pull config into the class
         self.config = config
         # set up mpd connection
         self.factory = MPDClientFactory()
         self.factory.connectionMade = self.mpd_connectionMade
         self.factory.connectionLost = self.mpd_connectionLost
-        reactor.connectTCP(self.config.get('mpd','host'), self.config.getint('mpd','port'), self.factory)
+        reactor.connectTCP(self.config.get('mpd','mpdhost'), self.config.getint('mpd','mpdport'), self.factory)
         self.artist_id_hash={}
         self.artist_name_hash={}
         self.media_hash={}
@@ -102,7 +152,7 @@ class ManagerInterface(TabbedPanel):
 
     def mpd_connectionMade(self,protocol):
         self.protocol = protocol
-        Logger.info('Manager: Connected to mpd server host='+self.config.get('mpd','host')+' port='+self.config.get('mpd','port'))
+        Logger.info('Manager: Connected to mpd server host='+self.config.get('mpd','mpdhost')+' port='+self.config.get('mpd','mpdport'))
         self.ids.library_tab.protocol = self.protocol
         self.refresh_artists_from_cache()
 
@@ -149,12 +199,12 @@ class ManagerInterface(TabbedPanel):
         Logger.error("MusicBrainz: web service error "+format(result))
 
     def write_artists_to_cache(self):
-        cachefile=open('artist_cache.pkl','w')
+        cachefile=open(configdir+'/artist_cache.pkl','w')
         pickle.dump((self.artist_id_hash,self.artist_name_hash,self.media_hash),cachefile,-1)
         cachefile.close()
 
     def refresh_artists_from_cache(self):
-        cachefile=open('artist_cache.pkl','r')
+        cachefile=open(configdir+'/artist_cache.pkl','r')
         (self.artist_id_hash,self.artist_name_hash,self.media_hash)=pickle.load(cachefile)
         cachefile.close()
         self.ids.artist_tab.rv.data=[]
@@ -179,7 +229,7 @@ class ManagerInterface(TabbedPanel):
 
     def scan_for_media(self,index):
         Logger.info('Manager: scanning '+self.ids.artist_tab.rv.data[index]['artist_id']+'for media')
-        fa_path=self.config.get('mpd','fanartpath')
+        fa_path=self.config.get('paths','fanartpath')
         artistbackground_path=os.path.join(fa_path,self.ids.artist_tab.rv.data[index]['artist_id'],'artistbackground')
         logo_path=os.path.join(fa_path,self.ids.artist_tab.rv.data[index]['artist_id'],'logo')
         badge_path=os.path.join(fa_path,self.ids.artist_tab.rv.data[index]['artist_id'],'badge')
@@ -213,69 +263,69 @@ class ManagerInterface(TabbedPanel):
 
     def pull_art(self,index):
         Logger.info('Manager: pulling art for '+self.ids.artist_tab.rv.data[index]['artist_id'])
-	aid=self.ids.artist_tab.rv.data[index]['artist_id']
-	aname=self.ids.artist_tab.rv.data[index]['artist_name']
-        fa_path=self.config.get('mpd','fanartpath')
-	fanart=self.config.get('mpd','fanarturl')
-        api_key=self.config.get('mpd','api_key')
+        aid=self.ids.artist_tab.rv.data[index]['artist_id']
+        aname=self.ids.artist_tab.rv.data[index]['artist_name']
+        fa_path=self.config.get('paths','fanartpath')
+        fanart=self.config.get('api','fanarturl')
+        api_key=self.config.get('api','api_key')
         print fanart+aid+"?api_key="+api_key
         request = UrlRequest(url=fanart+aid+"?api_key="+api_key,on_success=partial(self.pull_art2,index))
 
     def pull_art2(self,index,request,result):
-	aid=self.ids.artist_tab.rv.data[index]['artist_id']
-	aname=self.ids.artist_tab.rv.data[index]['artist_name']
-        fa_path=self.config.get('mpd','fanartpath')
-	fanart=self.config.get('mpd','fanarturl')
-        api_key=self.config.get('mpd','api_key')
+        aid=self.ids.artist_tab.rv.data[index]['artist_id']
+        aname=self.ids.artist_tab.rv.data[index]['artist_name']
+        fa_path=self.config.get('paths','fanartpath')
+        fanart=self.config.get('api','fanarturl')
+        api_key=self.config.get('api','api_key')
         d=result
-	if 'hdmusiclogo' in d or 'artistbackground' in d or 'musiclogo' in d:
-	    fapath=os.path.join(fa_path,aid)
-	    lpath=os.path.join(fapath,"logo")
-	    abpath=os.path.join(fapath,"artistbackground")
-	    try:
-		print "downloading to "+fapath
-		os.mkdir(fapath)
-		with open(os.path.join(fapath,"__"+aname.replace('/','_')+"__"),'w'):
-		    pass
-	    except OSError:
-		pass
-	    if 'hdmusiclogo' in d:
-		try:
-		    os.mkdir(lpath)
-		except OSError:
-		    pass
-		for idx,img in enumerate(d['hdmusiclogo']):
-		    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')):
-			print "downloading hdmusiclogo "+img['id']
+        if 'hdmusiclogo' in d or 'artistbackground' in d or 'musiclogo' in d:
+            fapath=os.path.join(fa_path,aid)
+            lpath=os.path.join(fapath,"logo")
+            abpath=os.path.join(fapath,"artistbackground")
+            try:
+                print "downloading to "+fapath
+                os.mkdir(fapath)
+                with open(os.path.join(fapath,"__"+aname.replace('/','_')+"__"),'w'):
+                    pass
+            except OSError:
+                pass
+            if 'hdmusiclogo' in d:
+                try:
+                    os.mkdir(lpath)
+                except OSError:
+                    pass
+                for idx,img in enumerate(d['hdmusiclogo']):
+                    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')):
+                        print "downloading hdmusiclogo "+img['id']
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
-                        adfile=open('artlog.txt','a')
+                        adfile=open(configdir+'/artlog.txt','a')
                         adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
                         adfile.close()
-	    if 'musiclogo' in d:
-		try:
-		    os.mkdir(lpath)
-		except OSError:
-		    pass
-		for idx,img in enumerate(d['musiclogo']):
-		    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')):
-			print "downloading musiclogo "+img['id']
+            if 'musiclogo' in d:
+                try:
+                    os.mkdir(lpath)
+                except OSError:
+                    pass
+                for idx,img in enumerate(d['musiclogo']):
+                    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')):
+                        print "downloading musiclogo "+img['id']
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
-                        adfile=open('artlog.txt','a')
+                        adfile=open(configdir+'/artlog.txt','a')
                         adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
                         adfile.close()
-	    if 'artistbackground' in d:
-		try:
-		    os.mkdir(abpath)
-		except OSError:
-		    pass
-		for idx,img in enumerate(d['artistbackground']):
-		    if not os.path.isfile(os.path.join(abpath,img['id']+'.png')):
-			print "downloading artistbackground "+img['id']
+            if 'artistbackground' in d:
+                try:
+                    os.mkdir(abpath)
+                except OSError:
+                    pass
+                for idx,img in enumerate(d['artistbackground']):
+                    if not os.path.isfile(os.path.join(abpath,img['id']+'.png')):
+                        print "downloading artistbackground "+img['id']
                         fp=os.path.join(abpath,img['id']+'.png')
                         req = UrlRequest(img['url'],file_path=fp)
-                        adfile=open('artlog.txt','a')
+                        adfile=open(configdir+'/artlog.txt','a')
                         adfile.write(os.path.join(abpath,img['id']+'.png')+"\n")
                         adfile.close()
 
@@ -298,25 +348,12 @@ class ManagerInterface(TabbedPanel):
 
 
 class ManagerApp(App):
-    def build_config(self,config):
-        config.setdefaults('mpd',{
-            'host': '127.0.0.1',
-            'port': 6600,
-            'basepath': '/mnt/music'
-        })
-        config.setdefaults('kivy',{
-            'log_level': 'info',
-            'log_enable': 1,
-            'keyboard_mode': 'systemandmulti'
-        })
-        config.setdefaults('graphics',{
-            'width': 1280,
-            'height': 720
-        })
-        Config.read(self.get_application_config())
-        self.config=config
     def build(self):
-        return ManagerInterface(self.config)
+        # setup some variables that interface.kv will use
+        # this is necessary to support packaging the app
+        self.normalfont = resource_filename(__name__,'resources/DejaVuSans.ttf')
+        self.fontawesomefont = resource_filename(__name__,'resources/FontAwesome.ttf')
+        return ManagerInterface()
 
 if __name__ == '__main__':
     ManagerApp().run()
