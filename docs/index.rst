@@ -3,14 +3,14 @@ Welcome to kmpc's documentation!
 ################################
 
 .. toctree::
-  :maxdepth: 2
+   :maxdepth: 2
 
-  readme
-  install
-  invocation
-  config
-  usingkmpc
-  usingkmpcmanager
+   readme
+   install
+   invocation
+   config
+   usingkmpc
+   usingkmpcmanager
 
 
 
