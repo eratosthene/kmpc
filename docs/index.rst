@@ -11,11 +11,5 @@ Welcome to kmpc's documentation!
    config
    usingkmpc
    usingkmpcmanager
+   changelog
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`search`
