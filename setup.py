@@ -1,4 +1,5 @@
-from setuptools import setup, find_packages
+from setuptools import setup
+
 import kmpc.version
 
 VERSION = ".".join(map(str, kmpc.VERSION))
@@ -19,25 +20,6 @@ along with kmpc.  If not, see <http://www.gnu.org/licenses/>.\
 """
 
 setup(
-    name="kmpc",
     version=VERSION,
-    author="Chris Graham",
-    author_email="eratosthene@gmail.com",
-    packages=find_packages(),
-    package_data={'':['resources/*']},
-    include_package_data=True,
-    entry_points = {
-        'console_scripts': ['kmpc=kmpc.command_line:main_app','kmpcmanager=kmpc.command_line:manager_app'],
-    },
-    url="https://github.com/eratosthene/kmpc",
-    license="GNU Lesser General Public License v3 (LGPLv3)",
-    description="kmpc is a Kivy-based mpd client, primarily meant for use on a Raspberry Pi mounted in a car.",
-    long_description=open('README.rst').read(),
-    install_requires=[
-        "cython == 0.25.*",
-        "kivy == 1.10.*",
-        "twisted == 17.9.*",
-        "mutagen == 1.*",
-        "gitpython == 2.1.*"
-    ],
+    setup_cfg=True,
 )
