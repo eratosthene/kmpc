@@ -26,7 +26,9 @@ setup(
     packages=find_packages(),
     package_data={'':['resources/*']},
     include_package_data=True,
-    scripts=['bin/kmpc','bin/kmpcmanager'],
+    entry_points = {
+        'console_scripts': ['kmpc=kmpc.command_line:main_app','kmpcmanager=kmpc.command_line:manager_app'],
+    },
     url="https://github.com/eratosthene/kmpc",
     license="GNU Lesser General Public License v3 (LGPLv3)",
     description="kmpc is a Kivy-based mpd client, primarily meant for use on a Raspberry Pi mounted in a car.",

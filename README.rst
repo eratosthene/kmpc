@@ -1,9 +1,26 @@
+######
 Readme
-======
+######
 
+**********
 About kmpc
-----------
+**********
 
-kmpc is a `Kivy <https://kivy.org/>`_-based mpd client, primarily meant for use on a Raspberry Pi mounted in a car.
+kmpc is a `Kivy <https://kivy.org/>`_-based mpd client, primarily meant for use on a `Raspberry Pi <https://www.raspberrypi.org/>`_ paired with the `official 7" touchscreen <https://www.raspberrypi.org/products/raspberry-pi-touch-display/>`_ mounted in a car. Using a combination of a fast-booting distro with Kivy installed (such as `KivyPie <http://kivypie.mitako.eu/>`_), it is possible to have music playing in a few seconds after boot, and a GUI touch interface ready to use in a few seconds more. kmpc is meant to run directly on the framebuffer, with no need for X.
 
-Docs can be found on `ReadTheDocs <http://kmpc.readthedocs.io/en/latest/>`_.
+Full documentation can be found on `ReadTheDocs <http://kmpc.readthedocs.io/>`_.
+
+********************
+Runtime requirements
+********************
+
+kmpc depends on the following python packages:
+
+- `Kivy <https://kivy.org/>`_
+- `Twisted <https://github.com/twisted/twisted>`_
+- `mutagen <https://github.com/quodlibet/mutagen>`_
+- `GitPython <https://github.com/gitpython-developers/GitPython>`_
+
+In addition, there must be an `mpd <https://www.musicpd.org/>`_ server running that kmpc can connect to via TCP.
+
+
