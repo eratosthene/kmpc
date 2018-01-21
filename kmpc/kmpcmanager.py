@@ -280,9 +280,10 @@ class ManagerInterface(TabbedPanel):
                         print "downloading hdmusiclogo "+img['id']
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
-                        adfile=open(configdir+'/artlog.txt','a')
-                        adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
-                        adfile.close()
+                        if self.configgetbool('api','artlog'):
+                            adfile=open(configdir+'/artlog.txt','a')
+                            adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
+                            adfile.close()
             if 'musiclogo' in d:
                 try:
                     os.mkdir(lpath)
@@ -293,9 +294,10 @@ class ManagerInterface(TabbedPanel):
                         print "downloading musiclogo "+img['id']
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
-                        adfile=open(configdir+'/artlog.txt','a')
-                        adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
-                        adfile.close()
+                        if self.configgetbool('api','artlog'):
+                            adfile=open(configdir+'/artlog.txt','a')
+                            adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
+                            adfile.close()
             if 'artistbackground' in d:
                 try:
                     os.mkdir(abpath)
@@ -306,9 +308,10 @@ class ManagerInterface(TabbedPanel):
                         print "downloading artistbackground "+img['id']
                         fp=os.path.join(abpath,img['id']+'.png')
                         req = UrlRequest(img['url'],file_path=fp)
-                        adfile=open(configdir+'/artlog.txt','a')
-                        adfile.write(os.path.join(abpath,img['id']+'.png')+"\n")
-                        adfile.close()
+                        if self.configgetbool('api','artlog'):
+                            adfile=open(configdir+'/artlog.txt','a')
+                            adfile.write(os.path.join(abpath,img['id']+'.png')+"\n")
+                            adfile.close()
 
     def pull_art_for_row(self):
         if self.selected_row is not None:

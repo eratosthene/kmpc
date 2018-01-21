@@ -48,6 +48,7 @@ class KmpcHelpers(object):
         config.add_section('api')
         config.set('api','fanarturl','http://webservice.fanart.tv/v3/music/')
         config.set('api','api_key','CHANGEME')
+        config.set('api','artlog','False')
         config.add_section('songratings')
         config.set('songratings','zero','Silence')
         config.set('songratings','one','Songs that should never be heard')
