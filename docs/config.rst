@@ -39,6 +39,8 @@ syncmusicpath
   The path to the music folder on the synchost.
 syncfanartpath
   The path to the fanart folder on the synchost.
+synctmppath
+  Where temporary files should be written on the synchost.
 
 [flags] section
 ---------------
