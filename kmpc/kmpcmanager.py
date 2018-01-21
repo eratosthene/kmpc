@@ -182,9 +182,12 @@ class ManagerInterface(TabbedPanel):
         cachefile.close()
 
     def refresh_artists_from_cache(self):
-        cachefile=open(configdir+'/artist_cache.pkl','r')
-        (self.artist_id_hash,self.artist_name_hash,self.media_hash)=pickle.load(cachefile)
-        cachefile.close()
+        try:
+            cachefile=open(configdir+'/artist_cache.pkl','r')
+            (self.artist_id_hash,self.artist_name_hash,self.media_hash)=pickle.load(cachefile)
+            cachefile.close()
+        except IOError:
+            pass
         self.ids.artist_tab.rv.data=[]
         newdata=[]
         for aid,aname in self.artist_id_hash.iteritems():
