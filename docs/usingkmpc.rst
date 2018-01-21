@@ -23,7 +23,11 @@ explained in following sections.
 Current Track Info
 ==================
 
-Next is the artist name section, which is pulled from the track artist tag.
+The background of this section will be pulled from the fanart directory based
+on the current track artist, if at least one file exists in the
+artistbackground folder for that artist.
+
+First is the artist name section, which is pulled from the track artist tag.
 This will either be rendered in normal text, or a logo image pulled from the
 fanart folder. If there is more than one artist, all artists will be shown.
 
