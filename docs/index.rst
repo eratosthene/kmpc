@@ -7,8 +7,10 @@ Welcome to kmpc's documentation!
 
   readme
   install
-  usage
+  invocation
   config
+  usingkmpc
+  usingkmpcmanager
 
 
 
