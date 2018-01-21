@@ -46,6 +46,7 @@ syncfanartpath
 rpienable
   Set this to ``true`` if you are running this on a Pi and want to control
   Pi-specific features, such as the backlight. Set to ``false`` otherwise.
+  Defaults to ``false``.
 
 [api] section
 -------------
@@ -55,6 +56,10 @@ fanarturl
   don't want to change this. Only used by ``kmpcmanager``.
 api_key
   Set this to your personal fanart.tv API key. Only used by ``kmpcmanager``.
+artlog
+  Whether to generate a file named ``artlog.txt`` in the config dir that
+  contains data about every media file successfully downloaded from fanart.tv.
+  Defaults to ``false``.
 
 [songratings] section
 ---------------------
