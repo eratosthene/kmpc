@@ -1,16 +1,20 @@
+############
 Installation
-============
+############
 
+*****************
 Install from PyPi
------------------
+*****************
+
 ::
   
   pip install kmpc
 
 This should install all dependencies, although you may have trouble if you haven't gotten Kivy set up properly first. Kivy needs a bunch of different libraries installed to support various hardware, so if you are, say, installing this on a Mac, you'll probably want to make sure Kivy is working before installing kmpc. Two executables, ``kivy`` and ``kivymanager`` will be installed.
 
+*******************
 Install from source
--------------------
+*******************
 
 First, make sure Kivy is up and running. I recommend installing `KivyPie <http://kivypie.mitako.eu/>`_ if you are running this on a Pi as it already has Kivy ready to go. You can also simply run::
 
