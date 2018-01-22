@@ -14,26 +14,12 @@ kivy.require('1.10.0')
 
 #install twisted reactor to interface with mpd
 from kivy.support import install_twisted_reactor
-# this try/catch block is specifically because sphinx docs fail otherwise
-try:
-    install_twisted_reactor()
-except AttributeError:
-    pass
+install_twisted_reactor()
 from twisted.internet import reactor, protocol
 from twisted.internet.defer import inlineCallbacks
 
-# import config and set key values before other imports
-from kivy.config import Config
-# this try/catch block is specifically because sphinx docs fail otherwise
-try:
-    Config.set('kivy','log_level','info') # set this to 'debug' to see more verbose debug messages
-    Config.set('kivy','keyboard_mode','systemanddock')
-    Config.set('graphics','width',800)
-    Config.set('graphics','height',480)
-except AttributeError:
-    pass
-
 # import all the other kivy stuff
+from kivy.config import Config
 from kivy.app import App
 from kivy.logger import Logger
 from kivy.graphics import Color,Rectangle
@@ -532,6 +518,13 @@ class KmpcInterface(TabbedPanel):
 
 class KmpcApp(App):
     """The overall app class, builds the main interface widget."""
+
+    def __init__(self,args):
+        """Override kivy config values with necessary ones."""
+        Config.set('kivy','keyboard_mode','systemanddock')
+        Config.set('graphics','width',800)
+        Config.set('graphics','height',480)
+        super(self.__class__,self).__init__()
 
     def build(self):
         """Instantiates KmpcInterface."""

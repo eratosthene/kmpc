@@ -11,7 +11,6 @@ import json
 import subprocess
 import tempfile
 import shutil
-import ConfigParser
 from pkg_resources import resource_filename
 
 # make sure we are on an updated version of kivy
@@ -20,25 +19,11 @@ kivy.require('1.10.0')
 
 #install twisted reactor to interface with mpd
 from kivy.support import install_twisted_reactor
-# this try/catch block is specifically because sphinx docs fail otherwise
-try:
-    install_twisted_reactor()
-except AttributeError:
-    pass
+install_twisted_reactor()
 from twisted.internet import reactor, protocol, task, defer, threads
 
-# import config and set key values before other imports
-from kivy.config import Config
-# this try/catch block is specifically because sphinx docs fail otherwise
-try:
-    Config.set('kivy','log_level','info') # set this to 'debug' to see more verbose debug messages
-    Config.set('graphics','width',1280)
-    Config.set('graphics','height',720)
-    Config.set('kivy','keyboard_mode','system')
-except AttributeError:
-    pass
-
 # import all the other kivy stuff
+from kivy.config import Config
 from kivy.app import App
 from kivy.support import install_twisted_reactor
 from kivy.config import Config
@@ -182,9 +167,12 @@ class ManagerInterface(TabbedPanel):
         cachefile.close()
 
     def refresh_artists_from_cache(self):
-        cachefile=open(configdir+'/artist_cache.pkl','r')
-        (self.artist_id_hash,self.artist_name_hash,self.media_hash)=pickle.load(cachefile)
-        cachefile.close()
+        try:
+            cachefile=open(configdir+'/artist_cache.pkl','r')
+            (self.artist_id_hash,self.artist_name_hash,self.media_hash)=pickle.load(cachefile)
+            cachefile.close()
+        except IOError:
+            pass
         self.ids.artist_tab.rv.data=[]
         newdata=[]
         for aid,aname in self.artist_id_hash.iteritems():
@@ -277,9 +265,10 @@ class ManagerInterface(TabbedPanel):
                         print "downloading hdmusiclogo "+img['id']
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
-                        adfile=open(configdir+'/artlog.txt','a')
-                        adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
-                        adfile.close()
+                        if self.configgetbool('api','artlog'):
+                            adfile=open(configdir+'/artlog.txt','a')
+                            adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
+                            adfile.close()
             if 'musiclogo' in d:
                 try:
                     os.mkdir(lpath)
@@ -290,9 +279,10 @@ class ManagerInterface(TabbedPanel):
                         print "downloading musiclogo "+img['id']
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
-                        adfile=open(configdir+'/artlog.txt','a')
-                        adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
-                        adfile.close()
+                        if self.configgetbool('api','artlog'):
+                            adfile=open(configdir+'/artlog.txt','a')
+                            adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
+                            adfile.close()
             if 'artistbackground' in d:
                 try:
                     os.mkdir(abpath)
@@ -303,9 +293,10 @@ class ManagerInterface(TabbedPanel):
                         print "downloading artistbackground "+img['id']
                         fp=os.path.join(abpath,img['id']+'.png')
                         req = UrlRequest(img['url'],file_path=fp)
-                        adfile=open(configdir+'/artlog.txt','a')
-                        adfile.write(os.path.join(abpath,img['id']+'.png')+"\n")
-                        adfile.close()
+                        if self.configgetbool('api','artlog'):
+                            adfile=open(configdir+'/artlog.txt','a')
+                            adfile.write(os.path.join(abpath,img['id']+'.png')+"\n")
+                            adfile.close()
 
     def pull_art_for_row(self):
         if self.selected_row is not None:
@@ -326,6 +317,13 @@ class ManagerInterface(TabbedPanel):
 
 
 class ManagerApp(App):
+
+    def __init__(self,args):
+        Config.set('graphics','width',1280)
+        Config.set('graphics','height',720)
+        Config.set('kivy','keyboard_mode','system')
+        super(self.__class__,self).__init__()
+
     def build(self):
         config=Helpers.loadconfigfile()
         # setup some variables that interface.kv will use
