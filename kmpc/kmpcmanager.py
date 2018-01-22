@@ -12,6 +12,7 @@ import subprocess
 import tempfile
 import shutil
 from pkg_resources import resource_filename
+import musicbrainzngs
 
 # make sure we are on an updated version of kivy
 import kivy
@@ -53,6 +54,7 @@ from kivy.lang import Builder
 # import our local modules
 from mpdfactory import MPDClientFactory
 from extra import KmpcHelpers
+from version import VERSION, VERSION_STR
 
 # sets the location of the config folder
 configdir = os.path.join(os.path.expanduser('~'),".kmpc")
@@ -111,6 +113,7 @@ class ManagerInterface(TabbedPanel):
         self.wr_hash={}
         self.totaldone=0
         self.selected_row=None
+        musicbrainzngs.set_useragent("kmpcmanager",VERSION_STR,'https://github.com/eratosthene/kmpc')
 
     def mpd_connectionMade(self,protocol):
         self.protocol = protocol
@@ -142,23 +145,21 @@ class ManagerInterface(TabbedPanel):
                     self.wr_hash[aid]=True
 
     def query_mb(self,aid,*largs):
-        base="http://musicbrainz.org/ws/2/artist/"
-        Logger.info("MusicBrainz: querying "+base+aid+"?fmt=json")
-        UrlRequest(req_headers={"User-Agent":"kmpc manager/1.0 ( eratosthene@gmail.com )"},url=base+aid+"?fmt=json",on_success=partial(self.handle_mb_query,aid),on_failure=self.handle_mb_error)
-
-    def handle_mb_query(self,aid,req,mbres):
-        aname=mbres['name']
-        Logger.debug("result from musicbrainz for aid "+aid+": "+aname)
-        self.artist_id_hash[aid]=aname
-        self.artist_name_hash[aname]=aid
-        data = {'artist_id':aid,'artist_name':aname}
-        self.ids.artist_tab.rv.data.append(data)
-        self.ids.artist_tab.rv.refresh_from_data()
-        self.totaldone=self.totaldone+1
-        self.ids.status.text=aid+' ('+str(self.totaldone)+')'
-
-    def handle_mb_error(self,req,result):
-        Logger.error("MusicBrainz: web service error "+format(result))
+        Logger.info("MusicBrainz: get_artist_by_id("+aid+")")
+        try:
+            mbres=musicbrainzngs.get_artist_by_id(aid)
+        except WebServiceError as exc:
+            Logger.error("MusicBrainz: web service error "+format(exc))
+        else:
+            aname=mbres['artist']['name']
+            Logger.debug("result from musicbrainz for aid "+aid+": "+aname)
+            self.artist_id_hash[aid]=aname
+            self.artist_name_hash[aname]=aid
+            data = {'artist_id':aid,'artist_name':aname}
+            self.ids.artist_tab.rv.data.append(data)
+            self.ids.artist_tab.rv.refresh_from_data()
+            self.totaldone=self.totaldone+1
+            self.ids.status.text=aid+' ('+str(self.totaldone)+')'
 
     def write_artists_to_cache(self):
         cachefile=open(os.path.join(configdir,'artist_cache.pkl'),'w')
