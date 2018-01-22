@@ -3,6 +3,19 @@ kmpc Change Log
 ###############
 
 ******************
+0.5.3 - 2018-01-22
+******************
+
+- Fixed fanart.tv to use baked-in developer key and optional client key (`issue
+  #28 <https://github.com/eratosthene/kmpc/issues/28>`_)
+- Fixed paths to use portable path separator instead of '/' (`issue #23
+  <https://github.com/eratosthene/kmpc/issues/23>`_)
+- Changed musicbrainz access to use the musicbrainzngs library (`issue #14
+  <https://github.com/eratosthene/kmpc/issues/14>`_)
+- Pulling art for an artist will no longer re-download logos that have been
+  manually moved to the badge folder
+
+******************
 0.5.2 - 2018-01-21
 ******************
 
