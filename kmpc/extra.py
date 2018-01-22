@@ -43,6 +43,7 @@ class KmpcHelpers(object):
         config.set('sync','synchost','127.0.0.1')
         config.set('sync','syncmusicpath','/mnt/music')
         config.set('sync','syncfanartpath','/mnt/fanart')
+        config.set('sync','synctmppath','/tmp')
         config.add_section('flags')
         config.set('flags','rpienable','False')
         config.add_section('api')
