@@ -47,10 +47,10 @@ from extra import KmpcHelpers,ExtraSlider,ClearButton
 from playlistpanel import PlaylistTabbedPanelItem
 
 # sets the location of the config folder
-configdir = os.path.expanduser('~')+"/.kmpc"
+configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
 # load the interface.kv file
-Builder.load_file(resource_filename(__name__,'resources/interface.kv'))
+Builder.load_file(resource_filename(__name__,os.path.join('resources','interface.kv')))
 
 Helpers=KmpcHelpers()
 
@@ -165,7 +165,7 @@ class KmpcInterface(TabbedPanel):
         self.ids.trackinfo.clear_widgets()
         lbl = Label(text="Playback Stopped")
         self.ids.trackinfo.add_widget(lbl)
-        self.ids.player.canvas.before.add(Rectangle(source=resource_filename(__name__,"resources/backdrop.png"),size=self.ids.player.size,pos=self.ids.player.pos))
+        self.ids.player.canvas.before.add(Rectangle(source=resource_filename(__name__,os.path.join("resources","backdrop.png")),size=self.ids.player.size,pos=self.ids.player.pos))
 
     def update_mpd_status(self,result):
         """Callback when mpd status changes."""
@@ -304,7 +304,7 @@ class KmpcInterface(TabbedPanel):
                     self.ids.player.canvas.before.add(Rectangle(source=os.path.join(ab_path,img_path),size=self.ids.player.size,pos=self.ids.player.pos))
                 except:
                     # update the player background with the default backdrop
-                    self.ids.player.canvas.before.add(Rectangle(source=resource_filename(__name__,"resources/backdrop.png"),size=self.ids.player.size,pos=self.ids.player.pos))
+                    self.ids.player.canvas.before.add(Rectangle(source=resource_filename(__name__,os.path.join("resources","backdrop.png")),size=self.ids.player.size,pos=self.ids.player.pos))
                 if os.path.isfile(p):
                     Logger.debug('NowPlaying: found good file at path '+p)
                     # load up the file to read the tags
@@ -387,7 +387,7 @@ class KmpcInterface(TabbedPanel):
         """Callback for song that has a rating in mpd."""
         Logger.debug('NowPlaying: update_mpd_sticker_rating')
         # make a clear button for the star rating
-        btn = ClearButton(padding_x='10sp',font_name=resource_filename(__name__,'resources/FontAwesome.ttf'),halign='center',valign='middle',markup=True)
+        btn = ClearButton(padding_x='10sp',font_name=resource_filename(__name__,os.path.join('resources','FontAwesome.ttf')),halign='center',valign='middle',markup=True)
         # look up the correct string for the rating
         btn.text = Helpers.songratings(self.config)[result]['stars']
         # bind the popup for setting rating
@@ -400,7 +400,7 @@ class KmpcInterface(TabbedPanel):
         """Callback for song that has no rating in mpd."""
         Logger.debug('NowPlaying: handle_mpd_no_sticker')
         # make a clear button for the star rating
-        btn = ClearButton(padding_x='10sp',font_name=resource_filename(__name__,'resources/FontAwesome.ttf'),halign='center',valign='middle',markup=True)
+        btn = ClearButton(padding_x='10sp',font_name=resource_filename(__name__,os.path.join('resources','FontAwesome.ttf')),halign='center',valign='middle',markup=True)
         # set the string to the circled question mark icon
         btn.text = u"\uf29c"
         # bind the popup for setting rating
@@ -470,7 +470,7 @@ class KmpcInterface(TabbedPanel):
         # loop from 0-10
         for r in list(range(0,11)):
             # make a button
-            btn=Button(font_name=resource_filename(__name__,'resources/FontAwesome.ttf'))
+            btn=Button(font_name=resource_filename(__name__,os.path.join('resources','FontAwesome.ttf')))
             # look up the correct string for the rating
             btn.text=Helpers.songratings(self.config)[str(r)]['stars']
             # set some widget variables
@@ -530,16 +530,16 @@ class KmpcApp(App):
         """Instantiates KmpcInterface."""
         # setup some variables that interface.kv will use
         # this is necessary to support packaging the app
-        self.normalfont = resource_filename(__name__,'resources/DejaVuSans.ttf')
-        self.boldfont = resource_filename(__name__,'resources/DejaVuSans-Bold.ttf')
-        self.fontawesomefont = resource_filename(__name__,'resources/FontAwesome.ttf')
-        self.buttonnormal = resource_filename(__name__,'resources/button-normal.png')
-        self.buttondown = resource_filename(__name__,'resources/button-down.png')
-        self.clear = resource_filename(__name__,'resources/clear.png')
-        self.backdrop = resource_filename(__name__,'resources/backdrop.png')
-        self.listbackdrop = resource_filename(__name__,'resources/list-backdrop.png')
-        self.listbackdropselected = resource_filename(__name__,'resources/list-backdrop-selected.png')
-        self.trackslidercursor = resource_filename(__name__,'resources/track-slider-cursor.png')
+        self.normalfont = resource_filename(__name__,os.path.join('resources','DejaVuSans.ttf'))
+        self.boldfont = resource_filename(__name__,os.path.join('resources','DejaVuSans-Bold.ttf'))
+        self.fontawesomefont = resource_filename(__name__,os.path.join('resources','FontAwesome.ttf'))
+        self.buttonnormal = resource_filename(__name__,os.path.join('resources','button-normal.png'))
+        self.buttondown = resource_filename(__name__,os.path.join('resources','button-down.png'))
+        self.clear = resource_filename(__name__,os.path.join('resources','clear.png'))
+        self.backdrop = resource_filename(__name__,os.path.join('resources','backdrop.png'))
+        self.listbackdrop = resource_filename(__name__,os.path.join('resources','list-backdrop.png'))
+        self.listbackdropselected = resource_filename(__name__,os.path.join('resources','list-backdrop-selected.png'))
+        self.trackslidercursor = resource_filename(__name__,os.path.join('resources','track-slider-cursor.png'))
         return KmpcInterface()
 
 class InfoLargeLabel(Label):
