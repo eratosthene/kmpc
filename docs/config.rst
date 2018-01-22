@@ -50,18 +50,20 @@ rpienable
   Pi-specific features, such as the backlight. Set to ``false`` otherwise.
   Defaults to ``false``.
 
-[api] section
--------------
+[logs] section
+--------------
 
-fanarturl
-  Url to the fanart.tv API. Set to the correct thing by default, you probably
-  don't want to change this. Only used by ``kmpcmanager``.
-api_key
-  Set this to your personal fanart.tv API key. Only used by ``kmpcmanager``.
 artlog
   Whether to generate a file named ``artlog.txt`` in the config dir that
   contains data about every media file successfully downloaded from fanart.tv.
   Defaults to ``false``.
+
+[fanart] section
+----------------
+
+client_key
+  Your personal client key for fanart.tv. This is not necessary, but helps them
+  out if you use it.
 
 [songratings] section
 ---------------------

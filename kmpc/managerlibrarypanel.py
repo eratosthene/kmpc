@@ -179,19 +179,19 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
     def set_copy_flag_find(self,copy_flag,index,result):
         for rrow in result:
             if copy_flag:
-                print "setting copy_flag to "+copy_flag+" for file "+rrow['file']
+                Logger.debug("set_copy_flag_find: setting copy_flag to "+copy_flag+" for file "+rrow['file'])
                 self.protocol.sticker_set('song',rrow['file'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
             else:
-                print "clearing copy_flag for file "+rrow['file']
+                Logger.debug("set_copy_flag_find: clearing copy_flag for file "+rrow['file'])
                 self.protocol.sticker_delete('song',rrow['file'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
 
     def set_copy_flag_find_one(self,copy_flag,index,result):
         for rrow in result:
             if copy_flag:
-                print "setting copy_flag to "+copy_flag+" for file "+rrow['file']
+                Logger.debug("set_copy_flag_find_one: setting copy_flag to "+copy_flag+" for file "+rrow['file'])
                 self.protocol.sticker_set('song',rrow['file'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
             else:
-                print "clearing copy_flag for file "+rrow['file']
+                Logger.debug("set_copy_flag_find_one: clearing copy_flag for file "+rrow['file'])
                 self.protocol.sticker_delete('song',rrow['file'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
             break
 
@@ -202,12 +202,12 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
             mtype=row['info']['type']
             Logger.info("Library: Setting copy_flag for "+mtype+" '"+row['base']+"' to "+copy_flag)
             if mtype == 'file':
-                print "adding uri or file"
+                Logger.debug("set_copy_flag: adding uri or file")
                 if copy_flag:
-                    print "setting copy_flag to "+copy_flag+" for file "+row['base']
+                    Logger.debug("set_copy_flag: setting copy_flag to "+copy_flag+" for file "+row['base'])
                     self.protocol.sticker_set('song',row['base'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
                 else:
-                    print "clearing copy_flag for file "+row['base']
+                    Logger.debug("set_copy_flag: clearing copy_flag for file "+row['base'])
                     self.protocol.sticker_delete('song',row['base'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
             elif mtype == 'albumartistsort':
                 self.protocol.find(mtype,row['base']).addCallback(partial(self.set_copy_flag_find,copy_flag,index)).addErrback(self.handle_mpd_error)
