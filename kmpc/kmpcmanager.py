@@ -26,7 +26,6 @@ from twisted.internet import reactor, protocol, task, defer, threads
 from kivy.config import Config
 from kivy.app import App
 from kivy.support import install_twisted_reactor
-from kivy.config import Config
 from kivy.logger import Logger
 from kivy.graphics import Color,Rectangle
 from kivy.core.image import Image as CoreImage
@@ -56,10 +55,10 @@ from mpdfactory import MPDClientFactory
 from extra import KmpcHelpers
 
 # sets the location of the config folder
-configdir = os.path.expanduser('~')+"/.kmpc"
+configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
 # load the manager.kv file
-Builder.load_file(resource_filename(__name__,'resources/manager.kv'))
+Builder.load_file(resource_filename(__name__,os.path.join('resources','manager.kv')))
 
 Helpers=KmpcHelpers()
 
@@ -162,13 +161,13 @@ class ManagerInterface(TabbedPanel):
         Logger.error("MusicBrainz: web service error "+format(result))
 
     def write_artists_to_cache(self):
-        cachefile=open(configdir+'/artist_cache.pkl','w')
+        cachefile=open(os.path.join(configdir,'artist_cache.pkl'),'w')
         pickle.dump((self.artist_id_hash,self.artist_name_hash,self.media_hash),cachefile,-1)
         cachefile.close()
 
     def refresh_artists_from_cache(self):
         try:
-            cachefile=open(configdir+'/artist_cache.pkl','r')
+            cachefile=open(os.path.join(configdir,'artist_cache.pkl'),'r')
             (self.artist_id_hash,self.artist_name_hash,self.media_hash)=pickle.load(cachefile)
             cachefile.close()
         except IOError:
@@ -251,7 +250,7 @@ class ManagerInterface(TabbedPanel):
             try:
                 print "downloading to "+fapath
                 os.mkdir(fapath)
-                with open(os.path.join(fapath,"__"+aname.replace('/','_')+"__"),'w'):
+                with open(os.path.join(fapath,"__"+aname.replace(os.sep,'_')+"__"),'w'):
                     pass
             except OSError:
                 pass
@@ -266,7 +265,7 @@ class ManagerInterface(TabbedPanel):
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
                         if self.configgetbool('api','artlog'):
-                            adfile=open(configdir+'/artlog.txt','a')
+                            adfile=open(os.path.join(configdir,'artlog.txt'),'a')
                             adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
                             adfile.close()
             if 'musiclogo' in d:
@@ -280,7 +279,7 @@ class ManagerInterface(TabbedPanel):
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
                         if self.configgetbool('api','artlog'):
-                            adfile=open(configdir+'/artlog.txt','a')
+                            adfile=open(os.path.join(configdir,'artlog.txt'),'a')
                             adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
                             adfile.close()
             if 'artistbackground' in d:
@@ -294,7 +293,7 @@ class ManagerInterface(TabbedPanel):
                         fp=os.path.join(abpath,img['id']+'.png')
                         req = UrlRequest(img['url'],file_path=fp)
                         if self.configgetbool('api','artlog'):
-                            adfile=open(configdir+'/artlog.txt','a')
+                            adfile=open(os.path.join(configdir,'artlog.txt'),'a')
                             adfile.write(os.path.join(abpath,img['id']+'.png')+"\n")
                             adfile.close()
 
@@ -329,8 +328,8 @@ class ManagerApp(App):
         # setup some variables that interface.kv will use
         # this is necessary to support packaging the app
         self.songratings = Helpers.songratings(config)
-        self.normalfont = resource_filename(__name__,'resources/DejaVuSans.ttf')
-        self.fontawesomefont = resource_filename(__name__,'resources/FontAwesome.ttf')
+        self.normalfont = resource_filename(__name__,os.path.join('resources','DejaVuSans.ttf'))
+        self.fontawesomefont = resource_filename(__name__,os.path.join('resources','FontAwesome.ttf'))
         return ManagerInterface(config)
 
 if __name__ == '__main__':
