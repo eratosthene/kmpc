@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "99473436ef6babfc5498c1833413cb64e99c6962a2aee0b29ffa20983890b332"
+            "sha256": "eb97bc51744082ee0430ddba0f2a048826035cad5c787c669757c28a35dae283"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -125,6 +125,12 @@
                 "sha256:9b7d9de5efacbcd0c4b3dd873b30622a86093c9965aa47b523c7a32f3eb34610"
             ],
             "version": "==0.1.4"
+        },
+        "musicbrainzngs": {
+            "hashes": [
+                "sha256:28ef261a421dffde0a25281dab1ab214e1b407eec568cd05a53e73256f56adb5"
+            ],
+            "version": "==0.6"
         },
         "mutagen": {
             "hashes": [

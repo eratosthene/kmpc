@@ -8,7 +8,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.slider import Slider
 
 # sets the location of the config folder
-configdir = os.path.expanduser('~')+"/.kmpc"
+configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
 class KmpcHelpers(object):
 
@@ -46,10 +46,10 @@ class KmpcHelpers(object):
         config.set('sync','synctmppath','/tmp')
         config.add_section('flags')
         config.set('flags','rpienable','False')
-        config.add_section('api')
-        config.set('api','fanarturl','http://webservice.fanart.tv/v3/music/')
-        config.set('api','api_key','CHANGEME')
-        config.set('api','artlog','False')
+        config.add_section('logs')
+        config.set('logs','artlog','False')
+        config.add_section('fanart')
+        config.set('fanart','client_key','')
         config.add_section('songratings')
         config.set('songratings','zero','Silence')
         config.set('songratings','one','Songs that should never be heard')
@@ -65,14 +65,14 @@ class KmpcHelpers(object):
         # check if config folder exists
         if os.path.isdir(configdir):
             # try to read existing config file
-            config.read([configdir+'/config.ini'])
+            config.read([os.path.join(configdir,'config.ini')])
             # write out config file in case it doesn't exist yet
-            with open(configdir+'/config.ini','wb') as cf:
+            with open(os.path.join(configdir,'config.ini'),'wb') as cf:
                 config.write(cf)
         else:
             os.mkdir(configdir)
             # write out config file
-            with open(configdir+'/config.ini','wb') as cf:
+            with open(os.path.join(configdir,'config.ini'),'wb') as cf:
                 config.write(cf)
         # return the generated config
         return config

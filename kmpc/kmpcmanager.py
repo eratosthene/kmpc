@@ -12,6 +12,7 @@ import subprocess
 import tempfile
 import shutil
 from pkg_resources import resource_filename
+import musicbrainzngs
 
 # make sure we are on an updated version of kivy
 import kivy
@@ -26,7 +27,6 @@ from twisted.internet import reactor, protocol, task, defer, threads
 from kivy.config import Config
 from kivy.app import App
 from kivy.support import install_twisted_reactor
-from kivy.config import Config
 from kivy.logger import Logger
 from kivy.graphics import Color,Rectangle
 from kivy.core.image import Image as CoreImage
@@ -54,12 +54,13 @@ from kivy.lang import Builder
 # import our local modules
 from mpdfactory import MPDClientFactory
 from extra import KmpcHelpers
+from version import VERSION, VERSION_STR
 
 # sets the location of the config folder
-configdir = os.path.expanduser('~')+"/.kmpc"
+configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
 # load the manager.kv file
-Builder.load_file(resource_filename(__name__,'resources/manager.kv'))
+Builder.load_file(resource_filename(__name__,os.path.join('resources','manager.kv')))
 
 Helpers=KmpcHelpers()
 
@@ -112,6 +113,9 @@ class ManagerInterface(TabbedPanel):
         self.wr_hash={}
         self.totaldone=0
         self.selected_row=None
+        musicbrainzngs.set_useragent("kmpcmanager",VERSION_STR,'https://github.com/eratosthene/kmpc')
+        self.fanarturl="http://webservice.fanart.tv/v3/music/"
+        self.api_key="406b2a5af85c14b819c1c6332354b313"
 
     def mpd_connectionMade(self,protocol):
         self.protocol = protocol
@@ -143,32 +147,30 @@ class ManagerInterface(TabbedPanel):
                     self.wr_hash[aid]=True
 
     def query_mb(self,aid,*largs):
-        base="http://musicbrainz.org/ws/2/artist/"
-        Logger.info("MusicBrainz: querying "+base+aid+"?fmt=json")
-        UrlRequest(req_headers={"User-Agent":"kmpc manager/1.0 ( eratosthene@gmail.com )"},url=base+aid+"?fmt=json",on_success=partial(self.handle_mb_query,aid),on_failure=self.handle_mb_error)
-
-    def handle_mb_query(self,aid,req,mbres):
-        aname=mbres['name']
-        Logger.debug("result from musicbrainz for aid "+aid+": "+aname)
-        self.artist_id_hash[aid]=aname
-        self.artist_name_hash[aname]=aid
-        data = {'artist_id':aid,'artist_name':aname}
-        self.ids.artist_tab.rv.data.append(data)
-        self.ids.artist_tab.rv.refresh_from_data()
-        self.totaldone=self.totaldone+1
-        self.ids.status.text=aid+' ('+str(self.totaldone)+')'
-
-    def handle_mb_error(self,req,result):
-        Logger.error("MusicBrainz: web service error "+format(result))
+        Logger.info("MusicBrainz: get_artist_by_id("+aid+")")
+        try:
+            mbres=musicbrainzngs.get_artist_by_id(aid)
+        except WebServiceError as exc:
+            Logger.error("MusicBrainz: web service error "+format(exc))
+        else:
+            aname=mbres['artist']['name']
+            Logger.debug("query_mb: result from musicbrainz for aid "+aid+": "+aname)
+            self.artist_id_hash[aid]=aname
+            self.artist_name_hash[aname]=aid
+            data = {'artist_id':aid,'artist_name':aname}
+            self.ids.artist_tab.rv.data.append(data)
+            self.ids.artist_tab.rv.refresh_from_data()
+            self.totaldone=self.totaldone+1
+            self.ids.status.text=aid+' ('+str(self.totaldone)+')'
 
     def write_artists_to_cache(self):
-        cachefile=open(configdir+'/artist_cache.pkl','w')
+        cachefile=open(os.path.join(configdir,'artist_cache.pkl'),'w')
         pickle.dump((self.artist_id_hash,self.artist_name_hash,self.media_hash),cachefile,-1)
         cachefile.close()
 
     def refresh_artists_from_cache(self):
         try:
-            cachefile=open(configdir+'/artist_cache.pkl','r')
+            cachefile=open(os.path.join(configdir,'artist_cache.pkl'),'r')
             (self.artist_id_hash,self.artist_name_hash,self.media_hash)=pickle.load(cachefile)
             cachefile.close()
         except IOError:
@@ -221,8 +223,8 @@ class ManagerInterface(TabbedPanel):
     def trim_image(self,filename,request,result):
         tdir=tempfile.mkdtemp()
         tf1=os.path.join(tdir,'tf1.png')
-        print "fixing "+filename
-        print "using tfile "+tf1
+        Logger.debug("trim_image: fixing "+filename)
+        Logger.debug("trim_image: using tfile "+tf1)
         subprocess.call(['convert',filename,'-bordercolor','none','-border','10x10',tf1])
         subprocess.call(['convert',tf1,'-trim','+repage',filename])
         shutil.rmtree(tdir)
@@ -232,26 +234,29 @@ class ManagerInterface(TabbedPanel):
         aid=self.ids.artist_tab.rv.data[index]['artist_id']
         aname=self.ids.artist_tab.rv.data[index]['artist_name']
         fa_path=self.config.get('paths','fanartpath')
-        fanart=self.config.get('api','fanarturl')
-        api_key=self.config.get('api','api_key')
-        print fanart+aid+"?api_key="+api_key
-        request = UrlRequest(url=fanart+aid+"?api_key="+api_key,on_success=partial(self.pull_art2,index))
+        fanart=self.fanarturl
+        api_key=self.api_key
+        furl=fanart+aid+"?api_key="+api_key
+        client_key=self.config.get('fanart','client_key')
+        if client_key:
+            furl=furl+"&client_key="+client_key
+        Logger.debug("pull_art: querying "+furl)
+        request = UrlRequest(url=furl,on_success=partial(self.pull_art2,index))
 
     def pull_art2(self,index,request,result):
         aid=self.ids.artist_tab.rv.data[index]['artist_id']
         aname=self.ids.artist_tab.rv.data[index]['artist_name']
         fa_path=self.config.get('paths','fanartpath')
-        fanart=self.config.get('api','fanarturl')
-        api_key=self.config.get('api','api_key')
         d=result
         if 'hdmusiclogo' in d or 'artistbackground' in d or 'musiclogo' in d:
             fapath=os.path.join(fa_path,aid)
             lpath=os.path.join(fapath,"logo")
             abpath=os.path.join(fapath,"artistbackground")
+            bpath=os.path.join(fapath,"badge")
             try:
-                print "downloading to "+fapath
+                Logger.debug("pull_art2: downloading to "+fapath)
                 os.mkdir(fapath)
-                with open(os.path.join(fapath,"__"+aname.replace('/','_')+"__"),'w'):
+                with open(os.path.join(fapath,"__"+aname.replace(os.sep,'_')+"__"),'w'):
                     pass
             except OSError:
                 pass
@@ -261,12 +266,12 @@ class ManagerInterface(TabbedPanel):
                 except OSError:
                     pass
                 for idx,img in enumerate(d['hdmusiclogo']):
-                    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')):
-                        print "downloading hdmusiclogo "+img['id']
+                    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')) and not os.path.isfile(os.path.join(bpath,img['id']+'.png')):
+                        Logger.debug("pull_art2: downloading hdmusiclogo "+img['id'])
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
-                        if self.configgetbool('api','artlog'):
-                            adfile=open(configdir+'/artlog.txt','a')
+                        if self.config.getboolean('logs','artlog'):
+                            adfile=open(os.path.join(configdir,'artlog.txt'),'a')
                             adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
                             adfile.close()
             if 'musiclogo' in d:
@@ -275,12 +280,12 @@ class ManagerInterface(TabbedPanel):
                 except OSError:
                     pass
                 for idx,img in enumerate(d['musiclogo']):
-                    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')):
-                        print "downloading musiclogo "+img['id']
+                    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')) and not os.path.isfile(os.path.join(bpath,img['id']+'.png')):
+                        Logger.debug("pull_art2: downloading musiclogo "+img['id'])
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
-                        if self.configgetbool('api','artlog'):
-                            adfile=open(configdir+'/artlog.txt','a')
+                        if self.config.getboolean('logs','artlog'):
+                            adfile=open(os.path.join(configdir,'artlog.txt'),'a')
                             adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
                             adfile.close()
             if 'artistbackground' in d:
@@ -290,11 +295,11 @@ class ManagerInterface(TabbedPanel):
                     pass
                 for idx,img in enumerate(d['artistbackground']):
                     if not os.path.isfile(os.path.join(abpath,img['id']+'.png')):
-                        print "downloading artistbackground "+img['id']
+                        Logger.debug("pull_art2: downloading artistbackground "+img['id'])
                         fp=os.path.join(abpath,img['id']+'.png')
                         req = UrlRequest(img['url'],file_path=fp)
-                        if self.configgetbool('api','artlog'):
-                            adfile=open(configdir+'/artlog.txt','a')
+                        if self.config.getboolean('logs','artlog'):
+                            adfile=open(os.path.join(configdir,'artlog.txt'),'a')
                             adfile.write(os.path.join(abpath,img['id']+'.png')+"\n")
                             adfile.close()
 
@@ -329,8 +334,8 @@ class ManagerApp(App):
         # setup some variables that interface.kv will use
         # this is necessary to support packaging the app
         self.songratings = Helpers.songratings(config)
-        self.normalfont = resource_filename(__name__,'resources/DejaVuSans.ttf')
-        self.fontawesomefont = resource_filename(__name__,'resources/FontAwesome.ttf')
+        self.normalfont = resource_filename(__name__,os.path.join('resources','DejaVuSans.ttf'))
+        self.fontawesomefont = resource_filename(__name__,os.path.join('resources','FontAwesome.ttf'))
         return ManagerInterface(config)
 
 if __name__ == '__main__':

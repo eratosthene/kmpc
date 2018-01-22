@@ -118,9 +118,9 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         try:
             call(['sudo','cp',tpath,'/var/lib/mpd/playlists/root.m3u'])
             os.remove(tpath)
-            os.remove(App.get_running_app().root.config.get('paths','tmppath')+'/sticker.sql')
-            os.remove(App.get_running_app().root.config.get('paths','tmppath')+'/scmd')
-            os.remove(App.get_running_app().root.config.get('paths','tmppath')+'/sync.sh')
+            os.remove(os.path.join(App.get_running_app().root.config.get('paths','tmppath'),'sticker.sql'))
+            os.remove(os.path.join(App.get_running_app().root.config.get('paths','tmppath'),'scmd'))
+            os.remove(os.path.join(App.get_running_app().root.config.get('paths','tmppath'),'sync.sh'))
             call(['ssh',synchost,'rm','-f',App.get_running_app().root.config.get('sync','synctmppath')+'/sticker.sql'])
             call(['ssh',synchost,'rm','-f',App.get_running_app().root.config.get('sync','synctmppath')+'/scmd'])
         except:
@@ -151,7 +151,7 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         popup.open()
         # temp file for the rsync, probably a better way to do this
         # this file describes exactly what songs should exist on the host, no more, no less
-        tpath=App.get_running_app().root.config.get('paths','tmppath')+"/rsync.inc"
+        tpath=os.path.join(App.get_running_app().root.config.get('paths','tmppath'),"rsync.inc")
         # look in the ini file for all the relevant paths
         synchost = App.get_running_app().root.config.get('sync','synchost')
         syncbasepath = App.get_running_app().root.config.get('sync','syncmusicpath')
@@ -193,7 +193,7 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
                         os.remove(apath)
         # TODO: somehow do this all in python instead of shell script, it's ugly
         # also, if the host somehow has tmppath mounted with the no-execute bit set, this will fail
-        with open(App.get_running_app().root.config.get('paths','tmppath')+'/sync.sh','w') as sfile:
+        with open(os.path.join(App.get_running_app().root.config.get('paths','tmppath'),'sync.sh'),'w') as sfile:
             sfile.write("#!/bin/bash\n")
             # delete all empty directories
             sfile.write('find "'+basepath+'" -type d -empty -delete 2>/dev/null\n')
@@ -202,35 +202,38 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
             # copy the car sticker database to the synchost
             sfile.write('scp /var/lib/mpd/sticker.sql '+synchost+':'+App.get_running_app().root.config.get('sync','synctmppath')+'\n')
             # build a secondary shell script to perform the sticker update on the synchost
-            with open(App.get_running_app().root.config.get('paths','tmppath')+'/scmd','w') as f:
+            with open(os.path.join(App.get_running_app().root.config.get('paths','tmppath'),'scmd'),'w') as f:
                 # attach the copied database and merge sticker data from it to update ratings user has added in the car
+                # not using os.path.join here since who knows what os the synchost uses...use linux
                 f.write("attach database \""+App.get_running_app().root.config.get('sync','synctmppath')+"/sticker.sql\" as carpi;\n")
                 f.write("replace into sticker select * from carpi.sticker;\n")
                 f.write("replace into carpi.sticker select * from sticker where name='rating';\n")
                 f.write(".quit\n")
             # copy secondary script to synchost and run it
-            sfile.write('scp '+App.get_running_app().root.config.get('paths','tmppath')+'/scmd '+synchost+':'+App.get_running_app().root.config.get('sync','synctmppath')+'\n')
+            sfile.write('scp '+os.path.join(App.get_running_app().root.config.get('paths','tmppath'),'scmd')+' '+synchost+':'+App.get_running_app().root.config.get('sync','synctmppath')+'\n')
+            # not using os.path.join here since who knows what os the synchost uses...use linux
             sfile.write('ssh -t '+synchost+' sudo sqlite3 /var/lib/mpd/sticker.sql < '+App.get_running_app().root.config.get('sync','synctmppath')+'/scmd\n')
             # copy the now updated sticker database back from the synchost
+            # not using os.path.join here since who knows what os the synchost uses...use linux
             sfile.write('scp '+synchost+':'+App.get_running_app().root.config.get('sync','synctmppath')+'/sticker.sql '+App.get_running_app().root.config.get('paths','tmppath')+'\n')
             # build a secondary shell script to perform the sticker update on the host
-            with open(App.get_running_app().root.config.get('paths','tmppath')+'/scmd','w') as f:
+            with open(os.path.join(App.get_running_app().root.config.get('paths','tmppath'),'scmd'),'w') as f:
                 # attach the copied database and merge sticker data from it to update ratings user has added at home
-                f.write("attach database \""+App.get_running_app().root.config.get('paths','tmppath')+"/sticker.sql\" as carpi;\n")
+                f.write("attach database \""+os.path.join(App.get_running_app().root.config.get('paths','tmppath'),"sticker.sql")+"\" as carpi;\n")
                 f.write("replace into sticker select * from carpi.sticker;\n")
                 f.write(".quit\n")
             # run the secondary script
-            sfile.write('cat '+App.get_running_app().root.config.get('paths','tmppath')+'/scmd | sudo sqlite3 /var/lib/mpd/sticker.sql\n')
+            sfile.write('cat '+os.path.join(App.get_running_app().root.config.get('paths','tmppath'),'scmd')+' | sudo sqlite3 /var/lib/mpd/sticker.sql\n')
             # rsync over all the fanart
             sfile.write('rsync -vruxhm '+synchost+':"'+syncfanartpath+'"/ "'+fanartpath+'"\n')
             # tell mpd about any changes
             sfile.write("mpc update\n")
         # make the shell script executable
-        os.chmod(App.get_running_app().root.config.get('paths','tmppath')+'/sync.sh',os.stat(App.get_running_app().root.config.get('paths','tmppath')+'/sync.sh').st_mode|0111)
+        os.chmod(os.path.join(App.get_running_app().root.config.get('paths','tmppath'),'sync.sh'),os.stat(os.path.join(App.get_running_app().root.config.get('paths','tmppath'),'sync.sh')).st_mode|0111)
         # queue for holding stdout
         q = Queue()
         # create a subprocess for the shell script and capture stdout
-        p = Popen([App.get_running_app().root.config.get('paths','tmppath')+'/sync.sh'],stdout=PIPE,bufsize=1,close_fds=True)
+        p = Popen([os.path.join(App.get_running_app().root.config.get('paths','tmppath'),'sync.sh')],stdout=PIPE,bufsize=1,close_fds=True)
         # check the stdout queue every .1 seconds and write lines to the scrollview if there is output
         event=Clock.schedule_interval(partial(self.write_queue_line,q,layout,sv),0.1)
         # run all this crap in a separate thread to be non-blocking

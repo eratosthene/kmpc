@@ -18,13 +18,14 @@ from kivy.uix.popup import Popup
 from copy import deepcopy
 from functools import partial
 import os
+from pkg_resources import resource_filename
 
 from extra import KmpcHelpers
 
 Helpers=KmpcHelpers()
 
 # sets the location of the config folder
-configdir = os.path.expanduser('~')+"/.kmpc"
+configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
 class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
     current_view = {'value': 'root', 'base':'/','info':{'type':'uri'}}
@@ -89,7 +90,7 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
                 (b1,b2)=os.path.split(hbase)
                 if b2 == '':
                     b2 = 'root'
-                upbase=os.path.normpath(self.current_view['base']+'/..')
+                upbase=os.path.normpath(self.current_view['base']+os.sep+'..')
                 if upbase == '.':
                     upbase = '/'
                 r = {'value':"up to "+b2,'base':upbase,'info':{'type':'uri'},'copy_flag':'','rating':''}
@@ -178,19 +179,19 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
     def set_copy_flag_find(self,copy_flag,index,result):
         for rrow in result:
             if copy_flag:
-                print "setting copy_flag to "+copy_flag+" for file "+rrow['file']
+                Logger.debug("set_copy_flag_find: setting copy_flag to "+copy_flag+" for file "+rrow['file'])
                 self.protocol.sticker_set('song',rrow['file'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
             else:
-                print "clearing copy_flag for file "+rrow['file']
+                Logger.debug("set_copy_flag_find: clearing copy_flag for file "+rrow['file'])
                 self.protocol.sticker_delete('song',rrow['file'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
 
     def set_copy_flag_find_one(self,copy_flag,index,result):
         for rrow in result:
             if copy_flag:
-                print "setting copy_flag to "+copy_flag+" for file "+rrow['file']
+                Logger.debug("set_copy_flag_find_one: setting copy_flag to "+copy_flag+" for file "+rrow['file'])
                 self.protocol.sticker_set('song',rrow['file'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
             else:
-                print "clearing copy_flag for file "+rrow['file']
+                Logger.debug("set_copy_flag_find_one: clearing copy_flag for file "+rrow['file'])
                 self.protocol.sticker_delete('song',rrow['file'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
             break
 
@@ -201,12 +202,12 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
             mtype=row['info']['type']
             Logger.info("Library: Setting copy_flag for "+mtype+" '"+row['base']+"' to "+copy_flag)
             if mtype == 'file':
-                print "adding uri or file"
+                Logger.debug("set_copy_flag: adding uri or file")
                 if copy_flag:
-                    print "setting copy_flag to "+copy_flag+" for file "+row['base']
+                    Logger.debug("set_copy_flag: setting copy_flag to "+copy_flag+" for file "+row['base'])
                     self.protocol.sticker_set('song',row['base'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
                 else:
-                    print "clearing copy_flag for file "+row['base']
+                    Logger.debug("set_copy_flag: clearing copy_flag for file "+row['base'])
                     self.protocol.sticker_delete('song',row['base'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
             elif mtype == 'albumartistsort':
                 self.protocol.find(mtype,row['base']).addCallback(partial(self.set_copy_flag_find,copy_flag,index)).addErrback(self.handle_mpd_error)
@@ -240,7 +241,7 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
         Logger.info(ltype+': generating with minimum stars '+self.ids.minimum_stars.text)
         if ltype=='rsync':
             self.rsync_data={}
-            self.rsync_file=open(configdir+'/rsync.inc','w')
+            self.rsync_file=open(os.path.join(configdir,'rsync.inc'),'w')
         self.protocol.listallinfo('/').addCallback(partial(self.generate_list2,ltype)).addErrback(self.handle_mpd_error)
 
     def generate_list2(self,ltype,result):
@@ -290,13 +291,13 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
         layout = GridLayout(cols=2,spacing=10)
         popup = Popup(title='Rating',content=layout,size_hint=(0.8,1))
         for r in list(range(0,11)):
-            btn=Button(font_name='../kmpc/resources/FontAwesome.ttf')
-            btn.text=Helpers.songratings(App.get_running_app().config)[str(r)]['stars']
+            btn=Button(font_name=resource_filename(__name__,os.path.join('resources','FontAwesome.ttf')))
+            btn.text=App.get_running_app().songratings[str(r)]['stars']
             btn.rating=str(r)
             btn.popup=popup
             layout.add_widget(btn)
             btn.bind(on_press=partial(App.get_running_app().root.ids.library_tab.rating_set,instance.base,self.index))
-            lbl=Label(text=Helpers.songratings(App.get_running_app().config)[str(r)]['meaning'],halign='left')
+            lbl=Label(text=App.get_running_app().songratings[str(r)]['meaning'],halign='left')
             layout.add_widget(lbl)
         popup.open()
 
