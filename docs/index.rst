@@ -11,5 +11,6 @@ Welcome to kmpc's documentation!
    config
    usingkmpc
    usingkmpcmanager
+   kivypie
    changelog
 
