@@ -28,8 +28,8 @@ from kmpc.mpd.base import ProtocolError
 from kmpc.mpd.base import VERSION
 
 try:
-    from mpd.twisted import MPDProtocol
+    from kmpc.mpd.twisted import MPDProtocol
 except ImportError:
     class MPDProtocol:
-        def __init__():
+        def __init__(self):
             raise "No twisted module found"

@@ -2,7 +2,7 @@ import kivy
 kivy.require('1.10.0')
 from kivy.app import App
 from kivy.logger import Logger
-from mpd import MPDProtocol
+from kmpc.mpd import MPDProtocol
 from twisted.internet import protocol
 
 class MPDFactoryProtocol(MPDProtocol):
