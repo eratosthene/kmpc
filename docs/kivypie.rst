@@ -1,3 +1,5 @@
+.. _kivypie:
+
 #########################
 Car Installation Tutorial
 #########################
@@ -128,7 +130,7 @@ Step 3: Set up mpd
 Step 4: Add fanart (optional)
 *****************************
 
-The directory structure for fanart is as follows, with *fanartpath* as the
+The directory structure for fanart is as follows, with *\<fanartpath\>* as the
 root folder::
 
   fanartpath
@@ -160,6 +162,24 @@ root folder::
           └── 154355.png
 
 Once you've added some art, edit the file ``~/.kmpc/config.ini`` and change the
-``fanartpath`` variable to *fanartpath*, then restart kmpc. You should now see
+``fanartpath`` variable to *\<fanartpath\>*, then restart kmpc. You should now see
 logos and background images for the artists that have images in the fanart
 folder.
+
+*****************************
+Step 5: Setup Sync (optional)
+*****************************
+
+See the section on :ref:`usingkmpcmanager` to learn how the manager program
+interacts with the synchost. The basic gist of it is this:
+
+#. Have a Linux box running in your house, connected the same wifi that the car
+   Pi will be able to connect to. This will be called the *synchost*.
+#. Have mpd running on it, and fully updated.
+#. Use ``kmpcmanager`` to automatically download all the fanart and manage the
+   ratings and copy_flags for all your tracks.
+#. Edit the file ``~/.kmpc/config.ini`` on your car Pi and change the variables
+   in the [synchost] section. See the section on :ref:`config` for details.
+
+Now you should be able to use the Sync button in the Config tab to
+automatically sync all music, fanart, and song ratings with the *synchost*.
