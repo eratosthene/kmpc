@@ -1,3 +1,5 @@
+.. _usingkmpcmanager:
+
 #####################
 Using ``kmpcmanager``
 #####################

@@ -1,3 +1,5 @@
+.. _changelog:
+
 ###############
 kmpc Change Log
 ###############

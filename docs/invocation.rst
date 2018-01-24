@@ -1,3 +1,5 @@
+.. _invocation:
+
 ##########
 Invocation
 ##########
