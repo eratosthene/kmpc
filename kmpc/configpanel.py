@@ -84,12 +84,12 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
     def do_reboot(self):
         """Method that reboots the host."""
         Logger.info('Config: reboot')
-        call('sudo reboot')
+        call(['sudo','reboot'])
 
     def do_poweroff(self):
         """Method that shuts down the host."""
         Logger.info('Config: poweroff')
-        call('sudo poweroff')
+        call(['sudo','poweroff'])
 
     def get_ip(self):
         """Method that tries to get the local IP address, and returns localhost if there isn't one."""
