@@ -18,7 +18,9 @@ from threading import Thread
 from Queue import Queue, Empty
 from functools import partial
 
-from kmpc.extra import decodeFileName
+from kmpc.extra import KmpcHelpers
+
+Helpers=KmpcHelpers()
 
 class ConfigTabbedPanelItem(TabbedPanelItem):
     """The Config tab, for misc. mpd configs and internal functions."""
@@ -174,7 +176,7 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         with codecs.open(tpath,'r','utf-8') as f:
             for line in f:
                 # add each filename to a dict for easy searching later
-                filelist[decodeFileName(line.rstrip())]=True
+                filelist[Helpers.decodeFileName(line.rstrip())]=True
         Logger.info('Filesync: Removing old files from carpi')
         # TODO: figure out why this doesn't show up on the screen until after the os.walk has completed
         l=Label(text='Removing old files from carpi',size_hint=(None,None),font_size='12sp',halign='left')
@@ -188,8 +190,8 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
             if len(filenames)>0:
                 rpath = dirpath[len(basepath+os.sep):]
                 for filename in filenames:
-                    fpath=os.path.join(rpath,decodeFileName(filename))
-                    apath = os.path.join(decodeFileName(dirpath),decodeFileName(filename))
+                    fpath=os.path.join(rpath,Helpers.decodeFileName(filename))
+                    apath = os.path.join(Helpers.decodeFileName(dirpath),Helpers.decodeFileName(filename))
                     if fpath not in filelist:
                         Logger.debug("Filesync: Deleting "+apath)
                         os.remove(apath)
