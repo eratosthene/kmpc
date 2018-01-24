@@ -106,6 +106,15 @@ class KmpcHelpers(object):
             rsize = sizearray[int(round((lr-33)/21*14))]
         return rsize
 
+    def decodeFileName(name):
+        """Method that tries to intelligently decode a filename to handle unicode weirdness."""
+        if type(name) == str:
+            try:
+                name = name.decode('utf8')
+            except:
+                name = name.decode('windows-1252')
+        return name
+
 # helper array for scaling font sizes based on text length
 sizearray = ['39sp','38sp','37sp','36sp','35sp','34sp','33sp','32sp','31sp','30sp','29sp','28sp','27sp','26sp','25sp']
 
