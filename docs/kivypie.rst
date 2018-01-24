@@ -164,9 +164,10 @@ Step 3: Set up mpd
      sudo useradd -M mpd
      sudo usermod -L mpd
      sudo usermod -G audio mpd
-     sudo mkdir -p /var/{lib,log}/mpd
      sudo mkdir -p /var/lib/mpd/playlists
-     sudo chown -R mpd:audio /var/{lib,log}/mpd
+     sudo mkdir -p /var/log/mpd
+     sudo chown -R mpd:audio /var/lib/mpd
+     sudo chown -R mpd:audio /var/log/mpd
      cat << EOF | sudo tee /etc/mpd.conf
        music_directory         "$MUSICPATH"
        playlist_directory      "/var/lib/mpd/playlists"
@@ -223,6 +224,8 @@ unit. Run the following commands::
 
   systemctl --user enable kmpc
   sudo loginctl enable-linger sysop # substitute your username if you used a new one
+
+You can now start the kmpc process using ``systemctl --user start kmpc``.
 
 *****************************
 Step 5: Add Fanart (optional)
@@ -295,6 +298,33 @@ interacts with the synchost. The basic gist of it is this:
      Host <synchost>                        # this should match config.ini
        HostName <IP_address_or_hostname>    # real ip address or hostname
        User <synchost_username>             # a user on <synchost>
+       StrictHostKeyChecking no
+
+   For example, my ssh config looks like this::
+
+     Host homesynchost
+       HostName 192.168.1.100
+       User cgraham
+       StrictHostKeyChecking no
+
+   And the ``synchost`` variable in the ``[sync]`` section in my
+   ``~/.kmpc/config.ini`` is set to "homesynchost".
+
+#. Test that your connection is working by running::
+
+     ssh <synchost>
+
+#. Stop the kmpc service and test the sync manually by going to the Config tab
+   and clicking Sync::
+
+     systemctl --user stop kmpc
+     kmpc
+
+#. If that worked well, exit kmpc and restart the service::
+
+     systemctl --user start kmpc
 
 Now you should be able to use the Sync button in the Config tab to
 automatically sync all music, fanart, and song ratings with the *synchost*.
+Note that **all** fanart is syncronized, not just artists in the list of files
+to sync.
