@@ -186,15 +186,15 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         # this whole block walks the filesystem and deletes any file that is not in the rsync file
         # the sync operation is split up into a delete and a copy because that was the only way I could get
         # rsync to work correctly, it was always copying/deleting the wrong things otherwise
-        for dirpath, dirnames, filenames in os.walk(basepath):
+        for dirpath, dirnames, filenames in os.walk(Helpers.decodeFileName(basepath)):
             if len(filenames)>0:
                 rpath = dirpath[len(basepath+os.sep):]
                 for filename in filenames:
-                    fpath=os.path.join(rpath,Helpers.decodeFileName(filename))
+                    fpath=os.path.join(Helpers.decodeFileName(rpath),Helpers.decodeFileName(filename))
                     apath = os.path.join(Helpers.decodeFileName(dirpath),Helpers.decodeFileName(filename))
                     if fpath not in filelist:
                         Logger.debug("Filesync: Deleting "+apath)
-                        os.remove(apath)
+                        os.remove(Helpers.decodeFileName(apath))
         # TODO: somehow do this all in python instead of shell script, it's ugly
         # also, if the host somehow has tmppath mounted with the no-execute bit set, this will fail
         with open(os.path.join(App.get_running_app().root.config.get('paths','tmppath'),'sync.sh'),'w') as sfile:
