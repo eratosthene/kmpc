@@ -106,7 +106,7 @@ class KmpcHelpers(object):
             rsize = sizearray[int(round((lr-33)/21*14))]
         return rsize
 
-    def decodeFileName(name):
+    def decodeFileName(self,name):
         """Method that tries to intelligently decode a filename to handle unicode weirdness."""
         if type(name) == str:
             try:
