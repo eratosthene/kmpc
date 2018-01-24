@@ -3,6 +3,12 @@ kmpc Change Log
 ###############
 
 ******************
+0.5.5 - 2018-01-24
+******************
+
+- Fixed a bug in how the sync method was handling unicode filenames.
+
+******************
 0.5.4 - 2018-01-22
 ******************
 

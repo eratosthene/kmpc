@@ -18,6 +18,10 @@ from threading import Thread
 from Queue import Queue, Empty
 from functools import partial
 
+from kmpc.extra import KmpcHelpers
+
+Helpers=KmpcHelpers()
+
 class ConfigTabbedPanelItem(TabbedPanelItem):
     """The Config tab, for misc. mpd configs and internal functions."""
 
@@ -172,7 +176,7 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         with codecs.open(tpath,'r','utf-8') as f:
             for line in f:
                 # add each filename to a dict for easy searching later
-                filelist[line.rstrip().encode(encoding='UTF-8')]=True
+                filelist[Helpers.decodeFileName(line.rstrip())]=True
         Logger.info('Filesync: Removing old files from carpi')
         # TODO: figure out why this doesn't show up on the screen until after the os.walk has completed
         l=Label(text='Removing old files from carpi',size_hint=(None,None),font_size='12sp',halign='left')
@@ -182,15 +186,15 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         # this whole block walks the filesystem and deletes any file that is not in the rsync file
         # the sync operation is split up into a delete and a copy because that was the only way I could get
         # rsync to work correctly, it was always copying/deleting the wrong things otherwise
-        for dirpath, dirnames, filenames in os.walk(basepath):
+        for dirpath, dirnames, filenames in os.walk(Helpers.decodeFileName(basepath)):
             if len(filenames)>0:
-                rpath = dirpath[len(basepath+os.sep):].encode(encoding='UTF-8')
+                rpath = dirpath[len(basepath+os.sep):]
                 for filename in filenames:
-                    fpath=os.path.join(rpath,filename.encode(encoding='UTF-8'))
-                    apath = os.path.join(dirpath.encode(encoding='UTF-8'),filename.encode(encoding='UTF-8'))
+                    fpath=os.path.join(Helpers.decodeFileName(rpath),Helpers.decodeFileName(filename))
+                    apath = os.path.join(Helpers.decodeFileName(dirpath),Helpers.decodeFileName(filename))
                     if fpath not in filelist:
                         Logger.debug("Filesync: Deleting "+apath)
-                        os.remove(apath)
+                        os.remove(Helpers.decodeFileName(apath))
         # TODO: somehow do this all in python instead of shell script, it's ugly
         # also, if the host somehow has tmppath mounted with the no-execute bit set, this will fail
         with open(os.path.join(App.get_running_app().root.config.get('paths','tmppath'),'sync.sh'),'w') as sfile:
