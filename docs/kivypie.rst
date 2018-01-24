@@ -43,11 +43,16 @@ Step 1: Install KivyPie
    #. Save the changes, eject the SD card, put it back in the Pi and boot.
 #. Login with the credentials given in the FAQ, either with a physical
    keyboard or via SSH. The rest of the guide will use the default user,
-   however if you wish to add a new user and do everything with that it should
-   be fine, just adjust accordingly.
-#. You'll need to expand your root volume to use the whole SD card. Run 
-   
-   ::
+   however if you wish to add a new user, set a password,  and do everything
+   with that it should be fine, just adjust accordingly.
+
+#. Run the following to give your user password-less sudo access::
+
+     cat << EOF | sudo tee /etc/sudoers.d/$USER
+       $USER ALL=(ALL:ALL) NOPASSWD:ALL
+     EOF
+
+#. You'll need to expand your root volume to use the whole SD card. Run::
    
      sudo pipaos-config
    
@@ -61,9 +66,27 @@ Step 1: Install KivyPie
      sudo umount -l /tmp
      sudo mount --bind /tmp /root/tmp
 
+#. If you don't want the rainbow screen to show on boot, edit the file
+   ``/boot/config.txt`` and add ``disable_splash=1`` to the end of it.
+
+#. Run this to update your packages::
+   
+     sudo apt-get update
+
+#. Run this to set your locale::
+
+     export LANG=en_US.UTF-8
+     sudo apt-get install -y locales
+     sudo sed -i -e "s/# $LANG.*/$LANG.UTF-8 UTF-8/" /etc/locale.gen
+     sudo dpkg-reconfigure --frontend=noninteractive locales
+     sudo update-locale LANG=$LANG
+
 ********************
 Step 2: Install kmpc
 ********************
+#. Install some dependencies::
+
+     sudo apt-get -y install sqlite3
 
 #. As of this writing, the version of pip/setuptools on KivyPie is old. Run the
    following to update::
@@ -95,24 +118,75 @@ Step 3: Set up mpd
    of use, but in a pinch you can just put them on the SD card somewhere. The
    path to these files will henceforth be named *\<musicpath\>*.
 
-#. Make sure your audio connection is working. Run ``speaker-test`` and listen
-   for some output. If you are going to use HDMI for audio output rather than
-   the headphone jack, you may need to run the following first::
+#. Make sure your audio connection is working. Run ``amixer sset 'PCM' 0`` to
+   turn the audio volume up, then run ``speaker-test`` and listen for some
+   output.
 
-     amixer cset numid=3 2
-     sudo alsactl store
+#. Run the following to install mpc, as it is needed for testing and by the
+   sync function::
 
-#. Run the following to install mpd::
+     sudo apt-get -y install mpc
 
-     sudo apt-get update
-     sudo apt-get install mpd mpc
+#. The version of mpd in the repo as of this writing is super old and buggy, so
+   we're going to compile from source. Change *\<musicpath\>* in the below text
+   to your musicpath. Here's the commands::
 
-#. Edit the file ``/etc/mpd.conf`` and set the ``music_directory`` variable to
-   "*\<musicpath\>*". You can also set the ``replaygain`` variable to "album",
-   "track" or "auto" and configure various other mpd settings. See
-   https://www.musicpd.org/doc/user/config.html for further details.
+     export MUSICPATH=<musicpath>
+     wget https://www.musicpd.org/download/mpd/0.19/mpd-0.19.21.tar.xz
+     tar xf mpd-0.19.21.tar.xz
+     cd mpd-0.19.21/
+     sudo apt-get -y install g++ libboost-dev libicu-dev libglib2.0-dev \
+       libsqlite3-dev libmpdclient-dev libexpat1-dev \
+       libid3tag0-dev libflac-dev libaudiofile-dev libmad0-dev libmp3lame-dev \
+       libasound2-dev libcurl4-gnutls-dev libsystemd-daemon-dev \
+       libfaad-dev libmpg123-dev libavcodec-dev libsndfile-dev libvorbis-dev \
+       libavformat-dev libavutil-dev
+     ./configure \
+       --enable-werror --prefix=/usr --sysconfdir=/etc \
+       --with-systemdsystemunitdir=/etc/systemd/system --enable-systemd-daemon \
+       --enable-database --enable-sqlite --enable-libmpdclient --enable-expat \
+       --enable-alsa --disable-oss --enable-icu --enable-glib \
+       --enable-flac --enable-audiofile --enable-dsd --enable-mad --enable-id3 --enable-curl \
+       --enable-mms=no --enable-smbclient=no --enable-nfs=no --enable-zlib=no --enable-bzip2=no \
+       --enable-roar=no --enable-ao=no --enable-vorbis=yes --enable-wavpack=no --enable-gme=no \
+       --enable-lame-encoder=no --enable-shine-encoder=no \
+       --enable-twolame-encoder=no --enable-vorbis-encoder=no --enable-wave-encoder=no \
+       --enable-modplug=no --enable-mpc=no --enable-mpg123=yes --enable-openal=no \
+       --enable-opus=no --enable-sidplay=no --enable-shout=no --enable-adplug=no \
+       --enable-sndfile=yes --enable-wildmidi=no --enable-soundcloud=no --enable-ffmpeg=yes \
+       --enable-jack=no --enable-pulse=no --enable-lsr=no --enable-soxr=no --enable-fluidsynth=no \
+       --enable-cdio-paranoia=no \
+       --enable-recorder-output=no --enable-httpd-output=no --enable-solaris-output=no \
+       --enable-libwrap=no --enable-upnp=no --enable-neighbor-plugins=no --with-zeroconf=no \
+       --enable-aac
+     make
+     sudo make install
+     sudo useradd -M mpd
+     sudo usermod -L mpd
+     sudo usermod -G audio mpd
+     sudo mkdir -p /var/{lib,log}/mpd
+     sudo mkdir -p /var/lib/mpd/playlists
+     sudo chown -R mpd:audio /var/{lib,log}/mpd
+     cat << EOF | sudo tee /etc/mpd.conf
+       music_directory         "$MUSICPATH"
+       playlist_directory      "/var/lib/mpd/playlists"
+       db_file                 "/var/lib/mpd/database"
+       log_file                "/var/log/mpd/mpd.log"
+       pid_file                "/var/lib/mpd/pid"
+       state_file              "/var/lib/mpd/state"
+       sticker_file            "/var/lib/mpd/sticker.sql"
+       user                    "mpd"
+       group                   "audio"
+       bind_to_address         "127.0.0.1"
+     EOF
+     sudo chown -R $USER:audio "$MUSICPATH"
+     sudo systemctl enable mpd
+     sudo systemctl start mpd
 
-#. Save the file and restart mpd::
+#. See https://www.musicpd.org/doc/user/config.html for further details on the
+   ``/etc/mpd.conf`` file. You might want to add 'replaygain' variables, for example.
+
+#. Restart mpd::
 
      sudo systemctl restart mpd
 
@@ -126,8 +200,32 @@ Step 3: Set up mpd
 #. Save the file and run ``kmpc`` again. You should now be able to browse the
    library, add files to the playlist, and generally use the app.
 
+*******************
+Step 4: Run at Boot
+*******************
+
+The easiest way to get kmpc running at boot time is by using a systemd user
+unit. Run the following commands::
+
+  mkdir -p ~/.config/systemd/user
+
+  cat > ~/.config/systemd/user/kmpc.service <<EOL
+  [Unit]
+  Description=kmpc
+
+  [Service]
+  ExecStart=/usr/local/bin/kmpc
+  Restart=always
+
+  [Install]
+  WantedBy=default.target
+  EOL
+
+  systemctl --user enable kmpc
+  sudo loginctl enable-linger sysop # substitute your username if you used a new one
+
 *****************************
-Step 4: Add fanart (optional)
+Step 5: Add Fanart (optional)
 *****************************
 
 The directory structure for fanart is as follows, with *\<fanartpath\>* as the
@@ -161,13 +259,20 @@ root folder::
       └── logo
           └── 154355.png
 
-Once you've added some art, edit the file ``~/.kmpc/config.ini`` and change the
-``fanartpath`` variable to *\<fanartpath\>*, then restart kmpc. You should now see
-logos and background images for the artists that have images in the fanart
-folder.
+Once you've added some art, do the following
+
+#. Edit the file ``~/.kmpc/config.ini`` and change the ``fanartpath`` variable
+   to *\<fanartpath\>*.
+
+#. Run::
+     sudo chown -R $USER:audio <fanartpath>
+     systemctl --user restart kmpc
+
+You should now see logos and background images for the artists that have images
+in the fanart folder.
 
 *****************************
-Step 5: Setup Sync (optional)
+Step 6: Setup Sync (optional)
 *****************************
 
 See the section on :ref:`usingkmpcmanager` to learn how the manager program
@@ -180,6 +285,16 @@ interacts with the synchost. The basic gist of it is this:
    ratings and copy_flags for all your tracks.
 #. Edit the file ``~/.kmpc/config.ini`` on your car Pi and change the variables
    in the [synchost] section. See the section on :ref:`config` for details.
+#. Run ``ssh-keygen`` and hit enter on all the defaults. This creates a public
+   key for this user.
+#. Insert the contents of ``~/.ssh/id_rsa.pub`` on the car Pi into the
+   ``~/.ssh/authorized_keys`` file on the *synchost* as whatever user you have
+   set up there.
+#. Edit the file ``~/.ssh/config`` and add the following::
+
+     Host <synchost>                        # this should match config.ini
+       HostName <IP_address_or_hostname>    # real ip address or hostname
+       User <synchost_username>             # a user on <synchost>
 
 Now you should be able to use the Sync button in the Config tab to
 automatically sync all music, fanart, and song ratings with the *synchost*.
