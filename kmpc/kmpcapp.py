@@ -75,6 +75,34 @@ class KmpcInterface(TabbedPanel):
         self.currfile=None
         self.track_slider_task=None
         self.accessoryPopup=Factory.AccessoryPopup()
+        self.tcolor=1
+        self.ocolor=0
+        self.settingsPopup=Factory.SettingsPopup()
+
+    def settings_popup(self):
+        self.settingsPopup.open()
+
+    def change_text_color(self,color):
+        Logger.debug("NowPlaying: change_text_color to "+format(color))
+        self.tcolor=color
+        def _tc(widget):
+            for child in widget.children:
+                _tc(child)
+            if issubclass(widget.__class__,OutlineLabel):
+                widget.color=[color,color,color,1]
+        for child in self.children:
+            _tc(child)
+
+    def change_outline_color(self,color):
+        Logger.debug("NowPlaying: change_outline_color to "+format(color))
+        self.ocolor=color
+        def _tc(widget):
+            for child in widget.children:
+                _tc(child)
+            if issubclass(widget.__class__,OutlineLabel):
+                widget.outline_color=[color,color,color,1]
+        for child in self.children:
+            _tc(child)
 
     def mpd_connectionMade(self,protocol):
         """Callback when mpd is connected."""

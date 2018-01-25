@@ -17,11 +17,11 @@ from threading import Thread
 from Queue import Queue, Empty
 from functools import partial
 
-from kmpc.extra import KmpcHelpers, OutlineLabel
+from kmpc.extra import KmpcHelpers, OutlineLabel, OutlineTabbedPanelItem
 
 Helpers=KmpcHelpers()
 
-class ConfigTabbedPanelItem(TabbedPanelItem):
+class ConfigTabbedPanelItem(OutlineTabbedPanelItem):
     """The Config tab, for misc. mpd configs and internal functions."""
 
     def handle_mpd_error(self,result):

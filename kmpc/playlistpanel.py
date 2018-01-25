@@ -18,7 +18,9 @@ from kivy.uix.vkeyboard import VKeyboard
 from kivy.clock import Clock
 from functools import partial
 
-class PlaylistTabbedPanelItem(TabbedPanelItem):
+from kmpc.extra import OutlineTabbedPanelItem
+
+class PlaylistTabbedPanelItem(OutlineTabbedPanelItem):
     """The Playlist tab, shows the current playlist and allows interacting with it."""
     playlist_selection={}
 

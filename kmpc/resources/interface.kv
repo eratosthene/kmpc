@@ -8,6 +8,7 @@
 #:import ExtraSlider kmpc.extra.ExtraSlider
 #:import ClearButton kmpc.extra.ClearButton
 #:import OutlineLabel kmpc.extra.OutlineLabel
+#:import OutlineTabbedPanelItem kmpc.extra.OutlineTabbedPanelItem
 
 <OutlineLabel>:
     font_name: app.normalfont
@@ -15,6 +16,13 @@
     outline_color: [0,0,0]
     outline_width: '1sp'
     color: [1,1,1,1]
+
+<OutlineButton@Button+OutlineLabel>:
+    border: (4,4,4,4)
+    background_normal: app.buttonnormal
+    background_down: app.buttondown
+    font_name: app.normalfont
+    font_size: '20sp'
 
 <Button>:
     border: (4,4,4,4)
@@ -28,6 +36,39 @@
     background_normal: app.clear
     background_down: app.clear
 
+<SettingsPopup@Popup>:
+    auto_dismiss: True
+    title: 'Settings'
+    size_hint_x: 0.6
+    BoxLayout:
+        orientation: 'vertical'
+        OutlineLabel:
+            text: 'Text Color'
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineToggleButton:
+                text: 'Black'
+                group: 'text-color'
+                on_press: app.root.change_text_color(0)
+            OutlineToggleButton:
+                text: 'White'
+                state: 'down'
+                group: 'text-color'
+                on_press: app.root.change_text_color(1)
+        OutlineLabel:
+            text: 'Outline Color'
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineToggleButton:
+                text: 'Black'
+                state: 'down'
+                group: 'outline-color'
+                on_press: app.root.change_outline_color(0)
+            OutlineToggleButton:
+                text: 'White'
+                group: 'outline-color'
+                on_press: app.root.change_outline_color(.7)
+        
 <AccessoryPopup@Popup>:
     auto_dismiss: False
     title: 'Accessory Power Off'
@@ -55,7 +96,9 @@
             size: self.size
             pos: self.pos
 
-<MediaButton@Button,MediaToggleButton@ToggleButton>:
+<OutlineToggleButton@ToggleButton+OutlineLabel>:
+
+<MediaButton@OutlineButton,MediaToggleButton@ToggleButton+OutlineLabel>:
     font_name: app.fontawesomefont
     font_size: '24sp'
 
@@ -73,6 +116,13 @@
             origin: self.center
     canvas.after:
         PopMatrix
+
+<SettingsButton@Button+OutlineLabel>
+    font_name: app.fontawesomefont
+    font_size: '24sp'
+    border: (1,1,1,1)
+    background_normal: app.clear
+    background_down: app.clear
 
 <LibraryBoxLayout@BoxLayout>:
     canvas.before:
@@ -272,22 +322,22 @@
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: 0.1
-            Button:
+            OutlineButton:
                 text: 'Clear'
                 on_press: root.playlist_clear_pressed()
-            Button:
+            OutlineButton:
                 text: 'Delete'
                 on_press: root.playlist_delete_pressed()
-            Button:
+            OutlineButton:
                 text: 'Move'
                 on_press: root.playlist_move_pressed()
-            Button:
+            OutlineButton:
                 text: 'Shuffle'
                 on_press: root.playlist_shuffle_pressed()
-            Button:
+            OutlineButton:
                 text: 'Swap'
                 on_press: root.playlist_swap_pressed()
-            Button:
+            OutlineButton:
                 text: 'Save'
                 on_press: root.playlist_save_pressed()
         RecycleView:
@@ -318,19 +368,19 @@
         BoxLayout:
             size_hint_y: 0.1
             orientation: 'horizontal'
-            ToggleButton:
+            OutlineToggleButton:
                 text: 'Files'
                 id: files_button
                 on_press: root.change_view_type(self.text)
-            ToggleButton:
+            OutlineToggleButton:
                 text: 'Albums'
                 id: albums_button
                 on_press: root.change_view_type(self.text)
-            ToggleButton:
+            OutlineToggleButton:
                 text: 'Tracks'
                 id: tracks_button
                 on_press: root.change_view_type(self.text)
-            ToggleButton:
+            OutlineToggleButton:
                 text: 'Playlists'
                 id: playlists_button
                 on_press: root.change_view_type(self.text)
@@ -366,16 +416,16 @@
             BoxLayout:
                 orientation: 'vertical'
                 size_hint_x: '0.05'
-                Button:
+                OutlineButton:
                     text: '+'
                     on_press: root.browser_add(False,False)
-                Button:
+                OutlineButton:
                     text: '>'
                     on_press: root.browser_add(False,True)
-                Button:
+                OutlineButton:
                     text: '!'
                     on_press: root.browser_add(True,False)
-                Button:
+                OutlineButton:
                     id: delete_button
                     text: 'X'
                     on_press: root.browser_delete()
@@ -387,7 +437,7 @@
     active_tab: None
     backlight_min: 11
     backlight_max: 255
-    TabbedPanelItem:
+    OutlineTabbedPanelItem:
         text: 'Now Playing'
         BackdropBoxLayout:
             id: player
@@ -396,7 +446,14 @@
                 orientation: 'horizontal'
                 BoxLayout:
                     orientation: 'vertical'
-                    size_hint_x: 0.025
+                    size_hint_x: 0.05
+                    SettingsButton:
+                        text: u'\uf1de'
+                        on_press: root.settings_popup()
+                    ClearButton:
+                        text: ''
+                    ClearButton:
+                        text: ''
                 BoxLayout:
                     orientation: 'vertical'
                     BoxLayout:
@@ -460,7 +517,7 @@
                             id: song_star_layout
                 BoxLayout:
                     orientation: 'vertical'
-                    size_hint_x: 0.025
+                    size_hint_x: 0.05
                     BrightnessButton:
                         text: u'\uf240'
                         on_press: root.change_backlight(root.backlight_max)

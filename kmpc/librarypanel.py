@@ -18,11 +18,11 @@ from copy import deepcopy
 from functools import partial
 import os
 
-from extra import KmpcHelpers
+from extra import KmpcHelpers, OutlineTabbedPanelItem
 
 Helpers=KmpcHelpers()
 
-class LibraryTabbedPanelItem(TabbedPanelItem):
+class LibraryTabbedPanelItem(OutlineTabbedPanelItem):
     """The Library tab, for browsing through mpd's library."""
 
     # set some initial variables
