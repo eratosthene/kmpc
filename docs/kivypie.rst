@@ -181,6 +181,7 @@ Step 3: Set up mpd
        bind_to_address         "127.0.0.1"
      EOF
      sudo chown -R $USER:audio "$MUSICPATH"
+     sudo chmod g+w "$MUSICPATH"
      sudo systemctl enable mpd
      sudo systemctl start mpd
 
@@ -268,7 +269,9 @@ Once you've added some art, do the following
    to *\<fanartpath\>*.
 
 #. Run::
+
      sudo chown -R $USER:audio <fanartpath>
+     sudo chmod g+w <fanartpath>
      systemctl --user restart kmpc
 
 You should now see logos and background images for the artists that have images
