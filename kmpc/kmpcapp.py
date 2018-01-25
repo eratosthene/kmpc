@@ -7,6 +7,7 @@ import io
 import random
 import ConfigParser
 from pkg_resources import resource_filename
+from functools import partial
 
 # make sure we are on an updated version of kivy
 import kivy
@@ -229,6 +230,16 @@ class KmpcInterface(TabbedPanel):
         # update the config tab with status results
         self.ids.config_tab.update_mpd_status(result)
 
+    def change_artist_image(self,img,al_path,instance):
+        """Called when you click on an artist logo, changes it to another at random."""
+        Logger.debug("NowPlaying: change_artist_image (current path is "+img.source+")")
+        img_path=img.source
+        while img_path==img.source:
+            img_path=os.path.join(al_path,random.choice(os.listdir(al_path)))
+        if os.path.isfile(img_path):
+            img.source=img_path
+        Logger.debug("NowPlaying: change_artist_image (new path is "+img.source+")")
+
     def update_mpd_currentsong(self,result):
         """Callback for mpd currentsong data."""
         Logger.debug('NowPlaying: update_mpd_currentsong()')
@@ -281,6 +292,7 @@ class KmpcInterface(TabbedPanel):
                         if os.path.isfile(img_path):
                             # create an image button out of the logo so you can press it
                             img = ImageButton(source=os.path.join(al_path,img_path),allow_stretch=True,color=(1,1,1,0.65))
+                            img.bind(on_press=partial(self.change_artist_image,img,al_path))
                             cbl.add_widget(img)
                             haslogo=True
                     except:

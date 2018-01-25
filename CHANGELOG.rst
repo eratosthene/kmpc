@@ -8,6 +8,7 @@ kmpc Change Log
 0.5.6 - 2018-01-??
 ******************
 
+- Added ability to click on artist logo to change it to another one.
 - Added sudo to reboot and shutdown commands.
 - Added docs for full installation to car Pi!
 
