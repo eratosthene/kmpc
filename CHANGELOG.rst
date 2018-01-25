@@ -8,15 +8,21 @@ kmpc Change Log
 0.5.6 - 2018-01-??
 ******************
 
-- Added ability to click on artist logo to change it to another one.
-- Added sudo to reboot and shutdown commands.
+- Added new settings popup to house things as config tab is going to be used
+  for actual config file editing eventually. (`issue #6
+  <https://github.com/eratosthene/kmpc/issues/6>`_)
+- Added ability to click on artist logo to change it to another one. (`issue #5
+  <https://github.com/eratosthene/kmpc/issues/5>`_)
+- Added sudo to reboot and shutdown commands. (`issue #43
+  <https://github.com/eratosthene/kmpc/issues/43>`_)
 - Added docs for full installation to car Pi!
 
 ******************
 0.5.5 - 2018-01-24
 ******************
 
-- Fixed a bug in how the sync method was handling unicode filenames.
+- Fixed a bug in how the sync method was handling unicode filenames. (`issue
+  #39 <https://github.com/eratosthene/kmpc/issues/39>`_)
 
 ******************
 0.5.4 - 2018-01-22
