@@ -81,6 +81,27 @@ class KmpcInterface(TabbedPanel):
 
     def settings_popup(self):
         self.settingsPopup.open()
+        self.protocol.status().addCallback(partial(self.update_mixers,self.settingsPopup)).addErrback(self.handle_mpd_error)
+
+    def update_mixers(self,p,result):
+        # set up the crossfade slider
+        if 'xfade' in result:
+            v = int(result['xfade'])
+        else:
+            v = 0
+        p.ids.crossfade_slider.value=v
+        # set up the mixrampdb slider
+        if 'mixrampdb' in result:
+            v = round(float(result['mixrampdb']),6)
+        else:
+            v = 0.0
+        p.ids.mixrampdb_slider.value=float(str(v)[1:])
+        # set up the mixrampdelay slider
+        if 'mixrampdelay' in result:
+            v = round(float(result['mixrampdelay']),6)
+        else:
+            v = 0.0
+        p.ids.mixrampdelay_slider.value=v
 
     def change_text_color(self,color):
         Logger.debug("NowPlaying: change_text_color to "+format(color))
@@ -103,6 +124,21 @@ class KmpcInterface(TabbedPanel):
                 widget.outline_color=[color,color,color,1]
         for child in self.children:
             _tc(child)
+
+    def change_crossfade(self,v):
+        """Callback when user changes crossfade slider."""
+        Logger.info('Settings: change_crossfade')
+        self.protocol.crossfade(str(v)).addErrback(self.handle_mpd_error)
+
+    def change_mixrampdb(self,v):
+        """Callback when user changes mixrampdb slider."""
+        Logger.info('Settings: change_mixrampdb')
+        self.protocol.mixrampdb(str(0.0-v)).addErrback(self.handle_mpd_error)
+
+    def change_mixrampdelay(self,v):
+        """Callback when user changes mixrampdelay slider."""
+        Logger.info('Settings: change_mixrampdelay')
+        self.protocol.mixrampdelay(str(v)).addErrback(self.handle_mpd_error)
 
     def mpd_connectionMade(self,protocol):
         """Callback when mpd is connected."""

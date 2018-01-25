@@ -31,48 +31,12 @@ class ConfigTabbedPanelItem(OutlineTabbedPanelItem):
     def update_mpd_status(self,result):
         """Callback for mpd status updates."""
         Logger.debug('Config: update_mpd_status')
-        # set up the crossfade slider
-        if 'xfade' in result:
-            v = int(result['xfade'])
-        else:
-            v = 0
-        self.ids.crossfade_slider.value=v
-        # set up the mixrampdb slider
-        if 'mixrampdb' in result:
-            v = round(float(result['mixrampdb']),6)
-        else:
-            v = 0.0
-        self.ids.mixrampdb_slider.value=float(str(v)[1:])
-        # set up the mixrampdelay slider
-        if 'mixrampdelay' in result:
-            v = round(float(result['mixrampdelay']),6)
-        else:
-            v = 0.0
-        self.ids.mixrampdelay_slider.value=v
         # get the host's IP address and display it
         self.ids.ip_label.text="IP Address: "+format(self.get_ip())
 
     def printit(self,result):
         """An internal debugging function. Probably shouldn't ever be used."""
         print format(result)
-
-    def change_crossfade(self):
-        """Callback when user changes crossfade slider."""
-        Logger.info('Config: change_crossfade')
-        v=int(round(self.ids.crossfade_slider.value))
-        self.protocol.crossfade(str(v)).addErrback(self.handle_mpd_error)
-
-    def change_mixrampdb(self):
-        """Callback when user changes mixrampdb slider."""
-        Logger.info('Config: change_mixrampdb')
-        v=0.0-round(self.ids.mixrampdb_slider.value,6)
-        self.protocol.mixrampdb(str(v)).addErrback(self.handle_mpd_error)
-
-    def change_mixrampdelay(self):
-        """Callback when user changes mixrampdelay slider."""
-        Logger.info('Config: change_mixrampdelay')
-        v=round(self.ids.mixrampdelay_slider.value,6)
-        self.protocol.mixrampdelay(str(v)).addErrback(self.handle_mpd_error)
 
     def git_pull(self):
         """Method that runs a git pull on the current folder."""

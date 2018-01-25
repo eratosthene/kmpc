@@ -43,6 +43,69 @@
     BoxLayout:
         orientation: 'vertical'
         OutlineLabel:
+            text: 'Crossfade length in seconds'
+            text_size: self.size
+            halign: 'left'
+            valign: 'middle'
+            padding_x: sp(10)
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineLabel:
+                text: str(int(round(crossfade_slider.value)))
+                size_hint_x: 0.3
+                text_size: self.size
+                halign: 'right'
+                valign: 'middle'
+                padding_x: sp(10)
+            ExtraSlider:
+                id: crossfade_slider
+                min: 0
+                max: 10
+                value: 0
+                on_release: app.root.change_crossfade(int(round(crossfade_slider.value)))
+        OutlineLabel:
+            text: 'Mixramp threshold in DB'
+            text_size: self.size
+            halign: 'left'
+            valign: 'middle'
+            padding_x: sp(10)
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineLabel:
+                text: '-'+str(round(mixrampdb_slider.value,3))
+                size_hint_x: 0.3
+                text_size: self.size
+                halign: 'right'
+                valign: 'middle'
+                padding_x: sp(10)
+            ExtraSlider:
+                id: mixrampdb_slider
+                min: 0
+                max: 20
+                value: 0
+                on_release: app.root.change_mixrampdb(round(mixrampdb_slider.value,3))
+        OutlineLabel:
+            text: 'Mixramp delay in seconds'
+            text_size: self.size
+            halign: 'left'
+            valign: 'middle'
+            padding_x: sp(10)
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineLabel:
+                text: str(round(mixrampdelay_slider.value,3))
+                size_hint_x: 0.3
+                text_size: self.size
+                halign: 'right'
+                valign: 'middle'
+                padding_x: sp(10)
+            ExtraSlider:
+                id: mixrampdelay_slider
+                min: 0
+                max: 10
+                value: 0
+                on_release: app.root.change_mixrampdelay(round(mixrampdelay_slider.value,3))
+        OutlineLabel:
             text: 'Text Color'
         BoxLayout:
             orientation: 'horizontal'
@@ -159,69 +222,6 @@
     text: 'Config'
     BackdropBoxLayout:
         orientation: 'vertical'
-        OutlineLabel:
-            text: 'Crossfade length in seconds'
-            text_size: self.size
-            halign: 'left'
-            valign: 'middle'
-            padding_x: sp(10)
-        BoxLayout:
-            orientation: 'horizontal'
-            OutlineLabel:
-                text: str(int(round(crossfade_slider.value)))
-                size_hint_x: 0.2
-                text_size: self.size
-                halign: 'right'
-                valign: 'middle'
-                padding_x: sp(10)
-            ExtraSlider:
-                id: crossfade_slider
-                min: 0
-                max: 10
-                value: 0
-                on_release: root.change_crossfade()
-        OutlineLabel:
-            text: 'Mixramp threshold in DB'
-            text_size: self.size
-            halign: 'left'
-            valign: 'middle'
-            padding_x: sp(10)
-        BoxLayout:
-            orientation: 'horizontal'
-            OutlineLabel:
-                text: '-'+str(round(mixrampdb_slider.value,6))
-                size_hint_x: 0.2
-                text_size: self.size
-                halign: 'right'
-                valign: 'middle'
-                padding_x: sp(10)
-            ExtraSlider:
-                id: mixrampdb_slider
-                min: 0
-                max: 20
-                value: 0
-                on_release: root.change_mixrampdb()
-        OutlineLabel:
-            text: 'Mixramp delay in seconds'
-            text_size: self.size
-            halign: 'left'
-            valign: 'middle'
-            padding_x: sp(10)
-        BoxLayout:
-            orientation: 'horizontal'
-            OutlineLabel:
-                text: str(round(mixrampdelay_slider.value,6))
-                size_hint_x: 0.2
-                text_size: self.size
-                halign: 'right'
-                valign: 'middle'
-                padding_x: sp(10)
-            ExtraSlider:
-                id: mixrampdelay_slider
-                min: 0
-                max: 10
-                value: 0
-                on_release: root.change_mixrampdelay()
         OutlineLabel:
             text: 'IP Address: 0.0.0.0'
             id: ip_label
