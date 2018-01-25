@@ -30,7 +30,6 @@ from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 from kivy.uix.button import Button
-from kivy.uix.label import Label
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.checkbox import CheckBox
@@ -44,7 +43,7 @@ from kivy.lang import Builder
 
 # import our local modules
 from mpdfactory import MPDClientFactory
-from extra import KmpcHelpers,ExtraSlider,ClearButton
+from extra import KmpcHelpers,ExtraSlider,ClearButton,OutlineLabel
 from playlistpanel import PlaylistTabbedPanelItem
 
 # sets the location of the config folder
@@ -164,7 +163,7 @@ class KmpcInterface(TabbedPanel):
         self.ids.song_star_layout.clear_widgets()
         self.ids.album_cover_layout.clear_widgets()
         self.ids.trackinfo.clear_widgets()
-        lbl = Label(text="Playback Stopped")
+        lbl = OutlineLabel(text="Playback Stopped")
         self.ids.trackinfo.add_widget(lbl)
         self.ids.player.canvas.before.add(Rectangle(source=resource_filename(__name__,os.path.join("resources","backdrop.png")),size=self.ids.player.size,pos=self.ids.player.pos))
 
@@ -493,7 +492,7 @@ class KmpcInterface(TabbedPanel):
             # bind the button press to set the rating
             btn.bind(on_press=self.rating_set)
             # add a label to explain the ratings, this is pretty subjective
-            lbl=Label(text=Helpers.songratings(self.config)[str(r)]['meaning'],halign='left')
+            lbl=OutlineLabel(text=Helpers.songratings(self.config)[str(r)]['meaning'],halign='left')
             # add the label to the layout
             layout.add_widget(lbl)
         # pop it on up, if you press outside the popup it just goes away without setting the rating
@@ -554,11 +553,11 @@ class KmpcApp(App):
         self.trackslidercursor = resource_filename(__name__,os.path.join('resources','track-slider-cursor.png'))
         return KmpcInterface()
 
-class InfoLargeLabel(Label):
+class InfoLargeLabel(OutlineLabel):
     """A label with large text."""
     pass
 
-class InfoSmallLabel(Label):
+class InfoSmallLabel(OutlineLabel):
     """A label with small text."""
     pass
 

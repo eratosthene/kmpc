@@ -3,7 +3,6 @@ kivy.require('1.10.0')
 from kivy.app import App
 from kivy.uix.tabbedpanel import TabbedPanelItem
 from kivy.uix.button import Button
-from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.logger import Logger

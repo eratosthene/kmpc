@@ -3,7 +3,6 @@ kivy.require('1.10.0')
 from kivy.uix.tabbedpanel import TabbedPanelItem
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
-from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.logger import Logger
 from kivy.app import App
@@ -18,7 +17,7 @@ from threading import Thread
 from Queue import Queue, Empty
 from functools import partial
 
-from kmpc.extra import KmpcHelpers
+from kmpc.extra import KmpcHelpers, OutlineLabel
 
 Helpers=KmpcHelpers()
 
@@ -114,7 +113,7 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         event.cancel()
         popup.dismiss() # seems like this is too early, since we're writing more data in the next few lines
         Logger.info('Filesync: Cleaning up')
-        l=Label(text='Cleaning up temporary files',size_hint=(None,None),font_size='12sp',halign='left')
+        l=OutlineLabel(text='Cleaning up temporary files',size_hint=(None,None),font_size='12sp',halign='left')
         l.bind(texture_size=l.setter('size'))
         layout.add_widget(l)
         sv.scroll_to(l)
@@ -137,7 +136,7 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
             pass
         else:
             # TODO: figure out why lines all seem to have a blank line between them, probably something to do with \n at the end or something
-            l=Label(text=line,size_hint=(None,None),font_size='12sp',halign='left')
+            l=OutlineLabel(text=line,size_hint=(None,None),font_size='12sp',halign='left')
             l.bind(texture_size=l.setter('size'))
             layout.add_widget(l)
             sv.scroll_to(l)
@@ -164,7 +163,7 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         fanartpath= App.get_running_app().root.config.get('paths','fanartpath')
         Logger.info('Filesync: Copying rsync file to carpi')
         # TODO: figure out why this doesn't show up on the screen until after the os.walk has completed
-        l=Label(text='Copying rsync file to carpi',size_hint=(None,None),font_size='12sp',halign='left')
+        l=OutlineLabel(text='Copying rsync file to carpi',size_hint=(None,None),font_size='12sp',halign='left')
         l.bind(texture_size=l.setter('size'))
         layout.add_widget(l)
         sv.scroll_to(l)
@@ -179,7 +178,7 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
                 filelist[Helpers.decodeFileName(line.rstrip())]=True
         Logger.info('Filesync: Removing old files from carpi')
         # TODO: figure out why this doesn't show up on the screen until after the os.walk has completed
-        l=Label(text='Removing old files from carpi',size_hint=(None,None),font_size='12sp',halign='left')
+        l=OutlineLabel(text='Removing old files from carpi',size_hint=(None,None),font_size='12sp',halign='left')
         l.bind(texture_size=l.setter('size'))
         layout.add_widget(l)
         sv.scroll_to(l)

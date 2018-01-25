@@ -7,79 +7,14 @@
 #:import LibraryTabbedPanelItem kmpc.librarypanel.LibraryTabbedPanelItem
 #:import ExtraSlider kmpc.extra.ExtraSlider
 #:import ClearButton kmpc.extra.ClearButton
+#:import OutlineLabel kmpc.extra.OutlineLabel
 
-<Label>:
+<OutlineLabel>:
     font_name: app.normalfont
     font_size: '20sp'
-    canvas.before:
-        Color:
-            rgba: 0, 0, 0, 0.5
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) + 1, int(self.center_y - self.texture_size[1] / 2.) + 1
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) + 1, int(self.center_y - self.texture_size[1] / 2.) - 1
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) - 1, int(self.center_y - self.texture_size[1] / 2.) - 1
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) - 1, int(self.center_y - self.texture_size[1] / 2.) + 1 
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.) - 1
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.) + 1 
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) + 1, int(self.center_y - self.texture_size[1] / 2.)
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) - 1, int(self.center_y - self.texture_size[1] / 2.)
-            size: root.texture_size
-            texture: root.texture
-        Color:
-            rgba: 0, 0, 0, 0.25
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) + 2, int(self.center_y - self.texture_size[1] / 2.) + 2
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) + 2, int(self.center_y - self.texture_size[1] / 2.) - 2
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) - 2, int(self.center_y - self.texture_size[1] / 2.) - 2
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) - 2, int(self.center_y - self.texture_size[1] / 2.) + 2
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.) - 2
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.) + 2
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) + 2, int(self.center_y - self.texture_size[1] / 2.)
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) - 2, int(self.center_y - self.texture_size[1] / 2.)
-            size: root.texture_size
-            texture: root.texture
+    outline_color: [0,0,0]
+    outline_width: '1sp'
+    color: [1,1,1,1]
 
 <Button>:
     border: (4,4,4,4)
@@ -99,7 +34,7 @@
     size_hint_x: 0.6
     BoxLayout:
         valign: 'top'
-        Label:
+        OutlineLabel:
             text: 'The system will power down after a predetermined time unless accessory power is restored.'
             text_size: root.width, None
             size: self.texture_size
@@ -107,7 +42,7 @@
             valign: 'middle'
 
 <TrackSlider@Slider>:
-    Label:
+    OutlineLabel:
         pos: (root.value_pos[0] - sp(16), root.center_y - sp(27)) if root.orientation == 'horizontal' else (root.center_x - sp(27), root.value_pos[1] - sp(16))
         size_hint: None, None
         size: sp(32), sp(32)
@@ -124,7 +59,7 @@
     font_name: app.fontawesomefont
     font_size: '24sp'
 
-<BrightnessButton@Button>
+<BrightnessButton@Button+OutlineLabel>
     font_name: app.fontawesomefont
     font_size: '24sp'
     border: (1,1,1,1)
@@ -136,74 +71,6 @@
         Rotate:
             angle: 90
             origin: self.center
-        Color:
-            rgba: 0, 0, 0, 0.5
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) + 1, int(self.center_y - self.texture_size[1] / 2.) + 1
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) + 1, int(self.center_y - self.texture_size[1] / 2.) - 1
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) - 1, int(self.center_y - self.texture_size[1] / 2.) - 1
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) - 1, int(self.center_y - self.texture_size[1] / 2.) + 1 
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.) - 1
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.) + 1 
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) + 1, int(self.center_y - self.texture_size[1] / 2.)
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) - 1, int(self.center_y - self.texture_size[1] / 2.)
-            size: root.texture_size
-            texture: root.texture
-        Color:
-            rgba: 0, 0, 0, 0.25
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) + 2, int(self.center_y - self.texture_size[1] / 2.) + 2
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) + 2, int(self.center_y - self.texture_size[1] / 2.) - 2
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) - 2, int(self.center_y - self.texture_size[1] / 2.) - 2
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) - 2, int(self.center_y - self.texture_size[1] / 2.) + 2
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.) - 2
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.) + 2
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) + 2, int(self.center_y - self.texture_size[1] / 2.)
-            size: root.texture_size
-            texture: root.texture
-        Rectangle:
-            pos: int(self.center_x - self.texture_size[0] / 2.) - 2, int(self.center_y - self.texture_size[1] / 2.)
-            size: root.texture_size
-            texture: root.texture
     canvas.after:
         PopMatrix
 
@@ -218,7 +85,7 @@
     size_hint: (1,1)
     do_scroll_x: False
 
-<InfoLargeLabel>:
+<InfoLargeLabel@OutlineLabel>:
     font_size: '40sp'
     text_size: self.width, None
     height: self.texture_size[1]
@@ -232,7 +99,7 @@
             size: root.texture_size
             texture: root.texture
 
-<InfoSmallLabel>:
+<InfoSmallLabel@OutlineLabel>:
     font_size: '18sp'
     text_size: self.width, None
     height: self.texture_size[1]
@@ -242,7 +109,7 @@
     text: 'Config'
     BackdropBoxLayout:
         orientation: 'vertical'
-        Label:
+        OutlineLabel:
             text: 'Crossfade length in seconds'
             text_size: self.size
             halign: 'left'
@@ -250,7 +117,7 @@
             padding_x: sp(10)
         BoxLayout:
             orientation: 'horizontal'
-            Label:
+            OutlineLabel:
                 text: str(int(round(crossfade_slider.value)))
                 size_hint_x: 0.2
                 text_size: self.size
@@ -263,7 +130,7 @@
                 max: 10
                 value: 0
                 on_release: root.change_crossfade()
-        Label:
+        OutlineLabel:
             text: 'Mixramp threshold in DB'
             text_size: self.size
             halign: 'left'
@@ -271,7 +138,7 @@
             padding_x: sp(10)
         BoxLayout:
             orientation: 'horizontal'
-            Label:
+            OutlineLabel:
                 text: '-'+str(round(mixrampdb_slider.value,6))
                 size_hint_x: 0.2
                 text_size: self.size
@@ -284,7 +151,7 @@
                 max: 20
                 value: 0
                 on_release: root.change_mixrampdb()
-        Label:
+        OutlineLabel:
             text: 'Mixramp delay in seconds'
             text_size: self.size
             halign: 'left'
@@ -292,7 +159,7 @@
             padding_x: sp(10)
         BoxLayout:
             orientation: 'horizontal'
-            Label:
+            OutlineLabel:
                 text: str(round(mixrampdelay_slider.value,6))
                 size_hint_x: 0.2
                 text_size: self.size
@@ -305,7 +172,7 @@
                 max: 10
                 value: 0
                 on_release: root.change_mixrampdelay()
-        Label:
+        OutlineLabel:
             text: 'IP Address: 0.0.0.0'
             id: ip_label
         BoxLayout:
@@ -354,10 +221,10 @@
     artist: ''
     title: ''
     iscurrent: False
-    Label:
+    OutlineLabel:
         size_hint_x: None
         text: root.rownum
-    Label:
+    OutlineLabel:
         size_hint_x: 1
         halign: 'left'
         valign: 'center'
@@ -388,7 +255,7 @@
     level: 'root'
     upto: None
     info: {}
-    Label:
+    OutlineLabel:
         size_hint_x: 1
         halign: 'left'
         valign: 'center'
@@ -467,7 +334,7 @@
                 text: 'Playlists'
                 id: playlists_button
                 on_press: root.change_view_type(self.text)
-        Label:
+        OutlineLabel:
             id: current_header
             size_hint_y: 0.1
             size_hint_x: 1
@@ -559,7 +426,7 @@
                                 cursor_height: sp(36)
                                 on_touch_down: if self.collide_point(*args[1].pos): root.current_track_slider_down()
                                 on_release: root.current_track_slider_release()
-                                Label:
+                                OutlineLabel:
                                     pos: (current_track_slider.value_pos[0] - sp(16), current_track_slider.center_y - sp(16))
                                     size_hint: None, None
                                     size: sp(32), sp(32)
@@ -567,21 +434,21 @@
                             BoxLayout:
                                 orientation: 'horizontal'
                                 padding: sp(20),0,sp(20),0
-                                Label:
+                                OutlineLabel:
                                     id: current_track_time_label
                                     size_hint_x: 0.1
                                     valign: 'center'
                                     halign: 'left'
                                     size: self.texture_size
                                     text: "%02d:%02d" % (divmod(int(current_track_slider.value),60))
-                                Label:
+                                OutlineLabel:
                                     padding_x: '10sp'
                                     text_size: self.size
                                     id: current_playlist_track_number_label
                                     text: '1 of 10'
                                     halign: 'center'
                                     valign: 'middle'
-                                Label:
+                                OutlineLabel:
                                     id: current_track_totaltime_label
                                     size_hint_x: 0.1
                                     valign: 'center'
