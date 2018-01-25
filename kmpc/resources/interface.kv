@@ -11,7 +11,7 @@
 #:import OutlineTabbedPanelItem kmpc.extra.OutlineTabbedPanelItem
 
 <OutlineLabel>:
-    font_name: app.normalfont
+    font_name: app.boldfont
     font_size: '20sp'
     outline_color: [0,0,0]
     outline_width: '1sp'
@@ -43,6 +43,9 @@
     BoxLayout:
         orientation: 'vertical'
         OutlineLabel:
+            text: 'IP Address: 0.0.0.0'
+            id: ip_label
+        OutlineLabel:
             text: 'Crossfade length in seconds'
             text_size: self.size
             halign: 'left'
@@ -52,7 +55,7 @@
             orientation: 'horizontal'
             OutlineLabel:
                 text: str(int(round(crossfade_slider.value)))
-                size_hint_x: 0.3
+                size_hint_x: 0.25
                 text_size: self.size
                 halign: 'right'
                 valign: 'middle'
@@ -72,8 +75,8 @@
         BoxLayout:
             orientation: 'horizontal'
             OutlineLabel:
-                text: '-'+str(round(mixrampdb_slider.value,3))
-                size_hint_x: 0.3
+                text: '-'+str(round(mixrampdb_slider.value,2))
+                size_hint_x: 0.25
                 text_size: self.size
                 halign: 'right'
                 valign: 'middle'
@@ -83,7 +86,7 @@
                 min: 0
                 max: 20
                 value: 0
-                on_release: app.root.change_mixrampdb(round(mixrampdb_slider.value,3))
+                on_release: app.root.change_mixrampdb(round(mixrampdb_slider.value,2))
         OutlineLabel:
             text: 'Mixramp delay in seconds'
             text_size: self.size
@@ -93,8 +96,8 @@
         BoxLayout:
             orientation: 'horizontal'
             OutlineLabel:
-                text: str(round(mixrampdelay_slider.value,3))
-                size_hint_x: 0.3
+                text: str(round(mixrampdelay_slider.value,2))
+                size_hint_x: 0.25
                 text_size: self.size
                 halign: 'right'
                 valign: 'middle'
@@ -104,7 +107,7 @@
                 min: 0
                 max: 10
                 value: 0
-                on_release: app.root.change_mixrampdelay(round(mixrampdelay_slider.value,3))
+                on_release: app.root.change_mixrampdelay(round(mixrampdelay_slider.value,2))
         OutlineLabel:
             text: 'Text Color'
         BoxLayout:
@@ -222,9 +225,6 @@
     text: 'Config'
     BackdropBoxLayout:
         orientation: 'vertical'
-        OutlineLabel:
-            text: 'IP Address: 0.0.0.0'
-            id: ip_label
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: 0.5

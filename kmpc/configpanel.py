@@ -11,7 +11,6 @@ import git
 import os
 import stat
 import codecs
-import socket
 from subprocess import call, PIPE, Popen
 from threading import Thread
 from Queue import Queue, Empty
@@ -27,12 +26,6 @@ class ConfigTabbedPanelItem(OutlineTabbedPanelItem):
     def handle_mpd_error(self,result):
         """Callback for handling mpd exceptions."""
         Logger.error('Config: MPDIdleHandler Callback error: {}'.format(result))
-
-    def update_mpd_status(self,result):
-        """Callback for mpd status updates."""
-        Logger.debug('Config: update_mpd_status')
-        # get the host's IP address and display it
-        self.ids.ip_label.text="IP Address: "+format(self.get_ip())
 
     def printit(self,result):
         """An internal debugging function. Probably shouldn't ever be used."""
@@ -53,19 +46,6 @@ class ConfigTabbedPanelItem(OutlineTabbedPanelItem):
         """Method that shuts down the host."""
         Logger.info('Config: poweroff')
         call(['sudo','poweroff'])
-
-    def get_ip(self):
-        """Method that tries to get the local IP address, and returns localhost if there isn't one."""
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        try:
-            # doesn't even have to be reachable
-            s.connect(('10.255.255.255', 1))
-            IP = s.getsockname()[0]
-        except:
-            IP = '127.0.0.1'
-        finally:
-            s.close()
-        return IP
 
     def enqueue_output(self,out,queue,event,popup,tpath,synchost,layout,sv):
         """Method that is called in its own thread to write commandline script output to a popup, then clean up afterwards."""

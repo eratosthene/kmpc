@@ -5,6 +5,7 @@ import traceback
 import mutagen
 import io
 import random
+import socket
 import ConfigParser
 from pkg_resources import resource_filename
 from functools import partial
@@ -81,6 +82,8 @@ class KmpcInterface(TabbedPanel):
 
     def settings_popup(self):
         self.settingsPopup.open()
+        # get the host's IP address and display it
+        self.settingsPopup.ids.ip_label.text="IP Address: "+format(self.get_ip())
         self.protocol.status().addCallback(partial(self.update_mixers,self.settingsPopup)).addErrback(self.handle_mpd_error)
 
     def update_mixers(self,p,result):
@@ -140,6 +143,19 @@ class KmpcInterface(TabbedPanel):
         Logger.info('Settings: change_mixrampdelay')
         self.protocol.mixrampdelay(str(v)).addErrback(self.handle_mpd_error)
 
+    def get_ip(self):
+        """Method that tries to get the local IP address, and returns localhost if there isn't one."""
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            # doesn't even have to be reachable
+            s.connect(('10.255.255.255', 1))
+            IP = s.getsockname()[0]
+        except:
+            IP = '127.0.0.1'
+        finally:
+            s.close()
+        return IP
+
     def mpd_connectionMade(self,protocol):
         """Callback when mpd is connected."""
         # copy the protocol to all the classes
@@ -160,17 +176,11 @@ class KmpcInterface(TabbedPanel):
         """Callback when top tab is changed."""
         self.active_tab = value.text
         Logger.info("Application: Changed active tab to "+self.active_tab)
-        if self.active_tab == 'Now Playing':
-            pass
-        elif self.active_tab == 'Playlist':
-            pass
+        # Playlist is the only one that needs help when activating
+        if self.active_tab == 'Playlist':
             # switching to the playlist tab repopulates it if it is empty
-            # this is skipped right now by the 'pass' above, I can't remember why, I think it's handled a different way now
             if len(self.ids.playlist_tab.rv.data) == 0:
                 self.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
-        elif self.active_tab == 'Config':
-            # switching to the config tab repopulates options
-            self.protocol.status().addCallback(self.ids.config_tab.update_mpd_status).addErrback(self.ids.config_tab.handle_mpd_error)
 
     def mpd_connectionLost(self,protocol, reason):
         """Callback when mpd connection is lost."""
@@ -290,8 +300,6 @@ class KmpcInterface(TabbedPanel):
             self.ids.current_playlist_track_number_label.text = "%d of %d" % (a,b)
         # update the playlist tab with status results
         self.ids.playlist_tab.update_mpd_status(result)
-        # update the config tab with status results
-        self.ids.config_tab.update_mpd_status(result)
 
     def change_artist_image(self,img,al_path,instance):
         """Called when you click on an artist logo, changes it to another at random."""
