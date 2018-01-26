@@ -5,6 +5,13 @@ kmpc Change Log
 ###############
 
 ******************
+0.5.7 - 2018-01-??
+******************
+
+- Added artblacklist section to config.ini (`issue #27
+  <https://github.com/eratosthene/kmpc/issues/27>`_)
+
+******************
 0.5.6 - 2018-01-25
 ******************
 

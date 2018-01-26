@@ -13,6 +13,7 @@ import tempfile
 import shutil
 from pkg_resources import resource_filename
 import musicbrainzngs
+import ConfigParser
 
 # make sure we are on an updated version of kivy
 import kivy
@@ -248,6 +249,18 @@ class ManagerInterface(TabbedPanel):
         aname=self.ids.artist_tab.rv.data[index]['artist_name']
         fa_path=self.config.get('paths','fanartpath')
         d=result
+        # see if there are blacklist entries for this artist
+        bl=[]
+        try:
+            bl=self.config.get('artblacklist',aid).split(',')
+        except ConfigParser.NoSectionError:
+            Logger.debug('pull_art2: no artblacklist section found')
+        except ConfigParser.NoOptionError:
+            Logger.debug('pull_art2: no blacklist entries found for '+aid)
+        except Exception as e:
+            Logger.exception('pull_art2: '+format(e))
+        else:
+            Logger.debug('pull_art2: found blacklist entries for '+aid+': '+format(bl))
         if 'hdmusiclogo' in d or 'artistbackground' in d or 'musiclogo' in d:
             fapath=os.path.join(fa_path,aid)
             lpath=os.path.join(fapath,"logo")
@@ -266,7 +279,7 @@ class ManagerInterface(TabbedPanel):
                 except OSError:
                     pass
                 for idx,img in enumerate(d['hdmusiclogo']):
-                    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')) and not os.path.isfile(os.path.join(bpath,img['id']+'.png')):
+                    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')) and not os.path.isfile(os.path.join(bpath,img['id']+'.png')) and not img['id'] in bl:
                         Logger.debug("pull_art2: downloading hdmusiclogo "+img['id'])
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
@@ -280,7 +293,7 @@ class ManagerInterface(TabbedPanel):
                 except OSError:
                     pass
                 for idx,img in enumerate(d['musiclogo']):
-                    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')) and not os.path.isfile(os.path.join(bpath,img['id']+'.png')):
+                    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')) and not os.path.isfile(os.path.join(bpath,img['id']+'.png')) and not img['id'] in bl:
                         Logger.debug("pull_art2: downloading musiclogo "+img['id'])
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
@@ -294,7 +307,7 @@ class ManagerInterface(TabbedPanel):
                 except OSError:
                     pass
                 for idx,img in enumerate(d['artistbackground']):
-                    if not os.path.isfile(os.path.join(abpath,img['id']+'.png')):
+                    if not os.path.isfile(os.path.join(abpath,img['id']+'.png')) and not img['id'] in bl:
                         Logger.debug("pull_art2: downloading artistbackground "+img['id'])
                         fp=os.path.join(abpath,img['id']+'.png')
                         req = UrlRequest(img['url'],file_path=fp)
