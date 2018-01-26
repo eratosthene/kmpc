@@ -5,7 +5,7 @@ kmpc Change Log
 ###############
 
 ******************
-0.5.6 - 2018-01-??
+0.5.6 - 2018-01-25
 ******************
 
 - Changed the scan all for art function in the manager to schedule the requests
