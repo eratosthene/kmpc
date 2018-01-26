@@ -8,6 +8,8 @@ kmpc Change Log
 0.5.7 - 2018-01-??
 ******************
 
+- Added setuptools>=30.3.0 to the setup_requires section of setup.cfg (`issue
+  #36 <https://github.com/eratosthene/kmpc/issues/36>`_)
 - Added artblacklist section to config.ini (`issue #27
   <https://github.com/eratosthene/kmpc/issues/27>`_)
 
