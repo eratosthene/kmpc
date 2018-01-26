@@ -74,3 +74,15 @@ client_key
 Customize the meaning of 0-10 stars. The defaults are probably good enough, but
 feel free to change them to whatever you want. These are the strings that are
 shown in the rating popup.
+
+[artblacklist] section
+----------------------
+
+This section is not created by default. It allows you to blacklist certain
+fanart files from certain artistids in case you don't want them automatically
+downloaded. An entry would look like this::
+
+  b38225b8-8e5f-42aa-bcdc-7bae5b5bdab3 = 128387,128388
+
+The key is a MusicBrainz artistid, and the value is a comma-separated list of
+FanArt.tv image ids to ignore.
