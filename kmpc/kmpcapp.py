@@ -367,8 +367,8 @@ class KmpcInterface(TabbedPanel):
                             img.bind(on_press=partial(self.change_artist_image,img,al_path))
                             cbl.add_widget(img)
                             haslogo=True
-                    except:
-                        pass
+                    except Exception as e:
+                        Logger.exception("update_mpd_currentsong: "+format(e))
                 if haslogo:
                     # we found a logo, show it
                     current_artist_label = cbl

@@ -8,6 +8,9 @@ kmpc Change Log
 0.5.6 - 2018-01-??
 ******************
 
+- Changed the scan all for art function in the manager to schedule the requests
+  once per second for every row instead of skipping rows that already had some
+  art (`issue #26 <https://github.com/eratosthene/kmpc/issues/26>`_)
 - Changed the year display to on top of the cover art to save some space
 - Added a config file setting for originalyear display (`issue #16
   <https://github.com/eratosthene/kmpc/issues/16>`_)
