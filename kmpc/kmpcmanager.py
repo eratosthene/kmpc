@@ -229,7 +229,7 @@ class ManagerInterface(TabbedPanel):
         subprocess.call(['convert',tf1,'-trim','+repage',filename])
         shutil.rmtree(tdir)
 
-    def pull_art(self,index):
+    def pull_art(self,index,*largs):
         Logger.info('Manager: pulling art for '+self.ids.artist_tab.rv.data[index]['artist_id'])
         aid=self.ids.artist_tab.rv.data[index]['artist_id']
         aname=self.ids.artist_tab.rv.data[index]['artist_name']
@@ -310,14 +310,12 @@ class ManagerInterface(TabbedPanel):
         self.write_artists_to_cache()
 
     def pull_art_for_all(self):
+        waittime=1
         for idx in range(0,len(self.ids.artist_tab.rv.data)):
-            datum=self.ids.artist_tab.rv.data[idx]
-            try:
-                if not datum['has_logo'] and not datum['has_badge'] and not datum['has_artistbackground']:
-                    self.pull_art(idx)
-                    self.scan_for_media(idx)
-            except KeyError:
-                pass
+            Logger.debug("FanArt.tv: scheduling query in "+str(waittime)+" seconds")
+            Clock.schedule_once(partial(self.pull_art,idx),waittime)
+            waittime=waittime+1
+        Clock.schedule_once(self.scan_all_for_media,waittime+5)
         self.write_artists_to_cache()
 
 

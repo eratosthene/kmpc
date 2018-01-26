@@ -5,8 +5,10 @@ import traceback
 import mutagen
 import io
 import random
+import socket
 import ConfigParser
 from pkg_resources import resource_filename
+from functools import partial
 
 # make sure we are on an updated version of kivy
 import kivy
@@ -29,7 +31,6 @@ from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelItem
 from kivy.uix.button import Button
-from kivy.uix.label import Label
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.checkbox import CheckBox
@@ -40,10 +41,11 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.slider import Slider
 from kivy.factory import Factory
 from kivy.lang import Builder
+from kivy.properties import ObjectProperty
 
 # import our local modules
 from mpdfactory import MPDClientFactory
-from extra import KmpcHelpers,ExtraSlider,ClearButton
+from extra import KmpcHelpers,ExtraSlider,ClearButton,OutlineLabel,OutlineButton
 from playlistpanel import PlaylistTabbedPanelItem
 
 # sets the location of the config folder
@@ -75,6 +77,85 @@ class KmpcInterface(TabbedPanel):
         self.currfile=None
         self.track_slider_task=None
         self.accessoryPopup=Factory.AccessoryPopup()
+        self.tcolor=1
+        self.ocolor=0
+        self.settingsPopup=Factory.SettingsPopup()
+
+    def settings_popup(self):
+        self.settingsPopup.open()
+        # get the host's IP address and display it
+        self.settingsPopup.ids.ip_label.text="IP Address: "+format(self.get_ip())
+        self.protocol.status().addCallback(partial(self.update_mixers,self.settingsPopup)).addErrback(self.handle_mpd_error)
+
+    def update_mixers(self,p,result):
+        # set up the crossfade slider
+        if 'xfade' in result:
+            v = int(result['xfade'])
+        else:
+            v = 0
+        p.ids.crossfade_slider.value=v
+        # set up the mixrampdb slider
+        if 'mixrampdb' in result:
+            v = round(float(result['mixrampdb']),6)
+        else:
+            v = 0.0
+        p.ids.mixrampdb_slider.value=float(str(v)[1:])
+        # set up the mixrampdelay slider
+        if 'mixrampdelay' in result:
+            v = round(float(result['mixrampdelay']),6)
+        else:
+            v = 0.0
+        p.ids.mixrampdelay_slider.value=v
+
+    def change_text_color(self,color):
+        Logger.debug("NowPlaying: change_text_color to "+format(color))
+        self.tcolor=color
+        def _tc(widget):
+            for child in widget.children:
+                _tc(child)
+            if issubclass(widget.__class__,OutlineLabel):
+                widget.color=[color,color,color,1]
+        for child in self.children:
+            _tc(child)
+
+    def change_outline_color(self,color):
+        Logger.debug("NowPlaying: change_outline_color to "+format(color))
+        self.ocolor=color
+        def _tc(widget):
+            for child in widget.children:
+                _tc(child)
+            if issubclass(widget.__class__,OutlineLabel):
+                widget.outline_color=[color,color,color,1]
+        for child in self.children:
+            _tc(child)
+
+    def change_crossfade(self,v):
+        """Callback when user changes crossfade slider."""
+        Logger.info('Settings: change_crossfade')
+        self.protocol.crossfade(str(v)).addErrback(self.handle_mpd_error)
+
+    def change_mixrampdb(self,v):
+        """Callback when user changes mixrampdb slider."""
+        Logger.info('Settings: change_mixrampdb')
+        self.protocol.mixrampdb(str(0.0-v)).addErrback(self.handle_mpd_error)
+
+    def change_mixrampdelay(self,v):
+        """Callback when user changes mixrampdelay slider."""
+        Logger.info('Settings: change_mixrampdelay')
+        self.protocol.mixrampdelay(str(v)).addErrback(self.handle_mpd_error)
+
+    def get_ip(self):
+        """Method that tries to get the local IP address, and returns localhost if there isn't one."""
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            # doesn't even have to be reachable
+            s.connect(('10.255.255.255', 1))
+            IP = s.getsockname()[0]
+        except:
+            IP = '127.0.0.1'
+        finally:
+            s.close()
+        return IP
 
     def mpd_connectionMade(self,protocol):
         """Callback when mpd is connected."""
@@ -96,17 +177,11 @@ class KmpcInterface(TabbedPanel):
         """Callback when top tab is changed."""
         self.active_tab = value.text
         Logger.info("Application: Changed active tab to "+self.active_tab)
-        if self.active_tab == 'Now Playing':
-            pass
-        elif self.active_tab == 'Playlist':
-            pass
+        # Playlist is the only one that needs help when activating
+        if self.active_tab == 'Playlist':
             # switching to the playlist tab repopulates it if it is empty
-            # this is skipped right now by the 'pass' above, I can't remember why, I think it's handled a different way now
             if len(self.ids.playlist_tab.rv.data) == 0:
                 self.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
-        elif self.active_tab == 'Config':
-            # switching to the config tab repopulates options
-            self.protocol.status().addCallback(self.ids.config_tab.update_mpd_status).addErrback(self.ids.config_tab.handle_mpd_error)
 
     def mpd_connectionLost(self,protocol, reason):
         """Callback when mpd connection is lost."""
@@ -163,7 +238,7 @@ class KmpcInterface(TabbedPanel):
         self.ids.song_star_layout.clear_widgets()
         self.ids.album_cover_layout.clear_widgets()
         self.ids.trackinfo.clear_widgets()
-        lbl = Label(text="Playback Stopped")
+        lbl = OutlineLabel(text="Playback Stopped")
         self.ids.trackinfo.add_widget(lbl)
         self.ids.player.canvas.before.add(Rectangle(source=resource_filename(__name__,os.path.join("resources","backdrop.png")),size=self.ids.player.size,pos=self.ids.player.pos))
 
@@ -226,8 +301,16 @@ class KmpcInterface(TabbedPanel):
             self.ids.current_playlist_track_number_label.text = "%d of %d" % (a,b)
         # update the playlist tab with status results
         self.ids.playlist_tab.update_mpd_status(result)
-        # update the config tab with status results
-        self.ids.config_tab.update_mpd_status(result)
+
+    def change_artist_image(self,img,al_path,instance):
+        """Called when you click on an artist logo, changes it to another at random."""
+        Logger.debug("NowPlaying: change_artist_image (current path is "+img.source+")")
+        img_path=img.source
+        while img_path==img.source:
+            img_path=os.path.join(al_path,random.choice(os.listdir(al_path)))
+        if os.path.isfile(img_path):
+            img.source=img_path
+        Logger.debug("NowPlaying: change_artist_image (new path is "+img.source+")")
 
     def update_mpd_currentsong(self,result):
         """Callback for mpd currentsong data."""
@@ -281,10 +364,11 @@ class KmpcInterface(TabbedPanel):
                         if os.path.isfile(img_path):
                             # create an image button out of the logo so you can press it
                             img = ImageButton(source=os.path.join(al_path,img_path),allow_stretch=True,color=(1,1,1,0.65))
+                            img.bind(on_press=partial(self.change_artist_image,img,al_path))
                             cbl.add_widget(img)
                             haslogo=True
-                    except:
-                        pass
+                    except Exception as e:
+                        Logger.exception("update_mpd_currentsong: "+format(e))
                 if haslogo:
                     # we found a logo, show it
                     current_artist_label = cbl
@@ -311,10 +395,11 @@ class KmpcInterface(TabbedPanel):
                     f = mutagen.File(p)
                     cimg = None
                     data = None
-                    # if the original year mp3 tag exists use it instead of mpd's year
-                    # I prefer this year to be displayed, rather than the year an album was remastered
-                    if 'TXXX:originalyear' in f.keys():
-                        year=format(f['TXXX:originalyear'])
+                    originalyear = None
+                    # if config file says use originalyear, use it instead of mpd's year
+                    if self.config.getboolean('flags','originalyear'):
+                        if 'TXXX:originalyear' in f.keys():
+                            originalyear=format(f['TXXX:originalyear'])
                     # try to get mp3 cover, if this throws an exception it's not an mp3 or it doesn't have a cover
                     try:
                         pframes = f.tags.getall("APIC")
@@ -347,37 +432,39 @@ class KmpcInterface(TabbedPanel):
                     if data:
                         # if we got image data, load it as a kivy.core.image
                         cimg = CoreImage(data,ext=ext)
+                    if self.config.getboolean('flags','originalyear') and originalyear and year and int(originalyear)!=int(year):
+                        tt="["+originalyear+"]\n{"+year+"}"
+                    elif year:
+                        tt="["+year+"]"
+                    else:
+                        tt=""
                     if cimg:
-                        # if the image loading worked, create an image widget and fix up the layout
                         # TODO: sometimes this just returns a black rectangle, i think i need to catch more specific exceptions
                         # and figure out what exactly is happening
-                        img=ImageButton(texture=cimg.texture,allow_stretch=True)
-                        self.ids.album_cover_layout.add_widget(img)
-                        # popup the cover large if you press it
-                        img.bind(on_press=self.cover_popup)
+                        img=CoverButton(img=cimg,layout=self.ids.album_cover_layout,text=tt,halign='center')
+                    else:
+                        img=CoverButton(img=CoreImage(resource_filename(__name__,os.path.join('resources','clear.png'))),layout=self.ids.album_cover_layout,text=tt,halign='center')
+                    self.ids.album_cover_layout.add_widget(img)
+                    # popup the cover large if you press it
+                    img.bind(on_press=self.cover_popup)
                 else:
                     # this should _probably_ never happen
                     Logger.debug('NowPlaying: no file found at path '+p)
                 # add the correct artist name widget
                 ti.add_widget(current_artist_label)
-                # if we got a year tag from somewhere, include it in the album label
-                if year:
-                    yeartext = result['album']+' ['+year+']'
-                else:
-                    yeartext = result['album']
                 if haslogo:
                     # we found an artist logo, put the song and album labels in a separate boxlayout to separate them a bit
                     lyt = BoxLayout(orientation='vertical',padding_y='10sp')
                     current_song_label = InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title']))
                     lyt.add_widget(current_song_label)
-                    current_album_label = InfoLargeLabel(text = yeartext,font_size=Helpers.getfontsize(yeartext))
+                    current_album_label = InfoLargeLabel(text = result['album'],font_size=Helpers.getfontsize(result['album']))
                     lyt.add_widget(current_album_label)
                     ti.add_widget(lyt)
                 else:
                     # no artist logo, just add the song and album labels directly to the track info widget
                     current_song_label = InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title']))
                     ti.add_widget(current_song_label)
-                    current_album_label = InfoLargeLabel(text = yeartext,font_size=Helpers.getfontsize(yeartext))
+                    current_album_label = InfoLargeLabel(text = result['album'],font_size=Helpers.getfontsize(result['album']))
                     ti.add_widget(current_album_label)
         else:
             # there's not a current song, so zero everything out
@@ -481,7 +568,7 @@ class KmpcInterface(TabbedPanel):
             # bind the button press to set the rating
             btn.bind(on_press=self.rating_set)
             # add a label to explain the ratings, this is pretty subjective
-            lbl=Label(text=Helpers.songratings(self.config)[str(r)]['meaning'],halign='left')
+            lbl=OutlineLabel(text=Helpers.songratings(self.config)[str(r)]['meaning'],halign='left')
             # add the label to the layout
             layout.add_widget(lbl)
         # pop it on up, if you press outside the popup it just goes away without setting the rating
@@ -501,7 +588,7 @@ class KmpcInterface(TabbedPanel):
         layout = BoxLayout()
         popup = Popup(title='Cover',content=layout,size_hint=(0.6,1))
         # pull the already loaded image texture
-        img = Image(texture=instance.texture,allow_stretch=True)
+        img = Image(texture=instance.img.texture,allow_stretch=True)
         # add it to the layout
         layout.add_widget(img)
         # pop pop pop
@@ -542,17 +629,29 @@ class KmpcApp(App):
         self.trackslidercursor = resource_filename(__name__,os.path.join('resources','track-slider-cursor.png'))
         return KmpcInterface()
 
-class InfoLargeLabel(Label):
+class InfoLargeLabel(OutlineLabel):
     """A label with large text."""
     pass
 
-class InfoSmallLabel(Label):
+class InfoSmallLabel(OutlineLabel):
     """A label with small text."""
     pass
 
 class ImageButton(ButtonBehavior, AsyncImage):
     """An image that you can press."""
     pass
+
+class CoverButton(OutlineButton):
+    img = ObjectProperty(None)
+    layout = ObjectProperty(None)
+
+    def __init__(self,**kwargs):
+        super(self.__class__,self).__init__(**kwargs)
+        self.background_normal = resource_filename(__name__,os.path.join('resources','clear.png'))
+        self.background_down = resource_filename(__name__,os.path.join('resources','clear.png'))
+        self.font_name = resource_filename(__name__,os.path.join('resources','DejaVuSans-Bold.ttf'))
+        with self.canvas.before:
+            Rectangle(texture=self.img.texture,pos=self.layout.pos,size=self.layout.size)
 
 if __name__ == '__main__':
     # run the app!

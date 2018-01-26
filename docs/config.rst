@@ -49,6 +49,9 @@ rpienable
   Set this to ``true`` if you are running this on a Pi and want to control
   Pi-specific features, such as the backlight. Set to ``false`` otherwise.
   Defaults to ``false``.
+originalyear
+  Set this to ``true`` to display an mp3's originalyear tag as well as the
+  regular year tag. Defaults to ``true``.
 
 [logs] section
 --------------
