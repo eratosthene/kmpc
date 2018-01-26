@@ -6,6 +6,8 @@ kivy.require('1.10.0')
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.slider import Slider
+from kivy.uix.label import Label
+from kivy.uix.tabbedpanel import TabbedPanelItem
 
 # sets the location of the config folder
 configdir = os.path.join(os.path.expanduser('~'),".kmpc")
@@ -137,6 +139,14 @@ class ExtraSlider(Slider):
             self.dispatch('on_release')
         return released
 
-class ClearButton(Button):
+class OutlineLabel(Label):
+    """A label that has an outline around it."""
+    pass
+
+class ClearButton(Button,OutlineLabel):
     """A button that is clear instead of opaque."""
+    pass
+
+class OutlineTabbedPanelItem(TabbedPanelItem,OutlineLabel):
+    """A label that has an outline around it."""
     pass

@@ -3,7 +3,6 @@ kivy.require('1.10.0')
 from kivy.uix.tabbedpanel import TabbedPanelItem
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
-from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.logger import Logger
 from kivy.app import App
@@ -12,68 +11,25 @@ import git
 import os
 import stat
 import codecs
-import socket
 from subprocess import call, PIPE, Popen
 from threading import Thread
 from Queue import Queue, Empty
 from functools import partial
 
-from kmpc.extra import KmpcHelpers
+from kmpc.extra import KmpcHelpers, OutlineLabel, OutlineTabbedPanelItem
 
 Helpers=KmpcHelpers()
 
-class ConfigTabbedPanelItem(TabbedPanelItem):
+class ConfigTabbedPanelItem(OutlineTabbedPanelItem):
     """The Config tab, for misc. mpd configs and internal functions."""
 
     def handle_mpd_error(self,result):
         """Callback for handling mpd exceptions."""
         Logger.error('Config: MPDIdleHandler Callback error: {}'.format(result))
 
-    def update_mpd_status(self,result):
-        """Callback for mpd status updates."""
-        Logger.debug('Config: update_mpd_status')
-        # set up the crossfade slider
-        if 'xfade' in result:
-            v = int(result['xfade'])
-        else:
-            v = 0
-        self.ids.crossfade_slider.value=v
-        # set up the mixrampdb slider
-        if 'mixrampdb' in result:
-            v = round(float(result['mixrampdb']),6)
-        else:
-            v = 0.0
-        self.ids.mixrampdb_slider.value=float(str(v)[1:])
-        # set up the mixrampdelay slider
-        if 'mixrampdelay' in result:
-            v = round(float(result['mixrampdelay']),6)
-        else:
-            v = 0.0
-        self.ids.mixrampdelay_slider.value=v
-        # get the host's IP address and display it
-        self.ids.ip_label.text="IP Address: "+format(self.get_ip())
-
     def printit(self,result):
         """An internal debugging function. Probably shouldn't ever be used."""
         print format(result)
-
-    def change_crossfade(self):
-        """Callback when user changes crossfade slider."""
-        Logger.info('Config: change_crossfade')
-        v=int(round(self.ids.crossfade_slider.value))
-        self.protocol.crossfade(str(v)).addErrback(self.handle_mpd_error)
-
-    def change_mixrampdb(self):
-        """Callback when user changes mixrampdb slider."""
-        Logger.info('Config: change_mixrampdb')
-        v=0.0-round(self.ids.mixrampdb_slider.value,6)
-        self.protocol.mixrampdb(str(v)).addErrback(self.handle_mpd_error)
-
-    def change_mixrampdelay(self):
-        """Callback when user changes mixrampdelay slider."""
-        Logger.info('Config: change_mixrampdelay')
-        v=round(self.ids.mixrampdelay_slider.value,6)
-        self.protocol.mixrampdelay(str(v)).addErrback(self.handle_mpd_error)
 
     def git_pull(self):
         """Method that runs a git pull on the current folder."""
@@ -91,19 +47,6 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         Logger.info('Config: poweroff')
         call(['sudo','poweroff'])
 
-    def get_ip(self):
-        """Method that tries to get the local IP address, and returns localhost if there isn't one."""
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        try:
-            # doesn't even have to be reachable
-            s.connect(('10.255.255.255', 1))
-            IP = s.getsockname()[0]
-        except:
-            IP = '127.0.0.1'
-        finally:
-            s.close()
-        return IP
-
     def enqueue_output(self,out,queue,event,popup,tpath,synchost,layout,sv):
         """Method that is called in its own thread to write commandline script output to a popup, then clean up afterwards."""
         # loop through the stdout output and shove it into the queue
@@ -114,7 +57,7 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         event.cancel()
         popup.dismiss() # seems like this is too early, since we're writing more data in the next few lines
         Logger.info('Filesync: Cleaning up')
-        l=Label(text='Cleaning up temporary files',size_hint=(None,None),font_size='12sp',halign='left')
+        l=OutlineLabel(text='Cleaning up temporary files',size_hint=(None,None),font_size='12sp',halign='left')
         l.bind(texture_size=l.setter('size'))
         layout.add_widget(l)
         sv.scroll_to(l)
@@ -137,7 +80,7 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
             pass
         else:
             # TODO: figure out why lines all seem to have a blank line between them, probably something to do with \n at the end or something
-            l=Label(text=line,size_hint=(None,None),font_size='12sp',halign='left')
+            l=OutlineLabel(text=line,size_hint=(None,None),font_size='12sp',halign='left')
             l.bind(texture_size=l.setter('size'))
             layout.add_widget(l)
             sv.scroll_to(l)
@@ -164,7 +107,7 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
         fanartpath= App.get_running_app().root.config.get('paths','fanartpath')
         Logger.info('Filesync: Copying rsync file to carpi')
         # TODO: figure out why this doesn't show up on the screen until after the os.walk has completed
-        l=Label(text='Copying rsync file to carpi',size_hint=(None,None),font_size='12sp',halign='left')
+        l=OutlineLabel(text='Copying rsync file to carpi',size_hint=(None,None),font_size='12sp',halign='left')
         l.bind(texture_size=l.setter('size'))
         layout.add_widget(l)
         sv.scroll_to(l)
@@ -179,7 +122,7 @@ class ConfigTabbedPanelItem(TabbedPanelItem):
                 filelist[Helpers.decodeFileName(line.rstrip())]=True
         Logger.info('Filesync: Removing old files from carpi')
         # TODO: figure out why this doesn't show up on the screen until after the os.walk has completed
-        l=Label(text='Removing old files from carpi',size_hint=(None,None),font_size='12sp',halign='left')
+        l=OutlineLabel(text='Removing old files from carpi',size_hint=(None,None),font_size='12sp',halign='left')
         l.bind(texture_size=l.setter('size'))
         layout.add_widget(l)
         sv.scroll_to(l)
