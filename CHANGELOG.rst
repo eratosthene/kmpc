@@ -8,6 +8,8 @@ kmpc Change Log
 0.5.6 - 2018-01-??
 ******************
 
+- Added a config file setting for originalyear display (`issue #16
+  <https://github.com/eratosthene/kmpc/issues/16>`_)
 - Added new settings popup to house things as config tab is going to be used
   for actual config file editing eventually. (`issue #6
   <https://github.com/eratosthene/kmpc/issues/6>`_)

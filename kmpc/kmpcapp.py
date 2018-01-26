@@ -394,10 +394,10 @@ class KmpcInterface(TabbedPanel):
                     f = mutagen.File(p)
                     cimg = None
                     data = None
-                    # if the original year mp3 tag exists use it instead of mpd's year
-                    # I prefer this year to be displayed, rather than the year an album was remastered
-                    if 'TXXX:originalyear' in f.keys():
-                        year=format(f['TXXX:originalyear'])
+                    # if config file says use originalyear, use it instead of mpd's year
+                    if self.config.getboolean('flags','originalyear'):
+                        if 'TXXX:originalyear' in f.keys():
+                            year=format(f['TXXX:originalyear'])
                     # try to get mp3 cover, if this throws an exception it's not an mp3 or it doesn't have a cover
                     try:
                         pframes = f.tags.getall("APIC")
