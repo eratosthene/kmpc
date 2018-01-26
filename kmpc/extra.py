@@ -26,11 +26,11 @@ configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
 class MpdConnection(object):
 
-    def __init__(self,config,initconnections=[]):
+    def __init__(self,config,idlehandler=None,initconnections=[]):
         self.config = config
         # set up mpd connection
         self.initconnections=initconnections
-        self.factory = MPDClientFactory()
+        self.factory = MPDClientFactory(idlehandler)
         self.factory.connectionMade = self.mpd_connectionMade
         self.factory.connectionLost = self.mpd_connectionLost
         reactor.connectTCP(self.config.get('mpd','mpdhost'), self.config.getint('mpd','mpdport'), self.factory)
