@@ -5,7 +5,6 @@ import mutagen
 import io
 import random
 import socket
-import ConfigParser
 from pkg_resources import resource_filename
 from functools import partial
 

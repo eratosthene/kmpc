@@ -1,7 +1,7 @@
 import os
 import ConfigParser
-from mpd import MPDProtocol
-from mpdfactory import MPDClientFactory
+from kmpc.mpd import MPDProtocol
+from kmpc.mpdfactory import MPDClientFactory
 
 import kivy
 kivy.require('1.10.0')
