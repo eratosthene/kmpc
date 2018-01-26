@@ -58,6 +58,26 @@ Step 1: Install KivyPie
    
    choose *Expand Filesystem*, hit enter a few times, let the Pi reboot, then
    log back in.
+#. If you don't want the rainbow screen to show on boot, edit the file
+   ``/boot/config.txt`` and add ``disable_splash=1`` to the end of it.
+
+#. Run this to update your packages::
+   
+     sudo apt-get update
+
+#. Run this to give your user access to the backlight device (taken from
+   https://github.com/linusg/rpi-backlight)::
+
+     cat <<EOF | sudo tee /etc/udev/rules.d/backlight-permissions.rules
+       SUBSYSTEM=="backlight",RUN+="/bin/chmod 666 \
+       /sys/class/backlight/%k/brightness /sys/class/backlight/%k/bl_power"
+     EOF
+
+#. Reboot.
+
+********************
+Step 2: Install kmpc
+********************
 #. KivyPie mounts an extremely small tmpfs at /tmp, which interferes with pip's
    ability to install things. Run the following to remount /tmp temporarily
    during the install process::
@@ -66,24 +86,6 @@ Step 1: Install KivyPie
      sudo umount -l /tmp
      sudo mount --bind /tmp /root/tmp
 
-#. If you don't want the rainbow screen to show on boot, edit the file
-   ``/boot/config.txt`` and add ``disable_splash=1`` to the end of it.
-
-#. Run this to update your packages::
-   
-     sudo apt-get update
-
-#. Run this to set your locale::
-
-     export LANG=en_US.UTF-8
-     sudo apt-get install -y locales
-     sudo sed -i -e "s/# $LANG.*/$LANG.UTF-8 UTF-8/" /etc/locale.gen
-     sudo dpkg-reconfigure --frontend=noninteractive locales
-     sudo update-locale LANG=$LANG
-
-********************
-Step 2: Install kmpc
-********************
 #. Install some dependencies::
 
      sudo apt-get -y install sqlite3
