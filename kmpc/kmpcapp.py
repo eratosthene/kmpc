@@ -47,17 +47,13 @@ configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 Builder.load_file(resource_filename(__name__,os.path.join('resources','interface.kv')))
 
 Helpers=KmpcHelpers()
-mainconfig=Helpers.loadconfigfile()
-mainmpdconnection=MpdConnection(mainconfig)
 
 class KmpcInterface(TabbedPanel):
     """The main class that ties it all together."""
 
     def __init__(self,**kwargs):
-        """Pull the config from the config file, hook up to mpd, zero out variables."""
+        """Zero out variables."""
         super(self.__class__,self).__init__(**kwargs)
-        # pull config into the class
-        self.config = mainconfig
         # bind callbacks for tab changes
         self.bind(current_tab=self.main_tab_changed)
         self.mpd_status={'state':'stop','repeat':0,'single':0,'random':0,'consume':0,'curpos':0}
@@ -300,7 +296,7 @@ class KmpcInterface(TabbedPanel):
                 # get the stored star rating
                 mainmpdconnection.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
                 # figure out the full path of the file
-                bp=self.config.get('paths','musicpath')
+                bp=mainconfig.get('paths','musicpath')
                 # p is the absolute path
                 p=os.path.join(bp,result['file'])
                 haslogo=False
@@ -309,7 +305,7 @@ class KmpcInterface(TabbedPanel):
                 if 'date' in result:
                     year=result['date'][:4]
                 # pull the fanart folder from ini file
-                fa_path=self.config.get('paths','fanartpath')
+                fa_path=mainconfig.get('paths','fanartpath')
                 # try to get the artistid, set it to 0000 if it doesn't exist
                 try:
                     aids=str(result['musicbrainz_artistid'])
@@ -363,7 +359,7 @@ class KmpcInterface(TabbedPanel):
                     data = None
                     originalyear = None
                     # if config file says use originalyear, use it instead of mpd's year
-                    if self.config.getboolean('flags','originalyear'):
+                    if mainconfig.getboolean('flags','originalyear'):
                         if 'TXXX:originalyear' in f.keys():
                             originalyear=format(f['TXXX:originalyear'])
                     # try to get mp3 cover, if this throws an exception it's not an mp3 or it doesn't have a cover
@@ -398,7 +394,7 @@ class KmpcInterface(TabbedPanel):
                     if data:
                         # if we got image data, load it as a kivy.core.image
                         cimg = CoreImage(data,ext=ext)
-                    if self.config.getboolean('flags','originalyear') and originalyear and year and int(originalyear)!=int(year):
+                    if mainconfig.getboolean('flags','originalyear') and originalyear and year and int(originalyear)!=int(year):
                         tt="["+originalyear+"]\n{"+year+"}"
                     elif year:
                         tt="["+year+"]"
@@ -442,7 +438,7 @@ class KmpcInterface(TabbedPanel):
         # make a clear button for the star rating
         btn = ClearButton(padding_x='10sp',font_name=resource_filename(__name__,os.path.join('resources','FontAwesome.ttf')),halign='center',valign='middle',markup=True)
         # look up the correct string for the rating
-        btn.text = Helpers.songratings(self.config)[result]['stars']
+        btn.text = Helpers.songratings(mainconfig)[result]['stars']
         # bind the popup for setting rating
         btn.bind(on_press=self.rating_popup)
         # clear the layout widget and add the new one
@@ -525,7 +521,7 @@ class KmpcInterface(TabbedPanel):
             # make a button
             btn=Button(font_name=resource_filename(__name__,os.path.join('resources','FontAwesome.ttf')))
             # look up the correct string for the rating
-            btn.text=Helpers.songratings(self.config)[str(r)]['stars']
+            btn.text=Helpers.songratings(mainconfig)[str(r)]['stars']
             # set some widget variables
             btn.rating=str(r)
             btn.popup=popup
@@ -534,7 +530,7 @@ class KmpcInterface(TabbedPanel):
             # bind the button press to set the rating
             btn.bind(on_press=self.rating_set)
             # add a label to explain the ratings, this is pretty subjective
-            lbl=OutlineLabel(text=Helpers.songratings(self.config)[str(r)]['meaning'],halign='left')
+            lbl=OutlineLabel(text=Helpers.songratings(mainconfig)[str(r)]['meaning'],halign='left')
             # add the label to the layout
             layout.add_widget(lbl)
         # pop it on up, if you press outside the popup it just goes away without setting the rating
@@ -562,9 +558,9 @@ class KmpcInterface(TabbedPanel):
 
     def change_backlight(self,value):
         """Method that sets the backlight to a certain value."""
-        Logger.info('Application: change_backlight('+str(value)+') rpienable = '+self.config.get('flags','rpienable'))
+        Logger.info('Application: change_backlight('+str(value)+') rpienable = '+mainconfig.get('flags','rpienable'))
         # only if the ini file says it's ok
-        if self.config.getboolean('flags','rpienable'):
+        if mainconfig.getboolean('flags','rpienable'):
             import rpi_backlight as bl
             # set the brightness
             bl.set_brightness(int(value), smooth=True, duration=1)
@@ -573,10 +569,14 @@ class KmpcApp(App):
     """The overall app class, builds the main interface widget."""
 
     def __init__(self,args):
-        """Override kivy config values with necessary ones."""
+        """Override kivy config values with necessary ones, pull config file, hook up to mpd"""
+        global mainmpdconnection
+        global mainconfig
         Config.set('kivy','keyboard_mode','systemanddock')
         Config.set('graphics','width',800)
         Config.set('graphics','height',480)
+        mainconfig=Helpers.loadconfigfile()
+        mainmpdconnection=MpdConnection(mainconfig)
         super(self.__class__,self).__init__()
 
     def build(self):
