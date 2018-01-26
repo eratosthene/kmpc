@@ -52,7 +52,7 @@ class KmpcInterface(TabbedPanel):
     """The main class that ties it all together."""
 
     def __init__(self,**kwargs):
-        """Zero out variables."""
+        """Zero out variables, pull in config file, connect to mpd."""
         super(self.__class__,self).__init__(**kwargs)
         # bind callbacks for tab changes
         self.bind(current_tab=self.main_tab_changed)
@@ -65,6 +65,10 @@ class KmpcInterface(TabbedPanel):
         self.tcolor=1
         self.ocolor=0
         self.settingsPopup=Factory.SettingsPopup()
+        global mainmpdconnection
+        global mainconfig
+        mainconfig=Helpers.loadconfigfile()
+        mainmpdconnection=MpdConnection(mainconfig,[self.init_mpd])
 
     def settings_popup(self):
         self.settingsPopup.open()
@@ -565,18 +569,23 @@ class KmpcInterface(TabbedPanel):
             # set the brightness
             bl.set_brightness(int(value), smooth=True, duration=1)
 
+    def init_mpd(self,instance):
+        # get the initial mpd status
+        mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(mainmpdconnection.handle_mpd_error)
+        # create the once-per-second update of the track slider
+        self.track_slider_task=Clock.schedule_interval(self.update_track_slider,1)
+        self.track_slider_task.cancel()
+        # subscribe to 'kmpc' to check for messages from mpd
+        mainmpdconnection.protocol.subscribe('kmpc')
+
 class KmpcApp(App):
     """The overall app class, builds the main interface widget."""
 
     def __init__(self,args):
-        """Override kivy config values with necessary ones, pull config file, hook up to mpd"""
-        global mainmpdconnection
-        global mainconfig
+        """Override kivy config values with necessary ones"""
         Config.set('kivy','keyboard_mode','systemanddock')
         Config.set('graphics','width',800)
         Config.set('graphics','height',480)
-        mainconfig=Helpers.loadconfigfile()
-        mainmpdconnection=MpdConnection(mainconfig)
         super(self.__class__,self).__init__()
 
     def build(self):

@@ -26,9 +26,10 @@ configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
 class MpdConnection(object):
 
-    def __init__(self,config):
+    def __init__(self,config,initconnections=[]):
         self.config = config
         # set up mpd connection
+        self.initconnections=initconnections
         self.factory = MPDClientFactory()
         self.factory.connectionMade = self.mpd_connectionMade
         self.factory.connectionLost = self.mpd_connectionLost
@@ -38,15 +39,10 @@ class MpdConnection(object):
         """Callback when mpd is connected."""
         # copy the protocol to all the classes
         self.protocol = protocol
-        app=App.get_running_app().root
         Logger.info('Application: Connected to mpd server host='+self.config.get('mpd','mpdhost')+' port='+self.config.get('mpd','mpdport'))
-        # get the initial mpd status
-        self.protocol.status().addCallback(app.update_mpd_status).addErrback(self.handle_mpd_error)
-        # create the once-per-second update of the track slider
-        app.track_slider_task=Clock.schedule_interval(app.update_track_slider,1)
-        app.track_slider_task.cancel()
-        # subscribe to 'kmpc' to check for messages from mpd
-        self.protocol.subscribe('kmpc')
+        for ic in self.initconnections:
+            if callable(ic):
+                 ic(self)
 
     def mpd_connectionLost(self,protocol, reason):
         """Callback when mpd connection is lost."""
@@ -146,6 +142,8 @@ class KmpcHelpers(object):
 
     def getfontsize(self,str):
         """Method that determines font size based on text length."""
+        # helper array for scaling font sizes based on text length
+        sizearray = ['39sp','38sp','37sp','36sp','35sp','34sp','33sp','32sp','31sp','30sp','29sp','28sp','27sp','26sp','25sp']
         lr = len(str)
         if lr < 33:
             rsize = '40sp'
@@ -163,9 +161,6 @@ class KmpcHelpers(object):
             except:
                 name = name.decode('windows-1252')
         return name
-
-# helper array for scaling font sizes based on text length
-sizearray = ['39sp','38sp','37sp','36sp','35sp','34sp','33sp','32sp','31sp','30sp','29sp','28sp','27sp','26sp','25sp']
 
 class ExtraSlider(Slider):
     """Class that implements some extra stuff on top of a standard slider."""

@@ -64,6 +64,7 @@ class MPDClientFactory(protocol.ClientFactory):
         Logger.debug('MPDClientFactory: buildProtocol')
         protocol = self.protocol()
         protocol.factory = self
+        # TODO: this only happens when running the main app, move it
         protocol.idle_result = MPDIdleHandler(protocol)
         return protocol
 
