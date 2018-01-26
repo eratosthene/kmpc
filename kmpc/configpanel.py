@@ -70,8 +70,8 @@ class ConfigTabbedPanelItem(OutlineTabbedPanelItem):
             os.remove(os.path.join(App.get_running_app().root.config.get('paths','tmppath'),'sync.sh'))
             call(['ssh',synchost,'rm','-f',App.get_running_app().root.config.get('sync','synctmppath')+'/sticker.sql'])
             call(['ssh',synchost,'rm','-f',App.get_running_app().root.config.get('sync','synctmppath')+'/scmd'])
-        except:
-            pass
+        except Exception as e:
+            Logger.exception("enqueue_output: "+format(e))
 
     def write_queue_line(self,q,layout,sv,dt):
         """Method that checks the queue for output and adds a new label line if any output exists."""
