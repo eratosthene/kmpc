@@ -21,11 +21,7 @@ from kmpc.extra import KmpcHelpers, OutlineLabel, OutlineTabbedPanelItem
 Helpers=KmpcHelpers()
 
 class ConfigTabbedPanelItem(OutlineTabbedPanelItem):
-    """The Config tab, for misc. mpd configs and internal functions."""
-
-    def handle_mpd_error(self,result):
-        """Callback for handling mpd exceptions."""
-        Logger.error('Config: MPDIdleHandler Callback error: {}'.format(result))
+    """The Config tab, for internal functions."""
 
     def printit(self,result):
         """An internal debugging function. Probably shouldn't ever be used."""

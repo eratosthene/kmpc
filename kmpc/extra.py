@@ -1,8 +1,20 @@
 import os
 import ConfigParser
+from mpd import MPDProtocol
+from mpdfactory import MPDClientFactory
 
 import kivy
 kivy.require('1.10.0')
+
+#install twisted reactor to interface with mpd
+from kivy.support import install_twisted_reactor
+install_twisted_reactor()
+from twisted.internet import reactor, protocol
+from twisted.internet.defer import inlineCallbacks
+
+from kivy.app import App
+from kivy.clock import Clock
+from kivy.logger import Logger
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.slider import Slider
@@ -11,6 +23,40 @@ from kivy.uix.tabbedpanel import TabbedPanelItem
 
 # sets the location of the config folder
 configdir = os.path.join(os.path.expanduser('~'),".kmpc")
+
+class MpdConnection(object):
+
+    def __init__(self,config):
+        self.config = config
+        # set up mpd connection
+        self.factory = MPDClientFactory()
+        self.factory.connectionMade = self.mpd_connectionMade
+        self.factory.connectionLost = self.mpd_connectionLost
+        reactor.connectTCP(self.config.get('mpd','mpdhost'), self.config.getint('mpd','mpdport'), self.factory)
+
+    def mpd_connectionMade(self,protocol):
+        """Callback when mpd is connected."""
+        # copy the protocol to all the classes
+        self.protocol = protocol
+        app=App.get_running_app().root
+        Logger.info('Application: Connected to mpd server host='+self.config.get('mpd','mpdhost')+' port='+self.config.get('mpd','mpdport'))
+        # get the initial mpd status
+        self.protocol.status().addCallback(app.update_mpd_status).addErrback(self.handle_mpd_error)
+        # create the once-per-second update of the track slider
+        app.track_slider_task=Clock.schedule_interval(app.update_track_slider,1)
+        app.track_slider_task.cancel()
+        # subscribe to 'kmpc' to check for messages from mpd
+        self.protocol.subscribe('kmpc')
+
+    def mpd_connectionLost(self,protocol, reason):
+        """Callback when mpd connection is lost."""
+        Logger.warn('Application: Connection lost: %s' % reason)
+        # kills the app for now since I don't know how to handle this yet
+        App.get_running_app().stop()
+
+    def handle_mpd_error(self,result):
+        """Prints handled errors to the error log."""
+        Logger.error('Application: MPDIdleHandler Callback error: {}'.format(result))
 
 class KmpcHelpers(object):
 
