@@ -48,6 +48,7 @@ class KmpcHelpers(object):
         config.set('sync','synctmppath','/tmp')
         config.add_section('flags')
         config.set('flags','rpienable','False')
+        config.set('flags','originalyear','True')
         config.add_section('logs')
         config.set('logs','artlog','False')
         config.add_section('fanart')
