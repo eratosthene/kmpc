@@ -41,10 +41,11 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.slider import Slider
 from kivy.factory import Factory
 from kivy.lang import Builder
+from kivy.properties import ObjectProperty
 
 # import our local modules
 from mpdfactory import MPDClientFactory
-from extra import KmpcHelpers,ExtraSlider,ClearButton,OutlineLabel
+from extra import KmpcHelpers,ExtraSlider,ClearButton,OutlineLabel,OutlineButton
 from playlistpanel import PlaylistTabbedPanelItem
 
 # sets the location of the config folder
@@ -394,10 +395,11 @@ class KmpcInterface(TabbedPanel):
                     f = mutagen.File(p)
                     cimg = None
                     data = None
+                    originalyear = None
                     # if config file says use originalyear, use it instead of mpd's year
                     if self.config.getboolean('flags','originalyear'):
                         if 'TXXX:originalyear' in f.keys():
-                            year=format(f['TXXX:originalyear'])
+                            originalyear=format(f['TXXX:originalyear'])
                     # try to get mp3 cover, if this throws an exception it's not an mp3 or it doesn't have a cover
                     try:
                         pframes = f.tags.getall("APIC")
@@ -430,37 +432,39 @@ class KmpcInterface(TabbedPanel):
                     if data:
                         # if we got image data, load it as a kivy.core.image
                         cimg = CoreImage(data,ext=ext)
+                    if self.config.getboolean('flags','originalyear') and originalyear and year and int(originalyear)!=int(year):
+                        tt="["+originalyear+"]\n{"+year+"}"
+                    elif year:
+                        tt="["+year+"]"
+                    else:
+                        tt=""
                     if cimg:
-                        # if the image loading worked, create an image widget and fix up the layout
                         # TODO: sometimes this just returns a black rectangle, i think i need to catch more specific exceptions
                         # and figure out what exactly is happening
-                        img=ImageButton(texture=cimg.texture,allow_stretch=True)
-                        self.ids.album_cover_layout.add_widget(img)
-                        # popup the cover large if you press it
-                        img.bind(on_press=self.cover_popup)
+                        img=CoverButton(img=cimg,layout=self.ids.album_cover_layout,text=tt,halign='center')
+                    else:
+                        img=CoverButton(img=CoreImage(resource_filename(__name__,os.path.join('resources','clear.png'))),layout=self.ids.album_cover_layout,text=tt,halign='center')
+                    self.ids.album_cover_layout.add_widget(img)
+                    # popup the cover large if you press it
+                    img.bind(on_press=self.cover_popup)
                 else:
                     # this should _probably_ never happen
                     Logger.debug('NowPlaying: no file found at path '+p)
                 # add the correct artist name widget
                 ti.add_widget(current_artist_label)
-                # if we got a year tag from somewhere, include it in the album label
-                if year:
-                    yeartext = result['album']+' ['+year+']'
-                else:
-                    yeartext = result['album']
                 if haslogo:
                     # we found an artist logo, put the song and album labels in a separate boxlayout to separate them a bit
                     lyt = BoxLayout(orientation='vertical',padding_y='10sp')
                     current_song_label = InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title']))
                     lyt.add_widget(current_song_label)
-                    current_album_label = InfoLargeLabel(text = yeartext,font_size=Helpers.getfontsize(yeartext))
+                    current_album_label = InfoLargeLabel(text = result['album'],font_size=Helpers.getfontsize(result['album']))
                     lyt.add_widget(current_album_label)
                     ti.add_widget(lyt)
                 else:
                     # no artist logo, just add the song and album labels directly to the track info widget
                     current_song_label = InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title']))
                     ti.add_widget(current_song_label)
-                    current_album_label = InfoLargeLabel(text = yeartext,font_size=Helpers.getfontsize(yeartext))
+                    current_album_label = InfoLargeLabel(text = result['album'],font_size=Helpers.getfontsize(result['album']))
                     ti.add_widget(current_album_label)
         else:
             # there's not a current song, so zero everything out
@@ -584,7 +588,7 @@ class KmpcInterface(TabbedPanel):
         layout = BoxLayout()
         popup = Popup(title='Cover',content=layout,size_hint=(0.6,1))
         # pull the already loaded image texture
-        img = Image(texture=instance.texture,allow_stretch=True)
+        img = Image(texture=instance.img.texture,allow_stretch=True)
         # add it to the layout
         layout.add_widget(img)
         # pop pop pop
@@ -636,6 +640,18 @@ class InfoSmallLabel(OutlineLabel):
 class ImageButton(ButtonBehavior, AsyncImage):
     """An image that you can press."""
     pass
+
+class CoverButton(OutlineButton):
+    img = ObjectProperty(None)
+    layout = ObjectProperty(None)
+
+    def __init__(self,**kwargs):
+        super(self.__class__,self).__init__(**kwargs)
+        self.background_normal = resource_filename(__name__,os.path.join('resources','clear.png'))
+        self.background_down = resource_filename(__name__,os.path.join('resources','clear.png'))
+        self.font_name = resource_filename(__name__,os.path.join('resources','DejaVuSans-Bold.ttf'))
+        with self.canvas.before:
+            Rectangle(texture=self.img.texture,pos=self.layout.pos,size=self.layout.size)
 
 if __name__ == '__main__':
     # run the app!

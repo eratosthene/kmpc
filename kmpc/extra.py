@@ -144,6 +144,10 @@ class OutlineLabel(Label):
     """A label that has an outline around it."""
     pass
 
+class OutlineButton(Button,OutlineLabel):
+    """A button with a label that has an outline around it."""
+    pass
+
 class ClearButton(Button,OutlineLabel):
     """A button that is clear instead of opaque."""
     pass

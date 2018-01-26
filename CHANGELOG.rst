@@ -8,6 +8,7 @@ kmpc Change Log
 0.5.6 - 2018-01-??
 ******************
 
+- Changed the year display to on top of the cover art to save some space
 - Added a config file setting for originalyear display (`issue #16
   <https://github.com/eratosthene/kmpc/issues/16>`_)
 - Added new settings popup to house things as config tab is going to be used
