@@ -1,5 +1,4 @@
 import os
-import ConfigParser
 from kmpc.mpd import MPDProtocol
 from kmpc.mpdfactory import MPDClientFactory
 
@@ -20,9 +19,6 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.slider import Slider
 from kivy.uix.label import Label
 from kivy.uix.tabbedpanel import TabbedPanelItem
-
-# sets the location of the config folder
-configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
 # this class just returns a debug message for all calls to it to handle bad mpd connections
 class Dummy(object):
@@ -92,69 +88,20 @@ class KmpcHelpers(object):
         song+=rec['title']
         return song
 
-    def loadconfigfile(self):
-        # set up config with default values
-        config=ConfigParser.SafeConfigParser()
-        config.add_section('mpd')
-        config.set('mpd','mpdhost','127.0.0.1')
-        config.set('mpd','mpdport','6600')
-        config.add_section('paths')
-        config.set('paths','musicpath','/mnt/music')
-        config.set('paths','fanartpath','/mnt/fanart')
-        config.set('paths','tmppath','/tmp')
-        config.add_section('sync')
-        config.set('sync','synchost','127.0.0.1')
-        config.set('sync','syncmusicpath','/mnt/music')
-        config.set('sync','syncfanartpath','/mnt/fanart')
-        config.set('sync','synctmppath','/tmp')
-        config.add_section('flags')
-        config.set('flags','rpienable','False')
-        config.set('flags','originalyear','True')
-        config.add_section('logs')
-        config.set('logs','artlog','False')
-        config.add_section('fanart')
-        config.set('fanart','client_key','')
-        config.add_section('songratings')
-        config.set('songratings','zero','Silence')
-        config.set('songratings','one','Songs that should never be heard')
-        config.set('songratings','two','Songs no one likes')
-        config.set('songratings','three','Songs for certain occasions')
-        config.set('songratings','four','Songs someone else likes')
-        config.set('songratings','five','Filler tracks with no music')
-        config.set('songratings','six','Meh track or short musical filler')
-        config.set('songratings','seven','Occasional listening songs')
-        config.set('songratings','eight','Great songs for all occasions')
-        config.set('songratings','nine','Best songs by an artist')
-        config.set('songratings','ten','Favorite songs of all time')
-        # check if config folder exists
-        if os.path.isdir(configdir):
-            # try to read existing config file
-            config.read([os.path.join(configdir,'config.ini')])
-            # write out config file in case it doesn't exist yet
-            with open(os.path.join(configdir,'config.ini'),'wb') as cf:
-                config.write(cf)
-        else:
-            os.mkdir(configdir)
-            # write out config file
-            with open(os.path.join(configdir,'config.ini'),'wb') as cf:
-                config.write(cf)
-        # return the generated config
-        return config
-
     # fontawesome strings and subjective interpretations of song ratings.
     def songratings(self,config):
         sr= {
-            '0': {'stars': u"\uf006\uf006\uf006\uf006\uf006",'meaning':config.get('songratings','zero')},
-            '1': {'stars': u"\uf123\uf006\uf006\uf006\uf006",'meaning':config.get('songratings','one')},
-            '2': {'stars': u"\uf005\uf006\uf006\uf006\uf006",'meaning':config.get('songratings','two')},
-            '3': {'stars': u"\uf005\uf123\uf006\uf006\uf006",'meaning':config.get('songratings','three')},
-            '4': {'stars': u"\uf005\uf005\uf006\uf006\uf006",'meaning':config.get('songratings','four')},
-            '5': {'stars': u"\uf005\uf005\uf123\uf006\uf006",'meaning':config.get('songratings','five')},
-            '6': {'stars': u"\uf005\uf005\uf005\uf006\uf006",'meaning':config.get('songratings','six')},
-            '7': {'stars': u"\uf005\uf005\uf005\uf123\uf006",'meaning':config.get('songratings','seven')},
-            '8': {'stars': u"\uf005\uf005\uf005\uf005\uf006",'meaning':config.get('songratings','eight')},
-            '9': {'stars': u"\uf005\uf005\uf005\uf005\uf123",'meaning':config.get('songratings','nine')},
-            '10': {'stars': u"\uf005\uf005\uf005\uf005\uf005",'meaning':config.get('songratings','ten')},
+            '0': {'stars': u"\uf006\uf006\uf006\uf006\uf006",'meaning':config.get('songratings','star0')},
+            '1': {'stars': u"\uf123\uf006\uf006\uf006\uf006",'meaning':config.get('songratings','star1')},
+            '2': {'stars': u"\uf005\uf006\uf006\uf006\uf006",'meaning':config.get('songratings','star2')},
+            '3': {'stars': u"\uf005\uf123\uf006\uf006\uf006",'meaning':config.get('songratings','star3')},
+            '4': {'stars': u"\uf005\uf005\uf006\uf006\uf006",'meaning':config.get('songratings','star4')},
+            '5': {'stars': u"\uf005\uf005\uf123\uf006\uf006",'meaning':config.get('songratings','star5')},
+            '6': {'stars': u"\uf005\uf005\uf005\uf006\uf006",'meaning':config.get('songratings','star6')},
+            '7': {'stars': u"\uf005\uf005\uf005\uf123\uf006",'meaning':config.get('songratings','star7')},
+            '8': {'stars': u"\uf005\uf005\uf005\uf005\uf006",'meaning':config.get('songratings','star8')},
+            '9': {'stars': u"\uf005\uf005\uf005\uf005\uf123",'meaning':config.get('songratings','star9')},
+            '10': {'stars': u"\uf005\uf005\uf005\uf005\uf005",'meaning':config.get('songratings','star10')},
             '' : {'stars': u"\uf29c", 'meaning':'No sticker set'}
         }
         return sr

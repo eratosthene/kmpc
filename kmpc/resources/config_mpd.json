@@ -1,0 +1,12 @@
+[
+  { "type": "string",
+    "title": "mpdhost",
+    "desc": "Hostname/IP Address of mpd server",
+    "section": "mpd",
+    "key": "mpdhost" },
+  { "type": "string",
+    "title": "mpdport",
+    "desc": "TCP port of mpd server",
+    "section": "mpd",
+    "key": "mpdport" }
+]

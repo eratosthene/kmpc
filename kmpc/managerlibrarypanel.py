@@ -23,10 +23,10 @@ from pkg_resources import resource_filename
 from kmpc.extra import KmpcHelpers
 import kmpc.kmpcmanager
 
-Helpers=KmpcHelpers()
-
 # sets the location of the config folder
 configdir = os.path.join(os.path.expanduser('~'),".kmpc")
+
+Helpers=KmpcHelpers()
 
 class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
     current_view = {'value': 'root', 'base':'/','info':{'type':'uri'}}
@@ -289,7 +289,7 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
 
     def __init__(self,**kwargs):
         super(self.__class__,self).__init__(**kwargs)
-        self.app=App.get_running_app()
+        self.app=App.get_running_app().root
 
     def rating_popup(self,instance):
         Logger.debug('Library: rating_popup()')
@@ -301,7 +301,7 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
             btn.rating=str(r)
             btn.popup=popup
             layout.add_widget(btn)
-            btn.bind(on_press=partial(self.app.root.ids.library_tab.rating_set,instance.base,self.index))
+            btn.bind(on_press=partial(self.app.ids.library_tab.rating_set,instance.base,self.index))
             lbl=Label(text=self.app.songratings[str(r)]['meaning'],halign='left')
             layout.add_widget(lbl)
         popup.open()
@@ -320,15 +320,15 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
             # if we have a double-click, play from that location instead of selecting
             if touch.is_double_tap:
                 Logger.debug("Library: double-click on "+str(self.index))
-                self.app.root.ids.library_tab.rbl.clear_selection()
-                self.app.root.ids.library_tab.handle_double_click(self.app.root.ids.library_tab.rv.data[self.index],self.index)
+                self.app.ids.library_tab.rbl.clear_selection()
+                self.app.ids.library_tab.handle_double_click(self.app.ids.library_tab.rv.data[self.index],self.index)
             else:
                 return self.parent.select_with_touch(self.index, touch)
 
     def apply_selection(self, rv, index, is_selected):
         ''' Respond to the selection of items in the view. '''
         self.selected = is_selected
-        lt=self.app.root.ids.library_tab
+        lt=self.app.ids.library_tab
         if is_selected:
             lt.library_selection[index] = True
         else:

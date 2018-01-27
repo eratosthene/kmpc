@@ -7,7 +7,6 @@ from kivy.uix.popup import Popup
 from kivy.logger import Logger
 from kivy.app import App
 from kivy.clock import Clock
-import git
 import os
 import stat
 import codecs
@@ -17,22 +16,20 @@ from Queue import Queue, Empty
 from functools import partial
 
 from kmpc.extra import KmpcHelpers, OutlineLabel, OutlineTabbedPanelItem
-import kmpc.kmpcapp
 
 Helpers=KmpcHelpers()
 
-class ConfigTabbedPanelItem(OutlineTabbedPanelItem):
-    """The Config tab, for internal functions."""
+class SystemTabbedPanelItem(OutlineTabbedPanelItem):
+    """The System tab, for internal functions."""
 
     def printit(self,result):
         """An internal debugging function. Probably shouldn't ever be used."""
         print format(result)
 
-    def git_pull(self):
-        """Method that runs a git pull on the current folder."""
-        Logger.info('Config: git_pull')
-        g = git.cmd.Git(os.getcwd())
-        Logger.info(g.pull())
+    def update(self):
+        """Runs the 'updatecommand' from the config file."""
+        Logger.info('Config: update')
+        call(self.config.get('system','updatecommand').split(' '))
 
     def do_reboot(self):
         """Method that reboots the host."""
@@ -62,11 +59,11 @@ class ConfigTabbedPanelItem(OutlineTabbedPanelItem):
         try:
             call(['sudo','cp',tpath,'/var/lib/mpd/playlists/root.m3u'])
             os.remove(tpath)
-            os.remove(os.path.join(mainconfig.get('paths','tmppath'),'sticker.sql'))
-            os.remove(os.path.join(mainconfig.get('paths','tmppath'),'scmd'))
-            os.remove(os.path.join(mainconfig.get('paths','tmppath'),'sync.sh'))
-            call(['ssh',synchost,'rm','-f',mainconfig.get('sync','synctmppath')+'/sticker.sql'])
-            call(['ssh',synchost,'rm','-f',mainconfig.get('sync','synctmppath')+'/scmd'])
+            os.remove(os.path.join(self.config.get('paths','tmppath'),'sticker.sql'))
+            os.remove(os.path.join(self.config.get('paths','tmppath'),'scmd'))
+            os.remove(os.path.join(self.config.get('paths','tmppath'),'sync.sh'))
+            call(['ssh',synchost,'rm','-f',self.config.get('sync','synctmppath')+'/sticker.sql'])
+            call(['ssh',synchost,'rm','-f',self.config.get('sync','synctmppath')+'/scmd'])
         except Exception as e:
             Logger.exception("enqueue_output: "+format(e))
 
@@ -95,13 +92,13 @@ class ConfigTabbedPanelItem(OutlineTabbedPanelItem):
         popup.open()
         # temp file for the rsync, probably a better way to do this
         # this file describes exactly what songs should exist on the host, no more, no less
-        tpath=os.path.join(mainconfig.get('paths','tmppath'),"rsync.inc")
+        tpath=os.path.join(self.config.get('paths','tmppath'),"rsync.inc")
         # look in the ini file for all the relevant paths
-        synchost = mainconfig.get('sync','synchost')
-        syncbasepath = mainconfig.get('sync','syncmusicpath')
-        syncfanartpath= mainconfig.get('sync','syncfanartpath')
-        basepath = mainconfig.get('paths','musicpath')
-        fanartpath= mainconfig.get('paths','fanartpath')
+        synchost = self.config.get('sync','synchost')
+        syncbasepath = self.config.get('sync','syncmusicpath')
+        syncfanartpath= self.config.get('sync','syncfanartpath')
+        basepath = self.config.get('paths','musicpath')
+        fanartpath= self.config.get('paths','fanartpath')
         Logger.info('Filesync: Copying rsync file to carpi')
         # TODO: figure out why this doesn't show up on the screen until after the os.walk has completed
         l=OutlineLabel(text='Copying rsync file to carpi',size_hint=(None,None),font_size='12sp',halign='left')
@@ -137,47 +134,47 @@ class ConfigTabbedPanelItem(OutlineTabbedPanelItem):
                         os.remove(Helpers.decodeFileName(apath))
         # TODO: somehow do this all in python instead of shell script, it's ugly
         # also, if the host somehow has tmppath mounted with the no-execute bit set, this will fail
-        with open(os.path.join(mainconfig.get('paths','tmppath'),'sync.sh'),'w') as sfile:
+        with open(os.path.join(self.config.get('paths','tmppath'),'sync.sh'),'w') as sfile:
             sfile.write("#!/bin/bash\n")
             # delete all empty directories
             sfile.write('find "'+basepath+'" -type d -empty -delete 2>/dev/null\n')
             # copy/update only the files that exist in the rsync file
             sfile.write('rsync -vruxhm --files-from="'+tpath+'" '+synchost+':"'+syncbasepath+'"/ "'+basepath+'"\n')
             # copy the car sticker database to the synchost
-            sfile.write('scp /var/lib/mpd/sticker.sql '+synchost+':'+mainconfig.get('sync','synctmppath')+'\n')
+            sfile.write('scp /var/lib/mpd/sticker.sql '+synchost+':'+self.config.get('sync','synctmppath')+'\n')
             # build a secondary shell script to perform the sticker update on the synchost
-            with open(os.path.join(mainconfig.get('paths','tmppath'),'scmd'),'w') as f:
+            with open(os.path.join(self.config.get('paths','tmppath'),'scmd'),'w') as f:
                 # attach the copied database and merge sticker data from it to update ratings user has added in the car
                 # not using os.path.join here since who knows what os the synchost uses...use linux
-                f.write("attach database \""+mainconfig.get('sync','synctmppath')+"/sticker.sql\" as carpi;\n")
+                f.write("attach database \""+self.config.get('sync','synctmppath')+"/sticker.sql\" as carpi;\n")
                 f.write("replace into sticker select * from carpi.sticker;\n")
                 f.write("replace into carpi.sticker select * from sticker where name='rating';\n")
                 f.write(".quit\n")
             # copy secondary script to synchost and run it
-            sfile.write('scp '+os.path.join(mainconfig.get('paths','tmppath'),'scmd')+' '+synchost+':'+mainconfig.get('sync','synctmppath')+'\n')
+            sfile.write('scp '+os.path.join(self.config.get('paths','tmppath'),'scmd')+' '+synchost+':'+self.config.get('sync','synctmppath')+'\n')
             # not using os.path.join here since who knows what os the synchost uses...use linux
-            sfile.write('ssh -t '+synchost+' sudo sqlite3 /var/lib/mpd/sticker.sql < '+mainconfig.get('sync','synctmppath')+'/scmd\n')
+            sfile.write('ssh -t '+synchost+' sudo sqlite3 /var/lib/mpd/sticker.sql < '+self.config.get('sync','synctmppath')+'/scmd\n')
             # copy the now updated sticker database back from the synchost
             # not using os.path.join here since who knows what os the synchost uses...use linux
-            sfile.write('scp '+synchost+':'+mainconfig.get('sync','synctmppath')+'/sticker.sql '+mainconfig.get('paths','tmppath')+'\n')
+            sfile.write('scp '+synchost+':'+self.config.get('sync','synctmppath')+'/sticker.sql '+self.config.get('paths','tmppath')+'\n')
             # build a secondary shell script to perform the sticker update on the host
-            with open(os.path.join(mainconfig.get('paths','tmppath'),'scmd'),'w') as f:
+            with open(os.path.join(self.config.get('paths','tmppath'),'scmd'),'w') as f:
                 # attach the copied database and merge sticker data from it to update ratings user has added at home
-                f.write("attach database \""+os.path.join(mainconfig.get('paths','tmppath'),"sticker.sql")+"\" as carpi;\n")
+                f.write("attach database \""+os.path.join(self.config.get('paths','tmppath'),"sticker.sql")+"\" as carpi;\n")
                 f.write("replace into sticker select * from carpi.sticker;\n")
                 f.write(".quit\n")
             # run the secondary script
-            sfile.write('cat '+os.path.join(mainconfig.get('paths','tmppath'),'scmd')+' | sudo sqlite3 /var/lib/mpd/sticker.sql\n')
+            sfile.write('cat '+os.path.join(self.config.get('paths','tmppath'),'scmd')+' | sudo sqlite3 /var/lib/mpd/sticker.sql\n')
             # rsync over all the fanart
             sfile.write('rsync -vruxhm '+synchost+':"'+syncfanartpath+'"/ "'+fanartpath+'"\n')
             # tell mpd about any changes
             sfile.write("mpc update\n")
         # make the shell script executable
-        os.chmod(os.path.join(mainconfig.get('paths','tmppath'),'sync.sh'),os.stat(os.path.join(mainconfig.get('paths','tmppath'),'sync.sh')).st_mode|0111)
+        os.chmod(os.path.join(self.config.get('paths','tmppath'),'sync.sh'),os.stat(os.path.join(self.config.get('paths','tmppath'),'sync.sh')).st_mode|0111)
         # queue for holding stdout
         q = Queue()
         # create a subprocess for the shell script and capture stdout
-        p = Popen([os.path.join(mainconfig.get('paths','tmppath'),'sync.sh')],stdout=PIPE,bufsize=1,close_fds=True)
+        p = Popen([os.path.join(self.config.get('paths','tmppath'),'sync.sh')],stdout=PIPE,bufsize=1,close_fds=True)
         # check the stdout queue every .1 seconds and write lines to the scrollview if there is output
         event=Clock.schedule_interval(partial(self.write_queue_line,q,layout,sv),0.1)
         # run all this crap in a separate thread to be non-blocking

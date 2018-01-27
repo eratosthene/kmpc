@@ -1,0 +1,22 @@
+[
+  { "type": "string",
+    "title": "syncmusicpath",
+    "desc": "Path to music files on synchost",
+    "section": "sync",
+    "key": "syncmusicpath" },
+  { "type": "string",
+    "title": "syncfanartpath",
+    "desc": "Path to fanart files on synchost",
+    "section": "sync",
+    "key": "syncfanartpath" },
+  { "type": "string",
+    "title": "synctmppath",
+    "desc": "Path to write temporary files on synchost",
+    "section": "sync",
+    "key": "synctmppath" },
+  { "type": "string",
+    "title": "synchost",
+    "desc": "Hostname/IP address of synchost",
+    "section": "sync",
+    "key": "synchost" }
+]

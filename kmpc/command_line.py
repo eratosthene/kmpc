@@ -20,14 +20,6 @@ def do_args():
     # if -d/--debug is passed, use Kivy's -d flag
     if args.debug:
         sys.argv.append('-d')
-    # if -n/--newconfig is passed, write config and exit
-    if args.newconfig:
-        print "Writing default config file if it does not exist"
-        print ""
-        from kmpc.extra import KmpcHelpers
-        Helpers=KmpcHelpers()
-        Helpers.loadconfigfile()
-        sys.exit(0)
     if args.version:
         print sys.argv[0]+" v"+VERSION_STR
         sys.exit(0)

@@ -1,0 +1,7 @@
+[
+  { "type": "string",
+    "title": "client_key",
+    "desc": "client key for accesing FanArt.tv",
+    "section": "fanart",
+    "key": "client_key" }
+]

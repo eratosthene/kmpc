@@ -1,5 +1,6 @@
 # import dependencies
 import os
+import sys
 import traceback
 import mutagen
 import io
@@ -91,8 +92,9 @@ class UneditTextInput(TextInput):
 
 class ManagerInterface(TabbedPanel):
 
-    def __init__(self,config):
+    def __init__(self,songratings):
         super(self.__class__,self).__init__()
+        self.songratings=songratings
         self.artist_id_hash={}
         self.artist_name_hash={}
         self.media_hash={}
@@ -103,8 +105,6 @@ class ManagerInterface(TabbedPanel):
         self.fanarturl="http://webservice.fanart.tv/v3/music/"
         self.api_key="406b2a5af85c14b819c1c6332354b313"
         global mainmpdconnection
-        global mainconfig
-        mainconfig=Helpers.loadconfigfile()
         mainmpdconnection=MpdConnection(mainconfig,None,[self.init_mpd])
 
     def init_mpd(self,instance):
@@ -318,16 +318,68 @@ class ManagerApp(App):
         Config.set('graphics','width',1280)
         Config.set('graphics','height',720)
         Config.set('kivy','keyboard_mode','system')
+        self.args=args
         super(self.__class__,self).__init__()
 
+    def build_config(self,config):
+        config.setdefaults('mpd', {
+            'mpdhost': '127.0.0.1',
+            'mpdport': '6600'
+        })
+        config.setdefaults('paths', {
+            'musicpath': '/mnt/music',
+            'fanartpath': '/mnt/fanart',
+            'tmppath': '/tmp'
+        })
+        config.setdefaults('sync', {
+            'synchost': '127.0.0.1',
+            'syncmusicpath': '/mnt/music',
+            'syncfanartpath': '/mnt/fanart',
+            'synctmppath': '/tmp'
+        })
+        config.setdefaults('fanart', {
+            'client_key': ''
+        })
+        config.setdefaults('songratings', {
+            'star0': 'Silence',
+            'star1': 'Songs that should never be heard',
+            'star2': 'Songs no one likes',
+            'star3': 'Songs for certain occasions',
+            'star4': 'Songs someone else likes',
+            'star5': 'Filler tracks with no music',
+            'star6': 'Meh track or short musical filler',
+            'star7': 'Occasional listening songs',
+            'star8': 'Great songs for all occasions',
+            'star9': 'Best songs by an artist',
+            'star10': 'Favorite songs of all time'
+        })
+
+    def get_application_config(self):
+        return super(self.__class__,self).get_application_config(configdir+'/config.ini')
+
+    def build_settings(self,settings):
+        settings.add_json_panel('mpd settings',self.config,resource_filename(__name__,os.path.join('resources','config_mpd.json')))
+        settings.add_json_panel('path settings',self.config,resource_filename(__name__,os.path.join('resources','config_paths.json')))
+        settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources','config_sync.json')))
+        settings.add_json_panel('fanart settings',self.config,resource_filename(__name__,os.path.join('resources','config_fanart.json')))
+        settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources','config_star.json')))
+
     def build(self):
-        config=Helpers.loadconfigfile()
+        global mainconfig
+        if not os.path.isdir(configdir):
+            os.mkdir(configdir)
+        # try to read existing config file
+        mainconfig=self.load_config()
+        # write out config file in case it doesn't exist yet
+        mainconfig.write()
         # setup some variables that interface.kv will use
         # this is necessary to support packaging the app
-        self.songratings = Helpers.songratings(config)
         self.normalfont = resource_filename(__name__,os.path.join('resources','DejaVuSans.ttf'))
         self.fontawesomefont = resource_filename(__name__,os.path.join('resources','FontAwesome.ttf'))
-        return ManagerInterface(config)
+        if self.args.newconfig:
+            sys.exit(0)
+        else:
+            return ManagerInterface(Helpers.songratings(mainconfig))
 
 if __name__ == '__main__':
     ManagerApp().run()
