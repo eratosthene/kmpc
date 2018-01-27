@@ -50,7 +50,7 @@ Helpers=KmpcHelpers()
 class KmpcInterface(TabbedPanel):
     """The main class that ties it all together."""
 
-    def __init__(self,**kwargs):
+    def __init__(self,config,**kwargs):
         """Zero out variables, pull in config file, connect to mpd."""
         super(self.__class__,self).__init__(**kwargs)
         # bind callbacks for tab changes
@@ -64,10 +64,9 @@ class KmpcInterface(TabbedPanel):
         self.tcolor=1
         self.ocolor=0
         self.settingsPopup=Factory.SettingsPopup()
+        self.config=config
         global mainmpdconnection
-        #global mainconfig
-        #mainconfig=Helpers.loadconfigfile()
-        mainmpdconnection=MpdConnection(mainconfig,self.mpd_idle_handler,[self.init_mpd])
+        mainmpdconnection=MpdConnection(self.config,self.mpd_idle_handler,[self.init_mpd])
 
     def settings_popup(self):
         self.settingsPopup.open()
@@ -299,7 +298,7 @@ class KmpcInterface(TabbedPanel):
                 # get the stored star rating
                 mainmpdconnection.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
                 # figure out the full path of the file
-                bp=mainconfig.get('paths','musicpath')
+                bp=self.config.get('paths','musicpath')
                 # p is the absolute path
                 p=os.path.join(bp,result['file'])
                 haslogo=False
@@ -308,7 +307,7 @@ class KmpcInterface(TabbedPanel):
                 if 'date' in result:
                     year=result['date'][:4]
                 # pull the fanart folder from ini file
-                fa_path=mainconfig.get('paths','fanartpath')
+                fa_path=self.config.get('paths','fanartpath')
                 # try to get the artistid, set it to 0000 if it doesn't exist
                 try:
                     aids=str(result['musicbrainz_artistid'])
@@ -362,7 +361,7 @@ class KmpcInterface(TabbedPanel):
                     data = None
                     originalyear = None
                     # if config file says use originalyear, use it instead of mpd's year
-                    if mainconfig.getboolean('flags','originalyear'):
+                    if self.config.getboolean('flags','originalyear'):
                         if 'TXXX:originalyear' in f.keys():
                             originalyear=format(f['TXXX:originalyear'])
                     # try to get mp3 cover, if this throws an exception it's not an mp3 or it doesn't have a cover
@@ -397,7 +396,7 @@ class KmpcInterface(TabbedPanel):
                     if data:
                         # if we got image data, load it as a kivy.core.image
                         cimg = CoreImage(data,ext=ext)
-                    if mainconfig.getboolean('flags','originalyear') and originalyear and year and int(originalyear)!=int(year):
+                    if self.config.getboolean('flags','originalyear') and originalyear and year and int(originalyear)!=int(year):
                         tt="["+originalyear+"]\n{"+year+"}"
                     elif year:
                         tt="["+year+"]"
@@ -441,7 +440,7 @@ class KmpcInterface(TabbedPanel):
         # make a clear button for the star rating
         btn = ClearButton(padding_x='10sp',font_name=resource_filename(__name__,os.path.join('resources','FontAwesome.ttf')),halign='center',valign='middle',markup=True)
         # look up the correct string for the rating
-        btn.text = Helpers.songratings(mainconfig)[result]['stars']
+        btn.text = Helpers.songratings(self.config)[result]['stars']
         # bind the popup for setting rating
         btn.bind(on_press=self.rating_popup)
         # clear the layout widget and add the new one
@@ -524,7 +523,7 @@ class KmpcInterface(TabbedPanel):
             # make a button
             btn=Button(font_name=resource_filename(__name__,os.path.join('resources','FontAwesome.ttf')))
             # look up the correct string for the rating
-            btn.text=Helpers.songratings(mainconfig)[str(r)]['stars']
+            btn.text=Helpers.songratings(self.config)[str(r)]['stars']
             # set some widget variables
             btn.rating=str(r)
             btn.popup=popup
@@ -533,7 +532,7 @@ class KmpcInterface(TabbedPanel):
             # bind the button press to set the rating
             btn.bind(on_press=self.rating_set)
             # add a label to explain the ratings, this is pretty subjective
-            lbl=OutlineLabel(text=Helpers.songratings(mainconfig)[str(r)]['meaning'],halign='left')
+            lbl=OutlineLabel(text=Helpers.songratings(self.config)[str(r)]['meaning'],halign='left')
             # add the label to the layout
             layout.add_widget(lbl)
         # pop it on up, if you press outside the popup it just goes away without setting the rating
@@ -561,9 +560,9 @@ class KmpcInterface(TabbedPanel):
 
     def change_backlight(self,value):
         """Method that sets the backlight to a certain value."""
-        Logger.info('Application: change_backlight('+str(value)+') rpienable = '+mainconfig.get('flags','rpienable'))
+        Logger.info('Application: change_backlight('+str(value)+') rpienable = '+self.config.get('flags','rpienable'))
         # only if the ini file says it's ok
-        if mainconfig.getboolean('flags','rpienable'):
+        if self.config.getboolean('flags','rpienable'):
             import rpi_backlight as bl
             # set the brightness
             bl.set_brightness(int(value), smooth=True, duration=1)
@@ -632,9 +631,10 @@ class KmpcApp(App):
             'syncfanartpath': '/mnt/fanart',
             'synctmppath': '/tmp'
         })
-        config.setdefaults('flags', {
-            'rpienable': 'False',
-            'originalyear': 'True'
+        config.setdefaults('system', {
+            'rpienable': '0',
+            'originalyear': '1',
+            'updatecommand': 'sudo pip install -U kmpc',
         })
         config.setdefaults('fanart', {
             'client_key': ''
@@ -657,12 +657,12 @@ class KmpcApp(App):
         return super(self.__class__,self).get_application_config(configdir+'/config.ini')
 
     def build_settings(self,settings):
-        settings.add_json_panel('mpd settings',mainconfig,resource_filename(__name__,os.path.join('resources','config_mpd.json')))
-        settings.add_json_panel('path settings',mainconfig,resource_filename(__name__,os.path.join('resources','config_paths.json')))
-        settings.add_json_panel('sync settings',mainconfig,resource_filename(__name__,os.path.join('resources','config_sync.json')))
-        settings.add_json_panel('fanart settings',mainconfig,resource_filename(__name__,os.path.join('resources','config_fanart.json')))
-        settings.add_json_panel('flags',mainconfig,resource_filename(__name__,os.path.join('resources','config_flags.json')))
-        settings.add_json_panel('song ratings',mainconfig,resource_filename(__name__,os.path.join('resources','config_star.json')))
+        settings.add_json_panel('mpd settings',self.config,resource_filename(__name__,os.path.join('resources','config_mpd.json')))
+        settings.add_json_panel('path settings',self.config,resource_filename(__name__,os.path.join('resources','config_paths.json')))
+        settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources','config_sync.json')))
+        settings.add_json_panel('fanart settings',self.config,resource_filename(__name__,os.path.join('resources','config_fanart.json')))
+        settings.add_json_panel('system',self.config,resource_filename(__name__,os.path.join('resources','config_system.json')))
+        settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources','config_star.json')))
 
     def build(self):
         """Instantiates KmpcInterface."""
@@ -678,14 +678,13 @@ class KmpcApp(App):
         self.listbackdrop = resource_filename(__name__,os.path.join('resources','list-backdrop.png'))
         self.listbackdropselected = resource_filename(__name__,os.path.join('resources','list-backdrop-selected.png'))
         self.trackslidercursor = resource_filename(__name__,os.path.join('resources','track-slider-cursor.png'))
-        global mainconfig
         if not os.path.isdir(configdir):
             os.mkdir(configdir)
         # try to read existing config file
-        mainconfig=self.load_config()
+        self.config=self.load_config()
         # write out config file in case it doesn't exist yet
-        mainconfig.write()
-        return KmpcInterface()
+        self.config.write()
+        return KmpcInterface(self.config)
 
 class InfoLargeLabel(OutlineLabel):
     """A label with large text."""

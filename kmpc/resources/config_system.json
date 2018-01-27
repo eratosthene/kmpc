@@ -1,0 +1,17 @@
+[
+  { "type": "bool",
+    "title": "rpienable",
+    "desc": "Enable Raspberry Pi-specific features",
+    "section": "system",
+    "key": "rpienable" },
+  { "type": "bool",
+    "title": "originalyear",
+    "desc": "Display mp3 'originalyear' tags",
+    "section": "system",
+    "key": "originalyear" },
+  { "type": "string",
+    "title": "updatecommand",
+    "desc": "What command to run when you press 'Update'",
+    "section": "system",
+    "key": "updatecommand" }
+]

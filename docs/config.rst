@@ -42,8 +42,8 @@ syncfanartpath
 synctmppath
   Where temporary files should be written on the synchost.
 
-[flags] section
----------------
+[system] section
+----------------
 
 rpienable
   Set this to ``true`` if you are running this on a Pi and want to control
@@ -52,6 +52,9 @@ rpienable
 originalyear
   Set this to ``true`` to display an mp3's originalyear tag as well as the
   regular year tag. Defaults to ``true``.
+updatecommand
+  This is what runs when you press the Update button. Defaults to ``sudo pip
+  install -U kmpc``.
 
 [logs] section
 --------------
