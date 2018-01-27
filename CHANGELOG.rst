@@ -8,6 +8,9 @@ kmpc Change Log
 0.5.9 - 2018-01-??
 ******************
 
+- Added -n/--newconfig command line option to generate default config file.
+- Issue #57 wasn't actually fixed, just masked. Pretty sure it's fixed now.
+
 ******************
 0.5.8 - 2018-01-26
 ******************

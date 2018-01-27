@@ -101,10 +101,9 @@ Step 2: Install kmpc
 
 #. Run::
 
-     kmpc
+     kmpc --newconfig
 
-   This will generate the default config file. You should at least see an
-   interface come up on the screen.
+   This will generate the default config file.
 
 #. Optional: if you want a mouse cursor to show up on the screen (in case you
    are running with a keyboard and mouse), add the following to the *[modules]*
