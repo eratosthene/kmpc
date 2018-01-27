@@ -15,12 +15,13 @@ will need to edit this config file to add the correct values for various
 variables. The following commandline options are accepted, as well as all the
 default Kivy options::
 
-  usage: kmpc [-h] [-q] [-d] [--helpkivy]
+  usage: kmpc [-h] [-q] [-d] [-n] [--helpkivy]
 
   optional arguments:
   -h, --help   show this help message and exit
   -q, --quiet  only print errors to console log
   -d, --debug  print debug messages to console log
+  -n, --newconfig  write out default config file if it doesn't exist yet
   --helpkivy   Print Kivy's built-in argument list
 
 ***********
@@ -36,11 +37,12 @@ an rsync file to sync with, and changing song ratings and copy flags. This also
 depends on the config folder and file. The following commandline options are
 accepted, as well as all the default Kivy options::
 
-  usage: kmpcmanager [-h] [-q] [-d] [--helpkivy]
+  usage: kmpcmanager [-h] [-q] [-d] [-n] [--helpkivy]
 
   optional arguments:
   -h, --help   show this help message and exit
   -q, --quiet  only print errors to console log
   -d, --debug  print debug messages to console log
+  -n, --newconfig  write out default config file if it doesn't exist yet
   --helpkivy   Print Kivy's built-in argument list
 
