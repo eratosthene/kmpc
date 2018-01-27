@@ -8,8 +8,10 @@ kmpc Change Log
 0.5.9 - 2018-01-26
 ******************
 
-- Added -V/--version command line option to print version number.
+- Added -V/--version command line option to print version number. (`issue #55
+  <https://github.com/eratosthene/kmpc/issues/55>`_)
 - Added -n/--newconfig command line option to generate default config file.
+  (`issue #38 <https://github.com/eratosthene/kmpc/issues/38>`_)
 - Issue #57 wasn't actually fixed, just masked. Pretty sure it's fixed now.
 
 ******************
