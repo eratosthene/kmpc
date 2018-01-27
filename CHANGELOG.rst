@@ -5,7 +5,7 @@ kmpc Change Log
 ###############
 
 ******************
-0.5.9 - 2018-01-??
+0.5.9 - 2018-01-26
 ******************
 
 - Added -V/--version command line option to print version number.
