@@ -335,29 +335,32 @@ class ManagerApp(App):
             'syncfanartpath': '/mnt/fanart',
             'synctmppath': '/tmp'
         })
-        config.setdefaults('flags', {
-            'rpienable': 'False',
-            'originalyear': 'True'
-        })
         config.setdefaults('fanart', {
             'client_key': ''
         })
         config.setdefaults('songratings', {
-            'zero': 'Silence',
-            'one': 'Songs that should never be heard',
-            'two': 'Songs no one likes',
-            'three': 'Songs for certain occasions',
-            'four': 'Songs someone else likes',
-            'five': 'Filler tracks with no music',
-            'six': 'Meh track or short musical filler',
-            'seven': 'Occasional listening songs',
-            'eight': 'Great songs for all occasions',
-            'nine': 'Best songs by an artist',
-            'ten': 'Favorite songs of all time'
+            'star0': 'Silence',
+            'star1': 'Songs that should never be heard',
+            'star2': 'Songs no one likes',
+            'star3': 'Songs for certain occasions',
+            'star4': 'Songs someone else likes',
+            'star5': 'Filler tracks with no music',
+            'star6': 'Meh track or short musical filler',
+            'star7': 'Occasional listening songs',
+            'star8': 'Great songs for all occasions',
+            'star9': 'Best songs by an artist',
+            'star10': 'Favorite songs of all time'
         })
 
     def get_application_config(self):
         return super(self.__class__,self).get_application_config(configdir+'/config.ini')
+
+    def build_settings(self,settings):
+        settings.add_json_panel('mpd settings',self.config,resource_filename(__name__,os.path.join('resources','config_mpd.json')))
+        settings.add_json_panel('path settings',self.config,resource_filename(__name__,os.path.join('resources','config_paths.json')))
+        settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources','config_sync.json')))
+        settings.add_json_panel('fanart settings',self.config,resource_filename(__name__,os.path.join('resources','config_fanart.json')))
+        settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources','config_star.json')))
 
     def build(self):
         global mainconfig

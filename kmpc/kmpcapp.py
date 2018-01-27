@@ -606,8 +606,6 @@ class KmpcInterface(TabbedPanel):
 class KmpcApp(App):
     """The overall app class, builds the main interface widget."""
 
-    use_kivy_settings = False
-
     def __init__(self,args):
         """Override kivy config values with necessary ones"""
         Config.set('kivy','keyboard_mode','systemanddock')
