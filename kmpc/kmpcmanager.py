@@ -91,8 +91,9 @@ class UneditTextInput(TextInput):
 
 class ManagerInterface(TabbedPanel):
 
-    def __init__(self,config):
+    def __init__(self,songratings):
         super(self.__class__,self).__init__()
+        self.songratings=songratings
         self.artist_id_hash={}
         self.artist_name_hash={}
         self.media_hash={}
@@ -103,8 +104,6 @@ class ManagerInterface(TabbedPanel):
         self.fanarturl="http://webservice.fanart.tv/v3/music/"
         self.api_key="406b2a5af85c14b819c1c6332354b313"
         global mainmpdconnection
-        global mainconfig
-        mainconfig=Helpers.loadconfigfile()
         mainmpdconnection=MpdConnection(mainconfig,None,[self.init_mpd])
 
     def init_mpd(self,instance):
@@ -320,14 +319,59 @@ class ManagerApp(App):
         Config.set('kivy','keyboard_mode','system')
         super(self.__class__,self).__init__()
 
+    def build_config(self,config):
+        config.setdefaults('mpd', {
+            'mpdhost': '127.0.0.1',
+            'mpdport': '6600'
+        })
+        config.setdefaults('paths', {
+            'musicpath': '/mnt/music',
+            'fanartpath': '/mnt/fanart',
+            'tmppath': '/tmp'
+        })
+        config.setdefaults('sync', {
+            'synchost': '127.0.0.1',
+            'syncmusicpath': '/mnt/music',
+            'syncfanartpath': '/mnt/fanart',
+            'synctmppath': '/tmp'
+        })
+        config.setdefaults('flags', {
+            'rpienable': 'False',
+            'originalyear': 'True'
+        })
+        config.setdefaults('fanart', {
+            'client_key': ''
+        })
+        config.setdefaults('songratings', {
+            'zero': 'Silence',
+            'one': 'Songs that should never be heard',
+            'two': 'Songs no one likes',
+            'three': 'Songs for certain occasions',
+            'four': 'Songs someone else likes',
+            'five': 'Filler tracks with no music',
+            'six': 'Meh track or short musical filler',
+            'seven': 'Occasional listening songs',
+            'eight': 'Great songs for all occasions',
+            'nine': 'Best songs by an artist',
+            'ten': 'Favorite songs of all time'
+        })
+
+    def get_application_config(self):
+        return super(self.__class__,self).get_application_config(configdir+'/config.ini')
+
     def build(self):
-        config=Helpers.loadconfigfile()
+        global mainconfig
+        if not os.path.isdir(configdir):
+            os.mkdir(configdir)
+        # try to read existing config file
+        mainconfig=self.load_config()
+        # write out config file in case it doesn't exist yet
+        mainconfig.write()
         # setup some variables that interface.kv will use
         # this is necessary to support packaging the app
-        self.songratings = Helpers.songratings(config)
         self.normalfont = resource_filename(__name__,os.path.join('resources','DejaVuSans.ttf'))
         self.fontawesomefont = resource_filename(__name__,os.path.join('resources','FontAwesome.ttf'))
-        return ManagerInterface(config)
+        return ManagerInterface(Helpers.songratings(mainconfig))
 
 if __name__ == '__main__':
     ManagerApp().run()

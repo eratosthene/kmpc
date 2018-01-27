@@ -13,7 +13,7 @@ import kivy
 kivy.require('1.10.0')
 
 # import all the other kivy stuff
-from kivy.config import Config
+from kivy.config import Config,ConfigParser
 from kivy.app import App
 from kivy.logger import Logger
 from kivy.graphics import Color,Rectangle
@@ -65,8 +65,8 @@ class KmpcInterface(TabbedPanel):
         self.ocolor=0
         self.settingsPopup=Factory.SettingsPopup()
         global mainmpdconnection
-        global mainconfig
-        mainconfig=Helpers.loadconfigfile()
+        #global mainconfig
+        #mainconfig=Helpers.loadconfigfile()
         mainmpdconnection=MpdConnection(mainconfig,self.mpd_idle_handler,[self.init_mpd])
 
     def settings_popup(self):
@@ -607,12 +607,54 @@ class KmpcInterface(TabbedPanel):
 class KmpcApp(App):
     """The overall app class, builds the main interface widget."""
 
+    use_kivy_settings = False
+
     def __init__(self,args):
         """Override kivy config values with necessary ones"""
         Config.set('kivy','keyboard_mode','systemanddock')
         Config.set('graphics','width',800)
         Config.set('graphics','height',480)
         super(self.__class__,self).__init__()
+
+    def build_config(self,config):
+        config.setdefaults('mpd', {
+            'mpdhost': '127.0.0.1',
+            'mpdport': '6600'
+        })
+        config.setdefaults('paths', {
+            'musicpath': '/mnt/music',
+            'fanartpath': '/mnt/fanart',
+            'tmppath': '/tmp'
+        })
+        config.setdefaults('sync', {
+            'synchost': '127.0.0.1',
+            'syncmusicpath': '/mnt/music',
+            'syncfanartpath': '/mnt/fanart',
+            'synctmppath': '/tmp'
+        })
+        config.setdefaults('flags', {
+            'rpienable': 'False',
+            'originalyear': 'True'
+        })
+        config.setdefaults('fanart', {
+            'client_key': ''
+        })
+        config.setdefaults('songratings', {
+            'zero': 'Silence',
+            'one': 'Songs that should never be heard',
+            'two': 'Songs no one likes',
+            'three': 'Songs for certain occasions',
+            'four': 'Songs someone else likes',
+            'five': 'Filler tracks with no music',
+            'six': 'Meh track or short musical filler',
+            'seven': 'Occasional listening songs',
+            'eight': 'Great songs for all occasions',
+            'nine': 'Best songs by an artist',
+            'ten': 'Favorite songs of all time'
+        })
+
+    def get_application_config(self):
+        return super(self.__class__,self).get_application_config(configdir+'/config.ini')
 
     def build(self):
         """Instantiates KmpcInterface."""
@@ -628,6 +670,13 @@ class KmpcApp(App):
         self.listbackdrop = resource_filename(__name__,os.path.join('resources','list-backdrop.png'))
         self.listbackdropselected = resource_filename(__name__,os.path.join('resources','list-backdrop-selected.png'))
         self.trackslidercursor = resource_filename(__name__,os.path.join('resources','track-slider-cursor.png'))
+        global mainconfig
+        if not os.path.isdir(configdir):
+            os.mkdir(configdir)
+        # try to read existing config file
+        mainconfig=self.load_config()
+        # write out config file in case it doesn't exist yet
+        mainconfig.write()
         return KmpcInterface()
 
 class InfoLargeLabel(OutlineLabel):
