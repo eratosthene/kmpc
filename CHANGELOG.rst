@@ -5,6 +5,13 @@ kmpc Change Log
 ###############
 
 ******************
+0.5.8 - 2018-01-26
+******************
+
+- Missed a few lines in the mpd revamp, this fixes it (`issue #57
+  <https://github.com/eratosthene/kmpc/issues/57>`_)
+
+******************
 0.5.7 - 2018-01-26
 ******************
 
