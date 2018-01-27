@@ -24,6 +24,14 @@ from kivy.uix.tabbedpanel import TabbedPanelItem
 # sets the location of the config folder
 configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
+# this class just returns a debug message for all calls to it to handle bad mpd connections
+class Dummy(object):
+    def __getattr__(self,attr):
+        Logger.debug("MpdConnection: no connection when calling "+attr+" method")
+        return self
+    def __call__(self,*args):
+        return self
+
 class MpdConnection(object):
 
     def __init__(self,config,idlehandler=None,initconnections=[]):
@@ -34,11 +42,22 @@ class MpdConnection(object):
         self.factory.connectionMade = self.mpd_connectionMade
         self.factory.connectionLost = self.mpd_connectionLost
         reactor.connectTCP(self.config.get('mpd','mpdhost'), self.config.getint('mpd','mpdport'), self.factory)
+        self.noprotocol=Dummy()
+
+    # this part handles calls to protocol when it hasn't been set up yet or is incorrectly specified in config
+    @property
+    def protocol(self):
+        try:
+            if self.realprotocol:
+                return self.realprotocol
+        except AttributeError:
+            Logger.debug("MpdConnection: no mpd connected")
+            return self.noprotocol
 
     def mpd_connectionMade(self,protocol):
         """Callback when mpd is connected."""
         # copy the protocol to all the classes
-        self.protocol = protocol
+        self.realprotocol = protocol
         Logger.info('Application: Connected to mpd server host='+self.config.get('mpd','mpdhost')+' port='+self.config.get('mpd','mpdport'))
         for ic in self.initconnections:
             if callable(ic):
