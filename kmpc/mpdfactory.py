@@ -31,7 +31,7 @@ class MPDClientFactory(protocol.ClientFactory):
         protocol = self.protocol()
         protocol.factory = self
         if callable(self.idlehandler):
-            protocol.idle_result = self.idlehandler(protocol)
+            protocol.idle_result = self.idlehandler
         return protocol
 
     def clientConnectionFailed(self, connector, reason):

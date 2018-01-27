@@ -5,23 +5,33 @@ kmpc Change Log
 ###############
 
 ******************
+0.5.9 - 2018-01-26
+******************
+
+- Added -V/--version command line option to print version number. (`issue #55
+  <https://github.com/eratosthene/kmpc/issues/55>`_)
+- Added -n/--newconfig command line option to generate default config file.
+  (`issue #38 <https://github.com/eratosthene/kmpc/issues/38>`_)
+- Issue #57 wasn't actually fixed, just masked. Pretty sure it's fixed now.
+
+******************
 0.5.8 - 2018-01-26
 ******************
 
-- Missed a few lines in the mpd revamp, this fixes it (`issue #57
+- Missed a few lines in the mpd revamp, this fixes it. (`issue #57
   <https://github.com/eratosthene/kmpc/issues/57>`_)
 
 ******************
 0.5.7 - 2018-01-26
 ******************
 
-- Revamped mpd connection handling to be less crashy (`issue #35
+- Revamped mpd connection handling to be less crashy. (`issue #35
   <https://github.com/eratosthene/kmpc/issues/35>`_)
-- Documented permissions change necessary to control Pi screen backlight
+- Documented permissions change necessary to control Pi screen backlight.
   (`issue #45 <https://github.com/eratosthene/kmpc/issues/45>`_)
-- Added setuptools>=30.3.0 to the setup_requires section of setup.cfg (`issue
+- Added setuptools>=30.3.0 to the setup_requires section of setup.cfg. (`issue
   #36 <https://github.com/eratosthene/kmpc/issues/36>`_)
-- Added artblacklist section to config.ini (`issue #27
+- Added artblacklist section to config.ini. (`issue #27
   <https://github.com/eratosthene/kmpc/issues/27>`_)
 
 ******************
@@ -30,9 +40,9 @@ kmpc Change Log
 
 - Changed the scan all for art function in the manager to schedule the requests
   once per second for every row instead of skipping rows that already had some
-  art (`issue #26 <https://github.com/eratosthene/kmpc/issues/26>`_)
-- Changed the year display to on top of the cover art to save some space
-- Added a config file setting for originalyear display (`issue #16
+  art. (`issue #26 <https://github.com/eratosthene/kmpc/issues/26>`_)
+- Changed the year display to on top of the cover art to save some space.
+- Added a config file setting for originalyear display. (`issue #16
   <https://github.com/eratosthene/kmpc/issues/16>`_)
 - Added new settings popup to house things as config tab is going to be used
   for actual config file editing eventually. (`issue #6
