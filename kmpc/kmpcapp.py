@@ -580,10 +580,6 @@ class KmpcInterface(TabbedPanel):
 class MPDIdleHandler(object):
     """Handler class for mpd idle command."""
 
-#    def __init__(self, protocol):
-#        """Set this class's protocol to the one that was passed in."""
-#        self.protocol = protocol
-
     def __call__(self, result):
         """Handle results from mpd idle command."""
         app=App.get_running_app()
