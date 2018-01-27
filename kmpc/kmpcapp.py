@@ -1,5 +1,6 @@
 # import dependencies
 import os
+import sys
 import traceback
 import mutagen
 import io
@@ -611,6 +612,7 @@ class KmpcApp(App):
         Config.set('kivy','keyboard_mode','systemanddock')
         Config.set('graphics','width',800)
         Config.set('graphics','height',480)
+        self.args=args
         super(self.__class__,self).__init__()
 
     def build_config(self,config):
@@ -662,7 +664,7 @@ class KmpcApp(App):
         settings.add_json_panel('system',self.config,resource_filename(__name__,os.path.join('resources','config_system.json')))
         settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources','config_star.json')))
 
-    def build(self):
+    def build(self,*args):
         """Instantiates KmpcInterface."""
         # setup some variables that interface.kv will use
         # this is necessary to support packaging the app
@@ -682,7 +684,10 @@ class KmpcApp(App):
         self.config=self.load_config()
         # write out config file in case it doesn't exist yet
         self.config.write()
-        return KmpcInterface(self.config)
+        if self.args.newconfig:
+            sys.exit(0)
+        else:
+            return KmpcInterface(self.config)
 
 class InfoLargeLabel(OutlineLabel):
     """A label with large text."""

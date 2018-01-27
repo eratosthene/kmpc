@@ -1,5 +1,6 @@
 # import dependencies
 import os
+import sys
 import traceback
 import mutagen
 import io
@@ -317,6 +318,7 @@ class ManagerApp(App):
         Config.set('graphics','width',1280)
         Config.set('graphics','height',720)
         Config.set('kivy','keyboard_mode','system')
+        self.args=args
         super(self.__class__,self).__init__()
 
     def build_config(self,config):
@@ -374,7 +376,10 @@ class ManagerApp(App):
         # this is necessary to support packaging the app
         self.normalfont = resource_filename(__name__,os.path.join('resources','DejaVuSans.ttf'))
         self.fontawesomefont = resource_filename(__name__,os.path.join('resources','FontAwesome.ttf'))
-        return ManagerInterface(Helpers.songratings(mainconfig))
+        if self.args.newconfig:
+            sys.exit(0)
+        else:
+            return ManagerInterface(Helpers.songratings(mainconfig))
 
 if __name__ == '__main__':
     ManagerApp().run()
