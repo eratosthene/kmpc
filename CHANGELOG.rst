@@ -5,6 +5,14 @@ kmpc Change Log
 ###############
 
 ******************
+0.6.0 - 2018-01-??
+******************
+
+- Revamped the way config file handling works to use Kivy's built-in Config
+  class. You can now edit config settings from within the app. (`issue #17
+  <https://github.com/eratosthene/kmpc/issues/17>`_)
+
+******************
 0.5.9 - 2018-01-26
 ******************
 

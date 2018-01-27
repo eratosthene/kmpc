@@ -39,6 +39,7 @@ from kivy.properties import ObjectProperty
 # import our local modules
 from kmpc.extra import KmpcHelpers,ExtraSlider,ClearButton,OutlineLabel,OutlineButton,MpdConnection
 from kmpc.playlistpanel import PlaylistTabbedPanelItem
+from kmpc.version import VERSION_STR
 
 # sets the location of the config folder
 configdir = os.path.join(os.path.expanduser('~'),".kmpc")
@@ -678,6 +679,7 @@ class KmpcApp(App):
         self.listbackdrop = resource_filename(__name__,os.path.join('resources','list-backdrop.png'))
         self.listbackdropselected = resource_filename(__name__,os.path.join('resources','list-backdrop-selected.png'))
         self.trackslidercursor = resource_filename(__name__,os.path.join('resources','track-slider-cursor.png'))
+        self.version_str=VERSION_STR
         if not os.path.isdir(configdir):
             os.mkdir(configdir)
         # try to read existing config file
