@@ -5,7 +5,7 @@ kmpc Change Log
 ###############
 
 ******************
-0.5.7 - 2018-01-??
+0.5.7 - 2018-01-26
 ******************
 
 - Revamped mpd connection handling to be less crashy (`issue #35
