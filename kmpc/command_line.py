@@ -1,10 +1,13 @@
 import argparse
 import sys
 
+from kmpc.version import VERSION_STR
+
 parser = argparse.ArgumentParser()
 parser.add_argument("-q","--quiet",help="only print errors to console log",action="store_true")
 parser.add_argument("-d","--debug",help="print debug messages to console log",action="store_true")
 parser.add_argument("-n","--newconfig",help="write out default config file if it doesn't exist yet",action="store_true")
+parser.add_argument("-V","--version",help="print version number and exit",action="store_true")
 parser.add_argument("--helpkivy",help="Print Kivy's built-in argument list",action="store_true")
 
 def do_args():
@@ -20,9 +23,13 @@ def do_args():
     # if -n/--newconfig is passed, write config and exit
     if args.newconfig:
         print "Writing default config file if it does not exist"
+        print ""
         from kmpc.extra import KmpcHelpers
         Helpers=KmpcHelpers()
         Helpers.loadconfigfile()
+        sys.exit(0)
+    if args.version:
+        print sys.argv[0]+" v"+VERSION_STR
         sys.exit(0)
     from kivy.config import Config
     if args.quiet:
