@@ -1,5 +1,4 @@
 # import dependencies
-from mpd import MPDProtocol
 import os
 import traceback
 import mutagen
@@ -17,11 +16,6 @@ import musicbrainzngs
 # make sure we are on an updated version of kivy
 import kivy
 kivy.require('1.10.0')
-
-#install twisted reactor to interface with mpd
-from kivy.support import install_twisted_reactor
-install_twisted_reactor()
-from twisted.internet import reactor, protocol, task, defer, threads
 
 # import all the other kivy stuff
 from kivy.config import Config
@@ -52,9 +46,8 @@ from kivy.clock import Clock
 from kivy.lang import Builder
 
 # import our local modules
-from mpdfactory import MPDClientFactory
-from extra import KmpcHelpers
-from version import VERSION, VERSION_STR
+from kmpc.extra import KmpcHelpers,MpdConnection
+from kmpc.version import VERSION, VERSION_STR
 
 # sets the location of the config folder
 configdir = os.path.join(os.path.expanduser('~'),".kmpc")
@@ -100,13 +93,6 @@ class ManagerInterface(TabbedPanel):
 
     def __init__(self,config):
         super(self.__class__,self).__init__()
-        # pull config into the class
-        self.config = config
-        # set up mpd connection
-        self.factory = MPDClientFactory()
-        self.factory.connectionMade = self.mpd_connectionMade
-        self.factory.connectionLost = self.mpd_connectionLost
-        reactor.connectTCP(self.config.get('mpd','mpdhost'), self.config.getint('mpd','mpdport'), self.factory)
         self.artist_id_hash={}
         self.artist_name_hash={}
         self.media_hash={}
@@ -116,21 +102,16 @@ class ManagerInterface(TabbedPanel):
         musicbrainzngs.set_useragent("kmpcmanager",VERSION_STR,'https://github.com/eratosthene/kmpc')
         self.fanarturl="http://webservice.fanart.tv/v3/music/"
         self.api_key="406b2a5af85c14b819c1c6332354b313"
+        global mainmpdconnection
+        global mainconfig
+        mainconfig=Helpers.loadconfigfile()
+        mainmpdconnection=MpdConnection(mainconfig,None,[self.init_mpd])
 
-    def mpd_connectionMade(self,protocol):
-        self.protocol = protocol
-        Logger.info('Manager: Connected to mpd server host='+self.config.get('mpd','mpdhost')+' port='+self.config.get('mpd','mpdport'))
-        self.ids.library_tab.protocol = self.protocol
+    def init_mpd(self,instance):
         self.refresh_artists_from_cache()
 
-    def mpd_connectionLost(self,protocol, reason):
-        Logger.warn('Manager: Connection lost: %s' % reason)
-
-    def handle_mpd_error(self,result):
-        Logger.error('Manager: MPDIdleHandler Callback error: {}'.format(result))
-
     def refresh_artists(self):
-        self.protocol.list('musicbrainz_artistid').addCallback(self.populate_artists).addErrback(self.handle_mpd_error)
+        mainmpdconnection.protocol.list('musicbrainz_artistid').addCallback(self.populate_artists).addErrback(mainmpdconnection.handle_mpd_error)
 
     def populate_artists(self,result):
         Logger.info("Manager: populate_artists")
@@ -248,6 +229,18 @@ class ManagerInterface(TabbedPanel):
         aname=self.ids.artist_tab.rv.data[index]['artist_name']
         fa_path=self.config.get('paths','fanartpath')
         d=result
+        # see if there are blacklist entries for this artist
+        bl=[]
+        try:
+            bl=self.config.get('artblacklist',aid).split(',')
+        except ConfigParser.NoSectionError:
+            Logger.debug('pull_art2: no artblacklist section found')
+        except ConfigParser.NoOptionError:
+            Logger.debug('pull_art2: no blacklist entries found for '+aid)
+        except Exception as e:
+            Logger.exception('pull_art2: '+format(e))
+        else:
+            Logger.debug('pull_art2: found blacklist entries for '+aid+': '+format(bl))
         if 'hdmusiclogo' in d or 'artistbackground' in d or 'musiclogo' in d:
             fapath=os.path.join(fa_path,aid)
             lpath=os.path.join(fapath,"logo")
@@ -266,7 +259,7 @@ class ManagerInterface(TabbedPanel):
                 except OSError:
                     pass
                 for idx,img in enumerate(d['hdmusiclogo']):
-                    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')) and not os.path.isfile(os.path.join(bpath,img['id']+'.png')):
+                    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')) and not os.path.isfile(os.path.join(bpath,img['id']+'.png')) and not img['id'] in bl:
                         Logger.debug("pull_art2: downloading hdmusiclogo "+img['id'])
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
@@ -280,7 +273,7 @@ class ManagerInterface(TabbedPanel):
                 except OSError:
                     pass
                 for idx,img in enumerate(d['musiclogo']):
-                    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')) and not os.path.isfile(os.path.join(bpath,img['id']+'.png')):
+                    if not os.path.isfile(os.path.join(lpath,img['id']+'.png')) and not os.path.isfile(os.path.join(bpath,img['id']+'.png')) and not img['id'] in bl:
                         Logger.debug("pull_art2: downloading musiclogo "+img['id'])
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
@@ -294,7 +287,7 @@ class ManagerInterface(TabbedPanel):
                 except OSError:
                     pass
                 for idx,img in enumerate(d['artistbackground']):
-                    if not os.path.isfile(os.path.join(abpath,img['id']+'.png')):
+                    if not os.path.isfile(os.path.join(abpath,img['id']+'.png')) and not img['id'] in bl:
                         Logger.debug("pull_art2: downloading artistbackground "+img['id'])
                         fp=os.path.join(abpath,img['id']+'.png')
                         req = UrlRequest(img['url'],file_path=fp)
