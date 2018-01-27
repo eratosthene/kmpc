@@ -8,6 +8,8 @@ kmpc Change Log
 0.5.7 - 2018-01-??
 ******************
 
+- Revamped mpd connection handling to be less crashy (`issue #35
+  <https://github.com/eratosthene/kmpc/issues/35>`_)
 - Documented permissions change necessary to control Pi screen backlight
   (`issue #45 <https://github.com/eratosthene/kmpc/issues/45>`_)
 - Added setuptools>=30.3.0 to the setup_requires section of setup.cfg (`issue

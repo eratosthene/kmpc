@@ -20,7 +20,8 @@ from functools import partial
 import os
 from pkg_resources import resource_filename
 
-from extra import KmpcHelpers
+from kmpc.extra import KmpcHelpers
+import kmpc.kmpcmanager
 
 Helpers=KmpcHelpers()
 
@@ -38,28 +39,28 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
         self.rbl.clear_selection()
         if value == 'Files':
             self.current_view = {'value': 'root','base':'/','info':{'type':'uri'}}
-            self.protocol.lsinfo(self.current_view['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            kmpc.kmpcmanager.mainmpdconnection.protocol.lsinfo(self.current_view['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
             self.ids.files_button.state='down'
             self.ids.albums_button.state='normal'
             self.ids.tracks_button.state='normal'
             self.ids.playlists_button.state='normal'
         elif value == 'Albums':
             self.current_view = {'value': 'All Album Artists','base':'All Album Artists','info':{'type':'rootalbums'}}
-            self.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            kmpc.kmpcmanager.mainmpdconnection.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
             self.ids.files_button.state='normal'
             self.ids.albums_button.state='down'
             self.ids.tracks_button.state='normal'
             self.ids.playlists_button.state='normal'
         elif value == 'Tracks':
             self.current_view = {'value': 'All Track Artists','base':'All Track Artists','info':{'type':'roottracks'}}
-            self.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            kmpc.kmpcmanager.mainmpdconnection.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
             self.ids.files_button.state='normal'
             self.ids.albums_button.state='normal'
             self.ids.tracks_button.state='down'
             self.ids.playlists_button.state='normal'
         elif value == 'Playlists':
             self.current_view = {'value':'All Playlists','base':'All Playlists','info':{'type':'playlist'}}
-            self.protocol.listplaylists().addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            kmpc.kmpcmanager.mainmpdconnection.protocol.listplaylists().addCallback(self.reload_view).addErrback(self.handle_mpd_error)
             self.ids.files_button.state='normal'
             self.ids.albums_button.state='normal'
             self.ids.tracks_button.state='normal'
@@ -71,7 +72,7 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
             rr['copy_flag']=str(result)
         else:
             rr['copy_flag']=''
-        self.protocol.sticker_get('song',rr['base'],'rating').addCallback(partial(self.render_row2,rr,True)).addErrback(partial(self.render_row2,rr,False))
+        kmpc.kmpcmanager.mainmpdconnection.protocol.sticker_get('song',rr['base'],'rating').addCallback(partial(self.render_row2,rr,True)).addErrback(partial(self.render_row2,rr,False))
 
     def render_row2(self,r,has_sticker,result):
         rr=deepcopy(r)
@@ -126,7 +127,7 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
             elif 'file' in row:
                 Logger.debug("FileBrowser: file found: ["+row['file']+"]")
                 r={'value':Helpers.formatsong(row),'base':row['file'],'info':{'type':'file'}}
-                self.protocol.sticker_get('song',row['file'],'copy_flag').addCallback(partial(self.render_row,r,True)).addErrback(partial(self.render_row,r,False))
+                kmpc.kmpcmanager.mainmpdconnection.protocol.sticker_get('song',row['file'],'copy_flag').addCallback(partial(self.render_row,r,True)).addErrback(partial(self.render_row,r,False))
             else:
                 if self.current_view['info']['type'] == 'rootalbums':
                     Logger.debug("Library: album artist found: ["+row+"]")
@@ -151,17 +152,17 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
         Logger.debug("Library: handle_double_click("+format(row)+")")
         self.current_view = deepcopy(row)
         if row['info']['type'] == 'uri':
-            self.protocol.lsinfo(row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            kmpc.kmpcmanager.mainmpdconnection.protocol.lsinfo(row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'rootalbums':
-            self.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            kmpc.kmpcmanager.mainmpdconnection.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'albumartistsort':
-            self.protocol.list('album','albumartistsort',row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            kmpc.kmpcmanager.mainmpdconnection.protocol.list('album','albumartistsort',row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'album':
-            self.protocol.find('album',row['base'],'albumartistsort',row['info']['albumartistsort']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            kmpc.kmpcmanager.mainmpdconnection.protocol.find('album',row['base'],'albumartistsort',row['info']['albumartistsort']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'roottracks':
-            self.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            kmpc.kmpcmanager.mainmpdconnection.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'artistsort':
-            self.protocol.list('title','artistsort',row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            kmpc.kmpcmanager.mainmpdconnection.protocol.list('title','artistsort',row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'playlist':
             pass
         elif row['info']['type'] == 'file':
@@ -180,19 +181,19 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
         for rrow in result:
             if copy_flag:
                 Logger.debug("set_copy_flag_find: setting copy_flag to "+copy_flag+" for file "+rrow['file'])
-                self.protocol.sticker_set('song',rrow['file'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
+                kmpc.kmpcmanager.mainmpdconnection.protocol.sticker_set('song',rrow['file'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
             else:
                 Logger.debug("set_copy_flag_find: clearing copy_flag for file "+rrow['file'])
-                self.protocol.sticker_delete('song',rrow['file'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
+                kmpc.kmpcmanager.mainmpdconnection.protocol.sticker_delete('song',rrow['file'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
 
     def set_copy_flag_find_one(self,copy_flag,index,result):
         for rrow in result:
             if copy_flag:
                 Logger.debug("set_copy_flag_find_one: setting copy_flag to "+copy_flag+" for file "+rrow['file'])
-                self.protocol.sticker_set('song',rrow['file'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
+                kmpc.kmpcmanager.mainmpdconnection.protocol.sticker_set('song',rrow['file'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
             else:
                 Logger.debug("set_copy_flag_find_one: clearing copy_flag for file "+rrow['file'])
-                self.protocol.sticker_delete('song',rrow['file'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
+                kmpc.kmpcmanager.mainmpdconnection.protocol.sticker_delete('song',rrow['file'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
             break
 
     def set_copy_flag(self,copy_flag):
@@ -205,21 +206,21 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
                 Logger.debug("set_copy_flag: adding uri or file")
                 if copy_flag:
                     Logger.debug("set_copy_flag: setting copy_flag to "+copy_flag+" for file "+row['base'])
-                    self.protocol.sticker_set('song',row['base'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
+                    kmpc.kmpcmanager.mainmpdconnection.protocol.sticker_set('song',row['base'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
                 else:
                     Logger.debug("set_copy_flag: clearing copy_flag for file "+row['base'])
-                    self.protocol.sticker_delete('song',row['base'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
+                    kmpc.kmpcmanager.mainmpdconnection.protocol.sticker_delete('song',row['base'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
             elif mtype == 'albumartistsort':
-                self.protocol.find(mtype,row['base']).addCallback(partial(self.set_copy_flag_find,copy_flag,index)).addErrback(self.handle_mpd_error)
+                kmpc.kmpcmanager.mainmpdconnection.protocol.find(mtype,row['base']).addCallback(partial(self.set_copy_flag_find,copy_flag,index)).addErrback(self.handle_mpd_error)
             elif mtype == 'album':
-                self.protocol.find(mtype,row['base'],'albumartistsort',row['info']['albumartistsort']).addCallback(partial(self.set_copy_flag_find,copy_flag,index)).addErrback(self.handle_mpd_error)
+                kmpc.kmpcmanager.mainmpdconnection.protocol.find(mtype,row['base'],'albumartistsort',row['info']['albumartistsort']).addCallback(partial(self.set_copy_flag_find,copy_flag,index)).addErrback(self.handle_mpd_error)
             elif mtype == 'artistsort':
-                self.protocol.find(mtype,row['base']).addCallback(partial(self.set_copy_flag_find,copy_flag,index)).addErrback(self.handle_mpd_error)
+                kmpc.kmpcmanager.mainmpdconnection.protocol.find(mtype,row['base']).addCallback(partial(self.set_copy_flag_find,copy_flag,index)).addErrback(self.handle_mpd_error)
             elif mtype == 'track':
-                self.protocol.find('artistsort',row['info']['artistsort'],'title',row['base']).addCallback(partial(self.set_copy_flag_find_one,copy_flag,index)).addErrback(self.handle_mpd_error)
+                kmpc.kmpcmanager.mainmpdconnection.protocol.find('artistsort',row['info']['artistsort'],'title',row['base']).addCallback(partial(self.set_copy_flag_find_one,copy_flag,index)).addErrback(self.handle_mpd_error)
             elif mtype == 'playlist' or mtype == 'uri':
                 Logger.info("Library: "+mtype+" copy_flag not implemented")
-                #self.protocol.load(row['base'])
+                #kmpc.kmpcmanager.mainmpdconnection.protocol.load(row['base'])
             else:
                 Logger.warning("Library: "+mtype+' copy_flag not implemented')
         self.rbl.clear_selection()
@@ -227,7 +228,7 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
     def rating_set(self,base,index,instance):
         Logger.debug('Application: rating_set('+instance.rating+')')
         instance.popup.dismiss()
-        self.protocol.sticker_set('song',base,'rating',instance.rating).addCallback(partial(self.handle_rating_set,index,instance.rating,True)).addErrback(partial(self.handle_rating_set,index,instance.rating,False))
+        kmpc.kmpcmanager.mainmpdconnection.protocol.sticker_set('song',base,'rating',instance.rating).addCallback(partial(self.handle_rating_set,index,instance.rating,True)).addErrback(partial(self.handle_rating_set,index,instance.rating,False))
 
     def handle_rating_set(self,index,rating,succ,result):
         if succ:
@@ -242,13 +243,13 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
         if ltype=='rsync':
             self.rsync_data={}
             self.rsync_file=open(os.path.join(configdir,'rsync.inc'),'w')
-        self.protocol.listallinfo('/').addCallback(partial(self.generate_list2,ltype)).addErrback(self.handle_mpd_error)
+        kmpc.kmpcmanager.mainmpdconnection.protocol.listallinfo('/').addCallback(partial(self.generate_list2,ltype)).addErrback(self.handle_mpd_error)
 
     def generate_list2(self,ltype,result):
         for row in result:
             if 'file' in row:
                 uri=row['file']
-                self.protocol.sticker_list('song',uri).addCallback(partial(self.list_add_uri,ltype,uri)).addErrback(partial(self.list_add_uri,ltype,uri))
+                kmpc.kmpcmanager.mainmpdconnection.protocol.sticker_list('song',uri).addCallback(partial(self.list_add_uri,ltype,uri)).addErrback(partial(self.list_add_uri,ltype,uri))
 
     def list_add_uri(self,ltype,uri,result):
         docopy = False
@@ -271,7 +272,7 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
                 wline=uri.encode("UTF-8")
                 self.rsync_file.write(wline+"\n")
             elif ltype == 'playlist':
-                self.protocol.playlistadd(self.ids.minimum_stars.text+" star or more",uri).addErrback(self.handle_mpd_error)
+                kmpc.kmpcmanager.mainmpdconnection.protocol.playlistadd(self.ids.minimum_stars.text+" star or more",uri).addErrback(self.handle_mpd_error)
 
     def write_rsync(self):
         Logger.info('Rsync: writing to disk')
@@ -286,18 +287,22 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
     selected = BooleanProperty(False)
     selectable = BooleanProperty(True)
 
+    def __init__(self,**kwargs):
+        super(self.__class__,self).__init__(**kwargs)
+        self.app=App.get_running_app()
+
     def rating_popup(self,instance):
         Logger.debug('Library: rating_popup()')
         layout = GridLayout(cols=2,spacing=10)
         popup = Popup(title='Rating',content=layout,size_hint=(0.8,1))
         for r in list(range(0,11)):
             btn=Button(font_name=resource_filename(__name__,os.path.join('resources','FontAwesome.ttf')))
-            btn.text=App.get_running_app().songratings[str(r)]['stars']
+            btn.text=self.app.songratings[str(r)]['stars']
             btn.rating=str(r)
             btn.popup=popup
             layout.add_widget(btn)
-            btn.bind(on_press=partial(App.get_running_app().root.ids.library_tab.rating_set,instance.base,self.index))
-            lbl=Label(text=App.get_running_app().songratings[str(r)]['meaning'],halign='left')
+            btn.bind(on_press=partial(self.app.root.ids.library_tab.rating_set,instance.base,self.index))
+            lbl=Label(text=self.app.songratings[str(r)]['meaning'],halign='left')
             layout.add_widget(lbl)
         popup.open()
 
@@ -315,15 +320,15 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
             # if we have a double-click, play from that location instead of selecting
             if touch.is_double_tap:
                 Logger.debug("Library: double-click on "+str(self.index))
-                App.get_running_app().root.ids.library_tab.rbl.clear_selection()
-                App.get_running_app().root.ids.library_tab.handle_double_click(App.get_running_app().root.ids.library_tab.rv.data[self.index],self.index)
+                self.app.root.ids.library_tab.rbl.clear_selection()
+                self.app.root.ids.library_tab.handle_double_click(self.app.root.ids.library_tab.rv.data[self.index],self.index)
             else:
                 return self.parent.select_with_touch(self.index, touch)
 
     def apply_selection(self, rv, index, is_selected):
         ''' Respond to the selection of items in the view. '''
         self.selected = is_selected
-        lt=App.get_running_app().root.ids.library_tab
+        lt=self.app.root.ids.library_tab
         if is_selected:
             lt.library_selection[index] = True
         else:

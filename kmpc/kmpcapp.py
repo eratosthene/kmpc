@@ -1,24 +1,16 @@
 # import dependencies
-from mpd import MPDProtocol
 import os
 import traceback
 import mutagen
 import io
 import random
 import socket
-import ConfigParser
 from pkg_resources import resource_filename
 from functools import partial
 
 # make sure we are on an updated version of kivy
 import kivy
 kivy.require('1.10.0')
-
-#install twisted reactor to interface with mpd
-from kivy.support import install_twisted_reactor
-install_twisted_reactor()
-from twisted.internet import reactor, protocol
-from twisted.internet.defer import inlineCallbacks
 
 # import all the other kivy stuff
 from kivy.config import Config
@@ -44,9 +36,8 @@ from kivy.lang import Builder
 from kivy.properties import ObjectProperty
 
 # import our local modules
-from mpdfactory import MPDClientFactory
-from extra import KmpcHelpers,ExtraSlider,ClearButton,OutlineLabel,OutlineButton
-from playlistpanel import PlaylistTabbedPanelItem
+from kmpc.extra import KmpcHelpers,ExtraSlider,ClearButton,OutlineLabel,OutlineButton,MpdConnection
+from kmpc.playlistpanel import PlaylistTabbedPanelItem
 
 # sets the location of the config folder
 configdir = os.path.join(os.path.expanduser('~'),".kmpc")
@@ -59,16 +50,9 @@ Helpers=KmpcHelpers()
 class KmpcInterface(TabbedPanel):
     """The main class that ties it all together."""
 
-    def __init__(self):
-        """Pull the config from the config file, hook up to mpd, zero out variables."""
-        super(self.__class__,self).__init__()
-        # pull config into the class
-        self.config = Helpers.loadconfigfile()
-        # set up mpd connection
-        self.factory = MPDClientFactory()
-        self.factory.connectionMade = self.mpd_connectionMade
-        self.factory.connectionLost = self.mpd_connectionLost
-        reactor.connectTCP(self.config.get('mpd','mpdhost'), self.config.getint('mpd','mpdport'), self.factory)
+    def __init__(self,**kwargs):
+        """Zero out variables, pull in config file, connect to mpd."""
+        super(self.__class__,self).__init__(**kwargs)
         # bind callbacks for tab changes
         self.bind(current_tab=self.main_tab_changed)
         self.mpd_status={'state':'stop','repeat':0,'single':0,'random':0,'consume':0,'curpos':0}
@@ -80,12 +64,16 @@ class KmpcInterface(TabbedPanel):
         self.tcolor=1
         self.ocolor=0
         self.settingsPopup=Factory.SettingsPopup()
+        global mainmpdconnection
+        global mainconfig
+        mainconfig=Helpers.loadconfigfile()
+        mainmpdconnection=MpdConnection(mainconfig,MPDIdleHandler,[self.init_mpd])
 
     def settings_popup(self):
         self.settingsPopup.open()
         # get the host's IP address and display it
         self.settingsPopup.ids.ip_label.text="IP Address: "+format(self.get_ip())
-        self.protocol.status().addCallback(partial(self.update_mixers,self.settingsPopup)).addErrback(self.handle_mpd_error)
+        mainmpdconnection.protocol.status().addCallback(partial(self.update_mixers,self.settingsPopup)).addErrback(self.handle_mpd_error)
 
     def update_mixers(self,p,result):
         # set up the crossfade slider
@@ -132,17 +120,17 @@ class KmpcInterface(TabbedPanel):
     def change_crossfade(self,v):
         """Callback when user changes crossfade slider."""
         Logger.info('Settings: change_crossfade')
-        self.protocol.crossfade(str(v)).addErrback(self.handle_mpd_error)
+        mainmpdconnection.protocol.crossfade(str(v)).addErrback(self.handle_mpd_error)
 
     def change_mixrampdb(self,v):
         """Callback when user changes mixrampdb slider."""
         Logger.info('Settings: change_mixrampdb')
-        self.protocol.mixrampdb(str(0.0-v)).addErrback(self.handle_mpd_error)
+        mainmpdconnection.protocol.mixrampdb(str(0.0-v)).addErrback(self.handle_mpd_error)
 
     def change_mixrampdelay(self,v):
         """Callback when user changes mixrampdelay slider."""
         Logger.info('Settings: change_mixrampdelay')
-        self.protocol.mixrampdelay(str(v)).addErrback(self.handle_mpd_error)
+        mainmpdconnection.protocol.mixrampdelay(str(v)).addErrback(self.handle_mpd_error)
 
     def get_ip(self):
         """Method that tries to get the local IP address, and returns localhost if there isn't one."""
@@ -157,22 +145,6 @@ class KmpcInterface(TabbedPanel):
             s.close()
         return IP
 
-    def mpd_connectionMade(self,protocol):
-        """Callback when mpd is connected."""
-        # copy the protocol to all the classes
-        self.protocol = protocol
-        self.ids.playlist_tab.protocol=protocol
-        self.ids.library_tab.protocol=protocol
-        self.ids.config_tab.protocol=protocol
-        Logger.info('Application: Connected to mpd server host='+self.config.get('mpd','mpdhost')+' port='+self.config.get('mpd','mpdport'))
-        # get the initial mpd status
-        self.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
-        # create the once-per-second update of the track slider
-        self.track_slider_task=Clock.schedule_interval(self.update_track_slider,1)
-        self.track_slider_task.cancel()
-        # subscribe to 'kmpc' to check for messages from mpd
-        self.protocol.subscribe('kmpc')
-
     def main_tab_changed(self,obj,value):
         """Callback when top tab is changed."""
         self.active_tab = value.text
@@ -181,17 +153,10 @@ class KmpcInterface(TabbedPanel):
         if self.active_tab == 'Playlist':
             # switching to the playlist tab repopulates it if it is empty
             if len(self.ids.playlist_tab.rv.data) == 0:
-                self.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
-
-    def mpd_connectionLost(self,protocol, reason):
-        """Callback when mpd connection is lost."""
-        Logger.warn('Application: Connection lost: %s' % reason)
-        # kills the app for now since I don't know how to handle this yet
-        App.get_running_app().stop()
+                mainmpdconnection.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
 
     def handle_mpd_error(self,result):
-        """Prints handled errors to the error log."""
-        Logger.error('Application: MPDIdleHandler Callback error: {}'.format(result))
+        mainmpdconnection.handle_mpd_error(result)
 
     def handle_mpd_message(self,result):
         """Callback for mpd 'kmpc' messages."""
@@ -212,7 +177,7 @@ class KmpcInterface(TabbedPanel):
         curpos = int(self.ids.current_track_slider.value)
         Logger.debug("Application: touch up on track slider at "+str(curpos))
         # seek to that position in the track
-        self.protocol.seekcur(str(curpos)).addErrback(self.handle_mpd_error)
+        mainmpdconnection.protocol.seekcur(str(curpos)).addErrback(self.handle_mpd_error)
 
     def current_track_slider_down(self):
         """Callback when track slider is pressed."""
@@ -259,12 +224,12 @@ class KmpcInterface(TabbedPanel):
             # save current song, this is a 0-based index into the playlist
             self.currsong=result['song']
             # ask mpd for current song data
-            self.protocol.currentsong().addCallback(self.update_mpd_currentsong).addErrback(self.handle_mpd_error)
+            mainmpdconnection.protocol.currentsong().addCallback(self.update_mpd_currentsong).addErrback(self.handle_mpd_error)
             # save next song, this is a 0-based index into the playlist
             if 'nextsong' in result:
                 self.nextsong=result['nextsong']
                 # ask mpd for next song data
-                self.protocol.playlistinfo(self.nextsong).addCallback(self.update_mpd_nextsong).addErrback(self.handle_mpd_error)
+                mainmpdconnection.protocol.playlistinfo(self.nextsong).addCallback(self.update_mpd_nextsong).addErrback(self.handle_mpd_error)
             else:
                 self.nextsong=None
         stflags=['normal','down']
@@ -332,9 +297,9 @@ class KmpcInterface(TabbedPanel):
                 # clear the album cover
                 self.ids.album_cover_layout.clear_widgets()
                 # get the stored star rating
-                self.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
+                mainmpdconnection.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
                 # figure out the full path of the file
-                bp=self.config.get('paths','musicpath')
+                bp=mainconfig.get('paths','musicpath')
                 # p is the absolute path
                 p=os.path.join(bp,result['file'])
                 haslogo=False
@@ -343,7 +308,7 @@ class KmpcInterface(TabbedPanel):
                 if 'date' in result:
                     year=result['date'][:4]
                 # pull the fanart folder from ini file
-                fa_path=self.config.get('paths','fanartpath')
+                fa_path=mainconfig.get('paths','fanartpath')
                 # try to get the artistid, set it to 0000 if it doesn't exist
                 try:
                     aids=str(result['musicbrainz_artistid'])
@@ -397,7 +362,7 @@ class KmpcInterface(TabbedPanel):
                     data = None
                     originalyear = None
                     # if config file says use originalyear, use it instead of mpd's year
-                    if self.config.getboolean('flags','originalyear'):
+                    if mainconfig.getboolean('flags','originalyear'):
                         if 'TXXX:originalyear' in f.keys():
                             originalyear=format(f['TXXX:originalyear'])
                     # try to get mp3 cover, if this throws an exception it's not an mp3 or it doesn't have a cover
@@ -432,7 +397,7 @@ class KmpcInterface(TabbedPanel):
                     if data:
                         # if we got image data, load it as a kivy.core.image
                         cimg = CoreImage(data,ext=ext)
-                    if self.config.getboolean('flags','originalyear') and originalyear and year and int(originalyear)!=int(year):
+                    if mainconfig.getboolean('flags','originalyear') and originalyear and year and int(originalyear)!=int(year):
                         tt="["+originalyear+"]\n{"+year+"}"
                     elif year:
                         tt="["+year+"]"
@@ -476,7 +441,7 @@ class KmpcInterface(TabbedPanel):
         # make a clear button for the star rating
         btn = ClearButton(padding_x='10sp',font_name=resource_filename(__name__,os.path.join('resources','FontAwesome.ttf')),halign='center',valign='middle',markup=True)
         # look up the correct string for the rating
-        btn.text = Helpers.songratings(self.config)[result]['stars']
+        btn.text = Helpers.songratings(mainconfig)[result]['stars']
         # bind the popup for setting rating
         btn.bind(on_press=self.rating_popup)
         # clear the layout widget and add the new one
@@ -507,46 +472,46 @@ class KmpcInterface(TabbedPanel):
     def prev_pressed(self):
         """Callback for prev button pressed."""
         Logger.debug('Application: prev_pressed()')
-        self.protocol.previous()
+        mainmpdconnection.protocol.previous()
 
     def play_pressed(self):
         """Callback for play/pause button pressed."""
         Logger.debug('Application: play_pressed()')
         if self.mpd_status['state'] == 'play':
             # pause if playing
-            self.protocol.pause()
+            mainmpdconnection.protocol.pause()
         else:
             # play if paused or stopped
-            self.protocol.play()
+            mainmpdconnection.protocol.play()
 
     def next_pressed(self):
         """Callback for next button pressed."""
         Logger.debug('Application: next_pressed()')
-        self.protocol.next()
+        mainmpdconnection.protocol.next()
 
     def repeat_pressed(self):
         """Callback for repeat button pressed."""
         Logger.debug('Application: repeat_pressed()')
         # toggle on/off
-        self.protocol.repeat(str(1-int(self.mpd_status['repeat'])))
+        mainmpdconnection.protocol.repeat(str(1-int(self.mpd_status['repeat'])))
 
     def single_pressed(self):
         """Callback for single button pressed."""
         Logger.debug('Application: single_pressed()')
         # toggle on/off
-        self.protocol.single(str(1-int(self.mpd_status['single'])))
+        mainmpdconnection.protocol.single(str(1-int(self.mpd_status['single'])))
 
     def random_pressed(self):
         """Callback for random button pressed."""
         Logger.debug('Application: random_pressed()')
         # toggle on/off
-        self.protocol.random(str(1-int(self.mpd_status['random'])))
+        mainmpdconnection.protocol.random(str(1-int(self.mpd_status['random'])))
 
     def consume_pressed(self):
         """Callback for consume button pressed."""
         Logger.debug('Application: consume_pressed()')
         # toggle on/off
-        self.protocol.consume(str(1-int(self.mpd_status['consume'])))
+        mainmpdconnection.protocol.consume(str(1-int(self.mpd_status['consume'])))
 
     def rating_popup(self,instance):
         """Popup for setting song rating."""
@@ -559,7 +524,7 @@ class KmpcInterface(TabbedPanel):
             # make a button
             btn=Button(font_name=resource_filename(__name__,os.path.join('resources','FontAwesome.ttf')))
             # look up the correct string for the rating
-            btn.text=Helpers.songratings(self.config)[str(r)]['stars']
+            btn.text=Helpers.songratings(mainconfig)[str(r)]['stars']
             # set some widget variables
             btn.rating=str(r)
             btn.popup=popup
@@ -568,7 +533,7 @@ class KmpcInterface(TabbedPanel):
             # bind the button press to set the rating
             btn.bind(on_press=self.rating_set)
             # add a label to explain the ratings, this is pretty subjective
-            lbl=OutlineLabel(text=Helpers.songratings(self.config)[str(r)]['meaning'],halign='left')
+            lbl=OutlineLabel(text=Helpers.songratings(mainconfig)[str(r)]['meaning'],halign='left')
             # add the label to the layout
             layout.add_widget(lbl)
         # pop it on up, if you press outside the popup it just goes away without setting the rating
@@ -580,7 +545,7 @@ class KmpcInterface(TabbedPanel):
         # close the rating popup
         instance.popup.dismiss()
         # tell mpd to set the rating sticker
-        self.protocol.sticker_set('song',self.currfile,'rating',instance.rating)
+        mainmpdconnection.protocol.sticker_set('song',self.currfile,'rating',instance.rating)
 
     def cover_popup(self,instance):
         """Popup for showing a larger version of the album cover."""
@@ -596,18 +561,64 @@ class KmpcInterface(TabbedPanel):
 
     def change_backlight(self,value):
         """Method that sets the backlight to a certain value."""
-        Logger.info('Application: change_backlight('+str(value)+') rpienable = '+self.config.get('flags','rpienable'))
+        Logger.info('Application: change_backlight('+str(value)+') rpienable = '+mainconfig.get('flags','rpienable'))
         # only if the ini file says it's ok
-        if self.config.getboolean('flags','rpienable'):
+        if mainconfig.getboolean('flags','rpienable'):
             import rpi_backlight as bl
             # set the brightness
             bl.set_brightness(int(value), smooth=True, duration=1)
+
+    def init_mpd(self,instance):
+        # get the initial mpd status
+        mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(mainmpdconnection.handle_mpd_error)
+        # create the once-per-second update of the track slider
+        self.track_slider_task=Clock.schedule_interval(self.update_track_slider,1)
+        self.track_slider_task.cancel()
+        # subscribe to 'kmpc' to check for messages from mpd
+        mainmpdconnection.protocol.subscribe('kmpc')
+
+class MPDIdleHandler(object):
+    """Handler class for mpd idle command."""
+
+    def __init__(self, protocol):
+        """Set this class's protocol to the one that was passed in."""
+        self.protocol = protocol
+
+    def __call__(self, result):
+        """Handle results from mpd idle command."""
+        app=App.get_running_app()
+
+        # notify various subsystems based on what changed
+        for s in result:
+            Logger.info('MPDIdleHandler: Changed '+format(s))
+            if format(s) == 'playlist':
+                # playlist was changed, ask mpd for playlist info
+                self.protocol.playlistinfo().addCallback(app.root.ids.playlist_tab.populate_playlist).addErrback(app.root.ids.playlist_tab.handle_mpd_error)
+                # force a reload of nextsong if playlist changes
+                app.root.nextsong = None
+                self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
+            elif format(s) == 'player':
+                # player was changed, ask mpd for player status
+                self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
+            elif format(s) == 'sticker':
+                # song rating sticker was changed, ask mpd for current song rating
+                self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
+                self.protocol.sticker_get('song',app.root.currfile,'rating').addCallback(app.root.update_mpd_sticker_rating).addErrback(app.root.handle_mpd_no_sticker)
+            elif format(s) == 'options':
+                # some playback option was changed, ask mpd for player status
+                self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
+            elif format(s) == 'message':
+                # an mpd message was received, ask mpd what it was
+                self.protocol.readmessages().addCallback(app.root.handle_mpd_message).addErrback(app.root.handle_mpd_error)
+            else:
+                # default if none of the above, ask mpd for player status
+                self.protocol.status().addCallback(app.root.update_mpd_status).addErrback(app.root.handle_mpd_error)
 
 class KmpcApp(App):
     """The overall app class, builds the main interface widget."""
 
     def __init__(self,args):
-        """Override kivy config values with necessary ones."""
+        """Override kivy config values with necessary ones"""
         Config.set('kivy','keyboard_mode','systemanddock')
         Config.set('graphics','width',800)
         Config.set('graphics','height',480)
