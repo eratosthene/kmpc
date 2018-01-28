@@ -7,6 +7,7 @@ from kivy.uix.popup import Popup
 from kivy.logger import Logger
 from kivy.app import App
 from kivy.clock import Clock
+from kivy.lang.builder import Builder
 import os
 import stat
 import codecs
@@ -28,17 +29,17 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
 
     def update(self):
         """Runs the 'updatecommand' from the config file."""
-        Logger.info('Config: update')
+        Logger.info('System: update')
         call(self.config.get('system','updatecommand').split(' '))
 
     def do_reboot(self):
         """Method that reboots the host."""
-        Logger.info('Config: reboot')
+        Logger.info('System: reboot')
         call(['sudo','reboot'])
 
     def do_poweroff(self):
         """Method that shuts down the host."""
-        Logger.info('Config: poweroff')
+        Logger.info('System: poweroff')
         call(['sudo','poweroff'])
 
     def enqueue_output(self,out,queue,event,popup,tpath,synchost,layout,sv):
@@ -81,7 +82,34 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
 
     def filesync(self):
         """Callback when the user presses the Sync button. This relies on keyless ssh working, and does most of the work in shell scripts."""
-        Logger.info('Config: filesync')
+        Logger.info('System: filesync')
+        # look in the ini file for all the relevant paths
+        synchost = self.config.get('sync','synchost')
+        syncbasepath = self.config.get('sync','syncmusicpath')
+        syncfanartpath= self.config.get('sync','syncfanartpath')
+        basepath = self.config.get('paths','musicpath')
+        fanartpath= self.config.get('paths','fanartpath')
+        mpdhost = self.config.get('mpd','mpdhost')
+        # Check to make sure synchost and mpdhost are not the same
+        if mpdhost==synchost:
+            Logger.warn('System: will not sync identical hosts!')
+            popup=Builder.load_string('''
+Popup:
+    title: "Warning"
+    size_hint_x: 0.6
+    size_hint_y: 0.3
+    size_hint_min_y: l.height
+    OutlineLabel:
+        id: l
+        text: "Your mpdhost and synchost config fields are identical, sync is disabled to prevent data corruption."
+        size_hint_y: None
+        text_size: self.width, None
+        height: self.texture_size[1]
+        valign: 'middle'
+            ''')
+            popup.open()
+            Clock.schedule_once(popup.dismiss,2)
+            return
         # set up a popup containing a scrollview to contain stdout output
         layout = GridLayout(cols=1, spacing=1, padding=1, size_hint_y=None)
         layout.bind(minimum_height=layout.setter('height'))

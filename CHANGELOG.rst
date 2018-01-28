@@ -8,6 +8,8 @@ kmpc Change Log
 0.6.1 - 2018-01-??
 ******************
 
+- Added warning to prevent syncing synchost to itself (`issue #73
+  <https://github.com/eratosthene/kmpc/issues/73>`_)
 - Changed sections in config file and updated docs accordingly to better
   account for which fields are used in each program. (`issue #70
   <https://github.com/eratosthene/kmpc/issues/70>`_)
