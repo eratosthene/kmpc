@@ -5,6 +5,24 @@ kmpc Change Log
 ###############
 
 ******************
+0.6.0 - 2018-01-27
+******************
+
+- Added album name and release year(s) to cover popup.
+- Load album covers from tags with PIL directly first, to allow for resizing in
+  case it is too large for a texture to hold. (`issue #7
+  <https://github.com/eratosthene/kmpc/issues/7>`_)
+- Changed to a ReconnectingClientFactory to prevent issues when long-running
+  mpd commands are run. (part of `issue #9
+  <https://github.com/eratosthene/kmpc/issues/9>`_)
+- Added a line to the mpd.conf file in the car install doc to prevent mpd
+  crashing when loading a long playlist. (part of `issue #9
+  <https://github.com/eratosthene/kmpc/issues/9>`_)
+- Revamped the way config file handling works to use Kivy's built-in Config
+  class. You can now edit config settings from within the app. (`issue #17
+  <https://github.com/eratosthene/kmpc/issues/17>`_)
+
+******************
 0.5.9 - 2018-01-26
 ******************
 

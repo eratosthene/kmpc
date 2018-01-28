@@ -1,6 +1,6 @@
 #:kivy 1.10.0
 #:import App kivy.app.App
-#:import ConfigTabbedPanelItem kmpc.configpanel.ConfigTabbedPanelItem
+#:import SystemTabbedPanelItem kmpc.systempanel.SystemTabbedPanelItem
 #:import PlaylistTabbedPanelItem kmpc.playlistpanel.PlaylistTabbedPanelItem
 #:import PlaylistRow kmpc.playlistpanel.PlaylistRow
 #:import PlaylistRecycleBoxLayout kmpc.playlistpanel.PlaylistRecycleBoxLayout
@@ -39,7 +39,7 @@
 
 <SettingsPopup@Popup>:
     auto_dismiss: True
-    title: 'Settings'
+    title: 'Settings, kmpc version '+app.version_str
     size_hint_x: 0.6
     BoxLayout:
         orientation: 'vertical'
@@ -222,8 +222,9 @@
     height: self.texture_size[1]
     halign: 'center'
 
-<ConfigTabbedPanelItem>:
-    text: 'Config'
+<SystemTabbedPanelItem>:
+    config: app.config
+    text: 'System'
     BackdropBoxLayout:
         orientation: 'vertical'
         BoxLayout:
@@ -231,7 +232,7 @@
             size_hint_y: 0.5
             Button:
                 text: 'Update'
-                on_press: root.git_pull()
+                on_press: root.update()
             Button:
                 text: 'Sync'
                 on_press: root.filesync()
@@ -451,8 +452,9 @@
                     SettingsButton:
                         text: u'\uf1de'
                         on_press: root.settings_popup()
-                    ClearButton:
-                        text: ''
+                    SettingsButton:
+                        text: u'\uf013'
+                        on_press: app.open_settings()
                     ClearButton:
                         text: ''
                 BoxLayout:
@@ -566,5 +568,5 @@
         id: playlist_tab
     LibraryTabbedPanelItem:
         id: library_tab
-    ConfigTabbedPanelItem:
-        id: config_tab
+    SystemTabbedPanelItem:
+        id: system_tab

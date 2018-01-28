@@ -1,0 +1,17 @@
+[
+  { "type": "path",
+    "title": "musicpath",
+    "desc": "Path to music files",
+    "section": "paths",
+    "key": "musicpath" },
+  { "type": "path",
+    "title": "fanartpath",
+    "desc": "Path to fanart files",
+    "section": "paths",
+    "key": "fanartpath" },
+  { "type": "path",
+    "title": "tmppath",
+    "desc": "Path to write temporary files",
+    "section": "paths",
+    "key": "tmppath" }
+]

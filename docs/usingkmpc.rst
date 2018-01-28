@@ -88,6 +88,36 @@ Toggle Random Mode
 Toggle Consume Mode
   If on, the current song will be removed from the playlist after playback.
 
+Runtime Settings
+================
+
+.. image:: images/runtime.png
+
+At the top left is a button to popup the runtime settings. This opens a menu
+for various ancillary controls.
+
+First is the current IP address of the host. kmpc tries to guess this
+intelligently, returning either the local IP address or 127.0.0.1 if no network
+is connected. This can be useful in determining whether the Pi in your car can
+reach the wifi in your house.
+
+The next three sliders affect mpd's playback, and correspond to the
+'crossfade', 'mixrampdb', and 'mixrampdelay' mpd options. Please see mpd's
+documentation for explanation.
+
+The Text Color and Outline Color toggles let you change the color and outline
+of text displayed in kmpc between white and black.
+
+Configuration
+=============
+
+.. image:: images/config.png
+
+At the middle left is a button to open the configuration panel. This lets you
+edit all the various settings in :ref:`the config file <config>`. At the top
+left you can choose the section, and the values for that section will show up
+for editing underneath. Hit Close when you are done.
+
 ********
 Playlist
 ********
@@ -224,23 +254,13 @@ use the buttons to the right. '+' will append them, '>' will insert them, '!'
 will clear the playlist then append them, and 'X' will delete them.
 
 ******
-Config
+System
 ******
 
-.. image:: images/config.png
+.. image:: images/system.png
 
-This tab is for various ancillary controls. The top three sliders affect mpd's
-playback, and correspond to the 'crossfade', 'mixrampdb', and 'mixrampdelay'
-mpd options. Please see mpd's documentation for explanation.
-
-Next is the current IP address of the host. kmpc tries to guess this
-intelligently, returning either the local IP address or 127.0.0.1 if no network
-is connected. This can be useful in determining whether the Pi in your car can
-reach the wifi in your house.
-
-The Update button simply runs ``git pull`` in the current working directory. I
-have a direct git clone running in my car, so this lets me easily update to
-test new features. Will fail (and crash the app) if you installed via package.
+The Update button will run whatever command you have in the config file
+``[system]`` section in the ``updatecommand`` field.
 
 The Sync button interacts with the synchost, which is explained in the
 following section.
