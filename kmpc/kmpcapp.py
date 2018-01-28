@@ -367,7 +367,7 @@ class KmpcInterface(TabbedPanel):
                     data = None
                     originalyear = None
                     # if config file says use originalyear, use it instead of mpd's year
-                    if self.config.getboolean('flags','originalyear'):
+                    if self.config.getboolean('system','originalyear'):
                         if 'TXXX:originalyear' in f.keys():
                             originalyear=format(f['TXXX:originalyear'])
                     # try to get mp3 cover, if this throws an exception it's not an mp3 or it doesn't have a cover
@@ -415,7 +415,7 @@ class KmpcInterface(TabbedPanel):
                             Logger.debug('update_mpd_currentsong: pulling cover directly from tag')
                             data.seek(0)
                             cimg = CoreImage(data,ext=ext,filename=result['musicbrainz_artistid'])
-                    if self.config.getboolean('flags','originalyear') and originalyear and year and int(originalyear)!=int(year):
+                    if self.config.getboolean('system','originalyear') and originalyear and year and int(originalyear)!=int(year):
                         tt="["+originalyear+"]\n{"+year+"}"
                     elif year:
                         tt="["+year+"]"
@@ -584,9 +584,9 @@ class KmpcInterface(TabbedPanel):
 
     def change_backlight(self,value):
         """Method that sets the backlight to a certain value."""
-        Logger.info('Application: change_backlight('+str(value)+') rpienable = '+self.config.get('flags','rpienable'))
+        Logger.info('Application: change_backlight('+str(value)+') rpienable = '+self.config.get('system','rpienable'))
         # only if the ini file says it's ok
-        if self.config.getboolean('flags','rpienable'):
+        if self.config.getboolean('system','rpienable'):
             import rpi_backlight as bl
             # set the brightness
             bl.set_brightness(int(value), smooth=True, duration=1)
@@ -684,7 +684,7 @@ class KmpcApp(App):
         settings.add_json_panel('path settings',self.config,resource_filename(__name__,os.path.join('resources','config_paths.json')))
         settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources','config_sync.json')))
         settings.add_json_panel('fanart settings',self.config,resource_filename(__name__,os.path.join('resources','config_fanart.json')))
-        settings.add_json_panel('system',self.config,resource_filename(__name__,os.path.join('resources','config_system.json')))
+        settings.add_json_panel('system settings',self.config,resource_filename(__name__,os.path.join('resources','config_system.json')))
         settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources','config_star.json')))
 
     def build(self,*args):
