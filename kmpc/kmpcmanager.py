@@ -13,6 +13,7 @@ import tempfile
 import shutil
 from pkg_resources import resource_filename
 import musicbrainzngs
+import ConfigParser
 
 # make sure we are on an updated version of kivy
 import kivy
@@ -178,7 +179,7 @@ class ManagerInterface(TabbedPanel):
 
     def scan_for_media(self,index):
         Logger.info('Manager: scanning '+self.ids.artist_tab.rv.data[index]['artist_id']+'for media')
-        fa_path=self.config.get('paths','fanartpath')
+        fa_path=mainconfig.get('paths','fanartpath')
         artistbackground_path=os.path.join(fa_path,self.ids.artist_tab.rv.data[index]['artist_id'],'artistbackground')
         logo_path=os.path.join(fa_path,self.ids.artist_tab.rv.data[index]['artist_id'],'logo')
         badge_path=os.path.join(fa_path,self.ids.artist_tab.rv.data[index]['artist_id'],'badge')
@@ -214,11 +215,11 @@ class ManagerInterface(TabbedPanel):
         Logger.info('Manager: pulling art for '+self.ids.artist_tab.rv.data[index]['artist_id'])
         aid=self.ids.artist_tab.rv.data[index]['artist_id']
         aname=self.ids.artist_tab.rv.data[index]['artist_name']
-        fa_path=self.config.get('paths','fanartpath')
+        fa_path=mainconfig.get('paths','fanartpath')
         fanart=self.fanarturl
         api_key=self.api_key
         furl=fanart+aid+"?api_key="+api_key
-        client_key=self.config.get('fanart','client_key')
+        client_key=mainconfig.get('fanart','client_key')
         if client_key:
             furl=furl+"&client_key="+client_key
         Logger.debug("pull_art: querying "+furl)
@@ -227,12 +228,12 @@ class ManagerInterface(TabbedPanel):
     def pull_art2(self,index,request,result):
         aid=self.ids.artist_tab.rv.data[index]['artist_id']
         aname=self.ids.artist_tab.rv.data[index]['artist_name']
-        fa_path=self.config.get('paths','fanartpath')
+        fa_path=mainconfig.get('paths','fanartpath')
         d=result
         # see if there are blacklist entries for this artist
         bl=[]
         try:
-            bl=self.config.get('artblacklist',aid).split(',')
+            bl=mainconfig.get('artblacklist',aid).split(',')
         except ConfigParser.NoSectionError:
             Logger.debug('pull_art2: no artblacklist section found')
         except ConfigParser.NoOptionError:
@@ -263,7 +264,7 @@ class ManagerInterface(TabbedPanel):
                         Logger.debug("pull_art2: downloading hdmusiclogo "+img['id'])
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
-                        if self.config.getboolean('logs','artlog'):
+                        if mainconfig.getboolean('logs','artlog'):
                             adfile=open(os.path.join(configdir,'artlog.txt'),'a')
                             adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
                             adfile.close()
@@ -277,7 +278,7 @@ class ManagerInterface(TabbedPanel):
                         Logger.debug("pull_art2: downloading musiclogo "+img['id'])
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
-                        if self.config.getboolean('logs','artlog'):
+                        if mainconfig.getboolean('logs','artlog'):
                             adfile=open(os.path.join(configdir,'artlog.txt'),'a')
                             adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
                             adfile.close()
@@ -291,7 +292,7 @@ class ManagerInterface(TabbedPanel):
                         Logger.debug("pull_art2: downloading artistbackground "+img['id'])
                         fp=os.path.join(abpath,img['id']+'.png')
                         req = UrlRequest(img['url'],file_path=fp)
-                        if self.config.getboolean('logs','artlog'):
+                        if mainconfig.getboolean('logs','artlog'):
                             adfile=open(os.path.join(configdir,'artlog.txt'),'a')
                             adfile.write(os.path.join(abpath,img['id']+'.png')+"\n")
                             adfile.close()
