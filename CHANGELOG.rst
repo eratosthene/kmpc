@@ -5,7 +5,7 @@ kmpc Change Log
 ###############
 
 ******************
-0.6.0 - 2018-01-??
+0.6.0 - 2018-01-27
 ******************
 
 - Added album name and release year(s) to cover popup.
