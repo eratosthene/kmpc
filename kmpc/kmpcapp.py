@@ -8,6 +8,7 @@ import random
 import socket
 from pkg_resources import resource_filename
 from functools import partial
+from PIL import Image as PImage
 
 # make sure we are on an updated version of kivy
 import kivy
@@ -46,6 +47,9 @@ configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
 # load the interface.kv file
 Builder.load_file(resource_filename(__name__,os.path.join('resources','interface.kv')))
+
+# set the maximum size for cover images, to prevent texture overloading
+max_cover_size=1000
 
 Helpers=KmpcHelpers()
 
@@ -356,7 +360,7 @@ class KmpcInterface(TabbedPanel):
                     # update the player background with the default backdrop
                     self.ids.player.canvas.before.add(Rectangle(source=resource_filename(__name__,os.path.join("resources","backdrop.png")),size=self.ids.player.size,pos=self.ids.player.pos))
                 if os.path.isfile(p):
-                    Logger.debug('NowPlaying: found good file at path '+p)
+                    Logger.debug('update_mpd_currentsong: found good file at path '+p)
                     # load up the file to read the tags
                     f = mutagen.File(p)
                     cimg = None
@@ -397,7 +401,20 @@ class KmpcInterface(TabbedPanel):
                         data=io.BytesIO(bytearray(f['covr'][0]))
                     if data:
                         # if we got image data, load it as a kivy.core.image
-                        cimg = CoreImage(data,ext=ext)
+                        # filter through PIL first to resize it if it is too large for a texture
+                        pimg = PImage.open(data)
+                        (w,h) = pimg.size
+                        if w > max_cover_size or h > max_cover_size:
+                            Logger.debug('update_mpd_currentsong: resizing cover image to maximum of '+format(max_cover_size)+'x'+format(max_cover_size))
+                            pimg.thumbnail((max_cover_size,max_cover_size))
+                            data2=io.BytesIO()
+                            pimg.save(data2,'PNG')
+                            data2.seek(0)
+                            cimg = CoreImage(data2,ext='png',filename=result['musicbrainz_artistid'])
+                        else:
+                            Logger.debug('update_mpd_currentsong: pulling cover directly from tag')
+                            data.seek(0)
+                            cimg = CoreImage(data,ext=ext,filename=result['musicbrainz_artistid'])
                     if self.config.getboolean('flags','originalyear') and originalyear and year and int(originalyear)!=int(year):
                         tt="["+originalyear+"]\n{"+year+"}"
                     elif year:

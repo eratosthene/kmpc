@@ -8,6 +8,9 @@ kmpc Change Log
 0.6.0 - 2018-01-??
 ******************
 
+- Load album covers from tags with PIL directly first, to allow for resizing in
+  case it is too large for a texture to hold (`issue #7
+  <https://github.com/eratosthene/kmpc/issues/7>`_)
 - Changed to a ReconnectingClientFactory to prevent issues when long-running
   mpd commands are run. (part of `issue #9
   <https://github.com/eratosthene/kmpc/issues/9>`_)
