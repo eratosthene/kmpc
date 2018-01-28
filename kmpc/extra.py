@@ -54,16 +54,14 @@ class MpdConnection(object):
         """Callback when mpd is connected."""
         # copy the protocol to all the classes
         self.realprotocol = protocol
-        Logger.info('Application: Connected to mpd server host='+self.config.get('mpd','mpdhost')+' port='+self.config.get('mpd','mpdport'))
+        Logger.info('mpd_connectionMade: Connected to mpd server host='+self.config.get('mpd','mpdhost')+' port='+self.config.get('mpd','mpdport'))
         for ic in self.initconnections:
             if callable(ic):
                  ic(self)
 
     def mpd_connectionLost(self,protocol, reason):
         """Callback when mpd connection is lost."""
-        Logger.warn('Application: Connection lost: %s' % reason)
-        # kills the app for now since I don't know how to handle this yet
-        App.get_running_app().stop()
+        Logger.warn('mpd_connectionLost: Connection lost: %s' % reason)
 
     def handle_mpd_error(self,result):
         """Prints handled errors to the error log."""
