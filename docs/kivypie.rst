@@ -170,16 +170,17 @@ Step 3: Set up mpd
      sudo chown -R mpd:audio /var/lib/mpd
      sudo chown -R mpd:audio /var/log/mpd
      cat << EOF | sudo tee /etc/mpd.conf
-       music_directory         "$MUSICPATH"
-       playlist_directory      "/var/lib/mpd/playlists"
-       db_file                 "/var/lib/mpd/database"
-       log_file                "/var/log/mpd/mpd.log"
-       pid_file                "/var/lib/mpd/pid"
-       state_file              "/var/lib/mpd/state"
-       sticker_file            "/var/lib/mpd/sticker.sql"
-       user                    "mpd"
-       group                   "audio"
-       bind_to_address         "127.0.0.1"
+     music_directory         "$MUSICPATH"
+     playlist_directory      "/var/lib/mpd/playlists"
+     db_file                 "/var/lib/mpd/database"
+     log_file                "/var/log/mpd/mpd.log"
+     pid_file                "/var/lib/mpd/pid"
+     state_file              "/var/lib/mpd/state"
+     sticker_file            "/var/lib/mpd/sticker.sql"
+     user                    "mpd"
+     group                   "audio"
+     bind_to_address         "127.0.0.1"
+     max_output_buffer_size  "32768"
      EOF
      sudo chown -R $USER:audio "$MUSICPATH"
      sudo chmod g+w "$MUSICPATH"

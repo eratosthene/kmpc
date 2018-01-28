@@ -16,7 +16,7 @@ class MPDFactoryProtocol(MPDProtocol):
         if callable(self.factory.connectionLost):
             self.factory.connectionLost(self, reason)
 
-class MPDClientFactory(protocol.ClientFactory):
+class MPDClientFactory(protocol.ReconnectingClientFactory):
     """Factory for MPDClient."""
     protocol = MPDFactoryProtocol
     connectionMade = None
