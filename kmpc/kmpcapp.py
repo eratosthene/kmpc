@@ -386,10 +386,10 @@ class KmpcInterface(TabbedPanel):
                             elif frame.mime.endswith('gif'):
                                 ext = 'gif'
                             # pull the raw image data into a variable
-                            data=io.BytesIO(bytearray(frame.data))
+                            data=bytearray(frame.data)
                             break
                     except AttributeError:
-                        pass
+                        Logger.debug("update_mpd_currentsong: no APIC frames in file")
                     # try to get mp4 cover
                     if 'covr' in f.keys():
                         # figure out the file type
@@ -398,7 +398,7 @@ class KmpcInterface(TabbedPanel):
                         else:
                             ext = 'jpg'
                         # pull the raw image data into a variable
-                        data=io.BytesIO(bytearray(f['covr'][0]))
+                        data=bytearray(f['covr'][0])
                     if data:
                         # if we got image data, load it as a kivy.core.image
                         # filter through PIL first to resize it if it is too large for a texture
@@ -429,7 +429,7 @@ class KmpcInterface(TabbedPanel):
                         img=CoverButton(img=CoreImage(resource_filename(__name__,os.path.join('resources','clear.png'))),layout=self.ids.album_cover_layout,text=tt,halign='center')
                     self.ids.album_cover_layout.add_widget(img)
                     # popup the cover large if you press it
-                    img.bind(on_press=self.cover_popup)
+                    img.bind(on_press=partial(self.cover_popup,originalyear,year,result['album']))
                 else:
                     # this should _probably_ never happen
                     Logger.debug('NowPlaying: no file found at path '+p)
@@ -565,11 +565,16 @@ class KmpcInterface(TabbedPanel):
         # tell mpd to set the rating sticker
         mainmpdconnection.protocol.sticker_set('song',self.currfile,'rating',instance.rating)
 
-    def cover_popup(self,instance):
+    def cover_popup(self,originalyear,year,album,instance):
         """Popup for showing a larger version of the album cover."""
         Logger.debug('Application: cover_popup()')
+        title='"album"'
+        if year and originalyear and year!=originalyear:
+            title=title+' released '+originalyear+' (remastered '+year+')'
+        elif year:
+            title=title+' released '+year
         layout = BoxLayout()
-        popup = Popup(title='Cover',content=layout,size_hint=(0.6,1))
+        popup = Popup(title=title,content=layout,size_hint=(0.6,1))
         # pull the already loaded image texture
         img = Image(texture=instance.img.texture,allow_stretch=True)
         # add it to the layout
