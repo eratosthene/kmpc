@@ -105,7 +105,7 @@ class ManagerInterface(TabbedPanel):
         self.fanarturl="http://webservice.fanart.tv/v3/music/"
         self.api_key="406b2a5af85c14b819c1c6332354b313"
         global mainmpdconnection
-        mainmpdconnection=MpdConnection(mainconfig,None,[self.init_mpd])
+        mainmpdconnection=MpdConnection(mainconfig,mainconfig.get('sync','synchost'),mainconfig.get('sync','syncmpdport'),None,[self.init_mpd])
 
     def init_mpd(self,instance):
         self.refresh_artists_from_cache()
@@ -322,20 +322,14 @@ class ManagerApp(App):
         super(self.__class__,self).__init__()
 
     def build_config(self,config):
-        config.setdefaults('mpd', {
-            'mpdhost': '127.0.0.1',
-            'mpdport': '6600'
-        })
-        config.setdefaults('paths', {
-            'musicpath': '/mnt/music',
-            'fanartpath': '/mnt/fanart',
-            'tmppath': '/tmp'
-        })
         config.setdefaults('sync', {
             'synchost': '127.0.0.1',
-            'syncmusicpath': '/mnt/music',
-            'syncfanartpath': '/mnt/fanart',
-            'synctmppath': '/tmp'
+            'syncmpdport': '6600',
+            'synclocalmusicpath': '/mnt/music',
+            'synclocalfanartpath': '/mnt/fanart'
+        })
+        config.setdefaults('logs', {
+            'artlog': False
         })
         config.setdefaults('fanart', {
             'client_key': ''
@@ -353,14 +347,14 @@ class ManagerApp(App):
             'star9': 'Best songs by an artist',
             'star10': 'Favorite songs of all time'
         })
+        config.setdefaults('artblacklist', {})
 
     def get_application_config(self):
         return super(self.__class__,self).get_application_config(configdir+'/config.ini')
 
     def build_settings(self,settings):
-        settings.add_json_panel('mpd settings',self.config,resource_filename(__name__,os.path.join('resources','config_mpd.json')))
-        settings.add_json_panel('path settings',self.config,resource_filename(__name__,os.path.join('resources','config_paths.json')))
-        settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources','config_sync.json')))
+        settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources','config_manager_sync.json')))
+        settings.add_json_panel('log settings',self.config,resource_filename(__name__,os.path.join('resources','config_manager_logs.json')))
         settings.add_json_panel('fanart settings',self.config,resource_filename(__name__,os.path.join('resources','config_fanart.json')))
         settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources','config_star.json')))
 
