@@ -301,19 +301,17 @@ interacts with the synchost. The basic gist of it is this:
 #. Edit the file ``~/.ssh/config`` and add the following::
 
      Host <synchost>                        # this should match config.ini
-       HostName <IP_address_or_hostname>    # real ip address or hostname
        User <synchost_username>             # a user on <synchost>
        StrictHostKeyChecking no
 
    For example, my ssh config looks like this::
 
-     Host homesynchost
-       HostName 192.168.1.100
+     Host 192.168.1.100
        User cgraham
        StrictHostKeyChecking no
 
    And the ``synchost`` variable in the ``[sync]`` section in my
-   ``~/.kmpc/config.ini`` is set to "homesynchost".
+   ``~/.kmpc/config.ini`` is set to "192.168.1.100".
 
 #. Test that your connection is working by running::
 
