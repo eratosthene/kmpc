@@ -4,6 +4,14 @@
 kmpc Change Log
 ###############
 
+******************
+0.6.1 - 2018-01-??
+******************
+
+- Changed sections in config file and updated docs accordingly to better
+  account for which fields are used in each program. (`issue #70
+  <https://github.com/eratosthene/kmpc/issues/70>`_)
+
 ********************
 0.6.0.1 - 2018-01-27
 ********************

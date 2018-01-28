@@ -30,14 +30,16 @@ class Dummy(object):
 
 class MpdConnection(object):
 
-    def __init__(self,config,idlehandler=None,initconnections=[]):
+    def __init__(self,config,mpdhost,mpdport,idlehandler=None,initconnections=[]):
         self.config = config
+        self.mpdhost = mpdhost
+        self.mpdport = mpdport
         # set up mpd connection
         self.initconnections=initconnections
         self.factory = MPDClientFactory(idlehandler)
         self.factory.connectionMade = self.mpd_connectionMade
         self.factory.connectionLost = self.mpd_connectionLost
-        reactor.connectTCP(self.config.get('mpd','mpdhost'), self.config.getint('mpd','mpdport'), self.factory)
+        reactor.connectTCP(mpdhost, int(mpdport), self.factory)
         self.noprotocol=Dummy()
 
     # this part handles calls to protocol when it hasn't been set up yet or is incorrectly specified in config
@@ -54,7 +56,7 @@ class MpdConnection(object):
         """Callback when mpd is connected."""
         # copy the protocol to all the classes
         self.realprotocol = protocol
-        Logger.info('mpd_connectionMade: Connected to mpd server host='+self.config.get('mpd','mpdhost')+' port='+self.config.get('mpd','mpdport'))
+        Logger.info('mpd_connectionMade: Connected to mpd server host='+self.mpdhost+' port='+self.mpdport)
         for ic in self.initconnections:
             if callable(ic):
                  ic(self)

@@ -13,6 +13,7 @@ import tempfile
 import shutil
 from pkg_resources import resource_filename
 import musicbrainzngs
+import ConfigParser
 
 # make sure we are on an updated version of kivy
 import kivy
@@ -105,7 +106,7 @@ class ManagerInterface(TabbedPanel):
         self.fanarturl="http://webservice.fanart.tv/v3/music/"
         self.api_key="406b2a5af85c14b819c1c6332354b313"
         global mainmpdconnection
-        mainmpdconnection=MpdConnection(mainconfig,None,[self.init_mpd])
+        mainmpdconnection=MpdConnection(mainconfig,mainconfig.get('sync','synchost'),mainconfig.get('sync','syncmpdport'),None,[self.init_mpd])
 
     def init_mpd(self,instance):
         self.refresh_artists_from_cache()
@@ -178,7 +179,7 @@ class ManagerInterface(TabbedPanel):
 
     def scan_for_media(self,index):
         Logger.info('Manager: scanning '+self.ids.artist_tab.rv.data[index]['artist_id']+'for media')
-        fa_path=self.config.get('paths','fanartpath')
+        fa_path=mainconfig.get('paths','fanartpath')
         artistbackground_path=os.path.join(fa_path,self.ids.artist_tab.rv.data[index]['artist_id'],'artistbackground')
         logo_path=os.path.join(fa_path,self.ids.artist_tab.rv.data[index]['artist_id'],'logo')
         badge_path=os.path.join(fa_path,self.ids.artist_tab.rv.data[index]['artist_id'],'badge')
@@ -214,11 +215,11 @@ class ManagerInterface(TabbedPanel):
         Logger.info('Manager: pulling art for '+self.ids.artist_tab.rv.data[index]['artist_id'])
         aid=self.ids.artist_tab.rv.data[index]['artist_id']
         aname=self.ids.artist_tab.rv.data[index]['artist_name']
-        fa_path=self.config.get('paths','fanartpath')
+        fa_path=mainconfig.get('paths','fanartpath')
         fanart=self.fanarturl
         api_key=self.api_key
         furl=fanart+aid+"?api_key="+api_key
-        client_key=self.config.get('fanart','client_key')
+        client_key=mainconfig.get('fanart','client_key')
         if client_key:
             furl=furl+"&client_key="+client_key
         Logger.debug("pull_art: querying "+furl)
@@ -227,12 +228,12 @@ class ManagerInterface(TabbedPanel):
     def pull_art2(self,index,request,result):
         aid=self.ids.artist_tab.rv.data[index]['artist_id']
         aname=self.ids.artist_tab.rv.data[index]['artist_name']
-        fa_path=self.config.get('paths','fanartpath')
+        fa_path=mainconfig.get('paths','fanartpath')
         d=result
         # see if there are blacklist entries for this artist
         bl=[]
         try:
-            bl=self.config.get('artblacklist',aid).split(',')
+            bl=mainconfig.get('artblacklist',aid).split(',')
         except ConfigParser.NoSectionError:
             Logger.debug('pull_art2: no artblacklist section found')
         except ConfigParser.NoOptionError:
@@ -263,7 +264,7 @@ class ManagerInterface(TabbedPanel):
                         Logger.debug("pull_art2: downloading hdmusiclogo "+img['id'])
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
-                        if self.config.getboolean('logs','artlog'):
+                        if mainconfig.getboolean('logs','artlog'):
                             adfile=open(os.path.join(configdir,'artlog.txt'),'a')
                             adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
                             adfile.close()
@@ -277,7 +278,7 @@ class ManagerInterface(TabbedPanel):
                         Logger.debug("pull_art2: downloading musiclogo "+img['id'])
                         fp=os.path.join(lpath,img['id']+'.png')
                         req = UrlRequest(img['url'],on_success=partial(self.trim_image,fp),file_path=fp)
-                        if self.config.getboolean('logs','artlog'):
+                        if mainconfig.getboolean('logs','artlog'):
                             adfile=open(os.path.join(configdir,'artlog.txt'),'a')
                             adfile.write(os.path.join(lpath,img['id']+'.png')+"\n")
                             adfile.close()
@@ -291,7 +292,7 @@ class ManagerInterface(TabbedPanel):
                         Logger.debug("pull_art2: downloading artistbackground "+img['id'])
                         fp=os.path.join(abpath,img['id']+'.png')
                         req = UrlRequest(img['url'],file_path=fp)
-                        if self.config.getboolean('logs','artlog'):
+                        if mainconfig.getboolean('logs','artlog'):
                             adfile=open(os.path.join(configdir,'artlog.txt'),'a')
                             adfile.write(os.path.join(abpath,img['id']+'.png')+"\n")
                             adfile.close()
@@ -322,20 +323,14 @@ class ManagerApp(App):
         super(self.__class__,self).__init__()
 
     def build_config(self,config):
-        config.setdefaults('mpd', {
-            'mpdhost': '127.0.0.1',
-            'mpdport': '6600'
-        })
-        config.setdefaults('paths', {
-            'musicpath': '/mnt/music',
-            'fanartpath': '/mnt/fanart',
-            'tmppath': '/tmp'
-        })
         config.setdefaults('sync', {
             'synchost': '127.0.0.1',
-            'syncmusicpath': '/mnt/music',
-            'syncfanartpath': '/mnt/fanart',
-            'synctmppath': '/tmp'
+            'syncmpdport': '6600',
+            'synclocalmusicpath': '/mnt/music',
+            'synclocalfanartpath': '/mnt/fanart'
+        })
+        config.setdefaults('logs', {
+            'artlog': False
         })
         config.setdefaults('fanart', {
             'client_key': ''
@@ -353,14 +348,14 @@ class ManagerApp(App):
             'star9': 'Best songs by an artist',
             'star10': 'Favorite songs of all time'
         })
+        config.setdefaults('artblacklist', {})
 
     def get_application_config(self):
         return super(self.__class__,self).get_application_config(configdir+'/config.ini')
 
     def build_settings(self,settings):
-        settings.add_json_panel('mpd settings',self.config,resource_filename(__name__,os.path.join('resources','config_mpd.json')))
-        settings.add_json_panel('path settings',self.config,resource_filename(__name__,os.path.join('resources','config_paths.json')))
-        settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources','config_sync.json')))
+        settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources','config_manager_sync.json')))
+        settings.add_json_panel('log settings',self.config,resource_filename(__name__,os.path.join('resources','config_manager_logs.json')))
         settings.add_json_panel('fanart settings',self.config,resource_filename(__name__,os.path.join('resources','config_fanart.json')))
         settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources','config_star.json')))
 

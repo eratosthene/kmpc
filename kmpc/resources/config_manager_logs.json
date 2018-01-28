@@ -1,0 +1,7 @@
+[
+  { "type": "bool",
+    "title": "artlog",
+    "desc": "Enable log of all fanart downloads",
+    "section": "logs",
+    "key": "artlog" }
+]

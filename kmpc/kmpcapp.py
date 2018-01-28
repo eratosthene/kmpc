@@ -72,7 +72,7 @@ class KmpcInterface(TabbedPanel):
         self.settingsPopup=Factory.SettingsPopup()
         self.config=config
         global mainmpdconnection
-        mainmpdconnection=MpdConnection(self.config,self.mpd_idle_handler,[self.init_mpd])
+        mainmpdconnection=MpdConnection(self.config,self.config.get('mpd','mpdhost'),self.config.get('mpd','mpdport'),self.mpd_idle_handler,[self.init_mpd])
 
     def settings_popup(self):
         self.settingsPopup.open()
@@ -659,9 +659,6 @@ class KmpcApp(App):
             'originalyear': '1',
             'updatecommand': 'sudo pip install -U kmpc',
         })
-        config.setdefaults('fanart', {
-            'client_key': ''
-        })
         config.setdefaults('songratings', {
             'star0': 'Silence',
             'star1': 'Songs that should never be heard',
@@ -683,7 +680,6 @@ class KmpcApp(App):
         settings.add_json_panel('mpd settings',self.config,resource_filename(__name__,os.path.join('resources','config_mpd.json')))
         settings.add_json_panel('path settings',self.config,resource_filename(__name__,os.path.join('resources','config_paths.json')))
         settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources','config_sync.json')))
-        settings.add_json_panel('fanart settings',self.config,resource_filename(__name__,os.path.join('resources','config_fanart.json')))
         settings.add_json_panel('system settings',self.config,resource_filename(__name__,os.path.join('resources','config_system.json')))
         settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources','config_star.json')))
 
