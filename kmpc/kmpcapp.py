@@ -6,6 +6,7 @@ import mutagen
 import io
 import random
 import socket
+import re
 from pkg_resources import resource_filename
 from functools import partial
 from PIL import Image as PImage
@@ -274,16 +275,21 @@ class KmpcInterface(TabbedPanel):
             a=int(result['song'])+1
             b=int(result['playlistlength'])
             self.ids.current_playlist_track_number_label.text = "%d of %d" % (a,b)
+        # update the playlist tab with status results so that current track will be highlighted
+        self.ids.playlist_tab.update_mpd_status(result)
 
     def change_artist_image(self,img,al_path,instance):
         """Called when you click on an artist logo, changes it to another at random."""
-        Logger.debug("NowPlaying: change_artist_image (current path is "+img.source+")")
+        Logger.debug("change_artist_image: (current path is "+img.source+")")
         img_path=img.source
-        while img_path==img.source:
-            img_path=os.path.join(al_path,random.choice(os.listdir(al_path)))
-        if os.path.isfile(img_path):
-            img.source=img_path
-        Logger.debug("NowPlaying: change_artist_image (new path is "+img.source+")")
+        if len(os.listdir(al_path))>1:
+            while img_path==img.source:
+                img_path=os.path.join(al_path,random.choice(os.listdir(al_path)))
+            if os.path.isfile(img_path):
+                img.source=img_path
+            Logger.debug("change_artist_image: (new path is "+img.source+")")
+        else:
+            Logger.debug("change_artist_image: no other choices for logo")
 
     def update_mpd_currentsong(self,result):
         """Callback for mpd currentsong data."""
@@ -340,6 +346,8 @@ class KmpcInterface(TabbedPanel):
                             img.bind(on_press=partial(self.change_artist_image,img,al_path))
                             cbl.add_widget(img)
                             haslogo=True
+                    except OSError:
+                        Logger.debug("update_mpd_currentsong: No logos for artist "+mb_aid)
                     except Exception as e:
                         Logger.exception("update_mpd_currentsong: "+format(e))
                 if haslogo:
@@ -413,11 +421,11 @@ class KmpcInterface(TabbedPanel):
                             data2=io.BytesIO()
                             pimg.save(data2,'PNG')
                             data2.seek(0)
-                            cimg = CoreImage(data2,ext='png',filename=result['musicbrainz_artistid'])
+                            cimg = CoreImage(data2,ext='png')
                         else:
                             Logger.debug('update_mpd_currentsong: pulling cover directly from tag')
                             data.seek(0)
-                            cimg = CoreImage(data,ext=ext,filename=result['musicbrainz_artistid'])
+                            cimg = CoreImage(data,ext=ext)
                     if self.config.getboolean('system','originalyear') and originalyear and year and int(originalyear)!=int(year):
                         tt="["+originalyear+"]\n{"+year+"}"
                     elif year:
@@ -439,19 +447,50 @@ class KmpcInterface(TabbedPanel):
                 # add the correct artist name widget
                 ti.add_widget(current_artist_label)
                 if haslogo:
-                    # we found an artist logo, put the song and album labels in a separate boxlayout to separate them a bit
-                    lyt = BoxLayout(orientation='vertical',padding_y='10sp')
-                    current_song_label = InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title']))
-                    lyt.add_widget(current_song_label)
-                    current_album_label = InfoLargeLabel(text = result['album'],font_size=Helpers.getfontsize(result['album']))
-                    lyt.add_widget(current_album_label)
-                    ti.add_widget(lyt)
+                    py='10sp'
                 else:
-                    # no artist logo, just add the song and album labels directly to the track info widget
-                    current_song_label = InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title']))
-                    ti.add_widget(current_song_label)
-                    current_album_label = InfoLargeLabel(text = result['album'],font_size=Helpers.getfontsize(result['album']))
-                    ti.add_widget(current_album_label)
+                    py='1sp'
+                lyt = BoxLayout(orientation='vertical',padding_y=py)
+                # check to see if song title has any data deliminated by () or []
+                stitle=re.split('[\(\[\]\)]',result['title'])
+                Logger.debug('TITLE: '+format(stitle))
+                if len(stitle) > 0:
+                    lyt2=BoxLayout(orientation='vertical',padding_y='2sp')
+                    # split the title up and put the parentheses in smaller text below
+                    lyt2.add_widget(InfoLargeLabel(text = stitle[0], font_size=Helpers.getfontsize(stitle[0])))
+                    l2=""
+                    for i, v in enumerate(stitle):
+                        if i > 0 and v.strip():
+                            if l2: l2=l2+' '
+                            l2=l2+'('+v.strip()+')'
+                    lyt2.add_widget(InfoLargeLabel(text = l2, font_size=Helpers.getfontsize(l2,2)))
+                    lyt.add_widget(lyt2)
+                else:
+                    lyt.add_widget(InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title'])))
+                # check to see if album title is a split (has a ' / ' in the middle)
+                talbum=result['album'].split(' / ')
+                Logger.debug('ALBUM1: '+format(talbum))
+                lyt2=BoxLayout(orientation='horizontal',padding_x='2sp')
+                for j, a in enumerate(talbum):
+                    if j>0: lyt2.add_widget(InfoLargeLabel(text='/',size_hint_x=None,font_size=Helpers.getfontsize(a)))
+                    # check to see if album title has any data deliminated by () or []
+                    salbum=re.split('[\(\[\]\)]',a)
+                    Logger.debug('ALBUM2: '+format(salbum))
+                    if len(salbum) > 0:
+                        lyt3=BoxLayout(orientation='vertical',padding_y='2sp')
+                        # split the album up and put the parentheses in smaller text below
+                        lyt3.add_widget(InfoLargeLabel(text = salbum[0], font_size=Helpers.getfontsize(salbum[0])))
+                        l2=""
+                        for i, v in enumerate(salbum):
+                            if i > 0 and v.strip():
+                                if l2: l2=l2+' '
+                                l2=l2+'('+v.strip()+')'
+                        lyt3.add_widget(InfoLargeLabel(text = l2, font_size=Helpers.getfontsize(l2,2)))
+                        lyt2.add_widget(lyt3)
+                    else:
+                        lyt2.add_widget(InfoLargeLabel(text = a, font_size=Helpers.getfontsize(a)))
+                lyt.add_widget(lyt2)
+                ti.add_widget(lyt)
         else:
             # there's not a current song, so zero everything out
             self.stop_zero_stuff()
