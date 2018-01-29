@@ -446,64 +446,69 @@ class KmpcInterface(TabbedPanel):
                 # add the correct artist name widget
                 ti.add_widget(current_artist_label)
                 lyt = BoxLayout(orientation='vertical',padding_y='2sp')
-                # check to see if song title has any data deliminated by () or []
-                stitle=re.split('[\(\[\]\)]',result['title'])
-                Logger.debug('TITLE: '+format(stitle))
-                if len(stitle) > 1:
-                    lyt2=BoxLayout(orientation='vertical',padding_y='2sp')
-                    # split the title up and put the parentheses in smaller text below
-                    lyt2.add_widget(InfoLargeLabel(text = stitle[0], font_size=Helpers.getfontsize(stitle[0])))
-                    l2=""
-                    for i, v in enumerate(stitle):
-                        if i > 0 and v.strip():
-                            if l2: l2=l2+' '
-                            l2=l2+'('+v.strip()+')'
-                    lyt2.add_widget(InfoLargeLabel(text = l2, font_size=Helpers.getfontsize(l2,2)))
-                    lyt.add_widget(lyt2)
-                else:
-                    lyt.add_widget(InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title'])))
-                # check to see if album is a single or EP
-                amatch=re.match(r'(.*) (\(single\)|EP)(.*)',result['album'])
-                if amatch:
-                    special=str(amatch.group(2)).strip("()")
-                    Logger.debug("ALBUM: special release: "+special)
-                    self.ids.releasetype.text=special
-                    galbum=str(amatch.group(1))+str(amatch.group(3))
-                else:
-                    galbum=result['album']
-                    self.ids.releasetype.text='album'
-                # check to see if album title is a split (has a ' / ' in the middle)
-                talbum=galbum.split(' / ')
-                Logger.debug('ALBUM1: '+format(talbum))
-                lyt2=BoxLayout(orientation='horizontal',padding_x='2sp')
-                if len(talbum)>1:
-                    Logger.debug('ALBUM1: album is a split')
-                    split=True
-                else:
-                    split=False
-                for j, a in enumerate(talbum):
-                    #if j>0: lyt2.add_widget(InfoStretchLabel(text=u'\u2571',size_hint_x=None))
-                    if j>0: lyt2.add_widget(InfoLargeLabel(font_size='50sp',text=u'\u2571',size_hint_x=None,font_name=App.get_running_app().normalfont))
-                    # check to see if album title has any data deliminated by () or []
-                    salbum=re.split('[\(\[\]\)]',a)
-                    Logger.debug('ALBUM2: '+format(salbum))
-                    if len(salbum) > 1:
-                        lyt3=BoxLayout(orientation='vertical',padding_y='2sp')
-                        # split the album up and put the parentheses in smaller text below
-                        lyt3.add_widget(InfoLargeLabel(text = salbum[0], font_size=Helpers.getfontsize(salbum[0])))
+                if self.config.getboolean('system','advancedtitles'):
+                    # check to see if song title has any data deliminated by () or []
+                    stitle=re.split('[\(\[\]\)]',result['title'])
+                    Logger.debug('TITLE: '+format(stitle))
+                    if len(stitle) > 1:
+                        lyt2=BoxLayout(orientation='vertical',padding_y='2sp')
+                        # split the title up and put the parentheses in smaller text below
+                        lyt2.add_widget(InfoLargeLabel(text = stitle[0], font_size=Helpers.getfontsize(stitle[0])))
                         l2=""
-                        for i, v in enumerate(salbum):
+                        for i, v in enumerate(stitle):
                             if i > 0 and v.strip():
                                 if l2: l2=l2+' '
                                 l2=l2+'('+v.strip()+')'
-                        lyt3.add_widget(InfoLargeLabel(text = l2, font_size=Helpers.getfontsize(l2,2)))
-                        lyt2.add_widget(lyt3)
+                        lyt2.add_widget(InfoLargeLabel(text = l2, font_size=Helpers.getfontsize(l2,2)))
+                        lyt.add_widget(lyt2)
                     else:
-                        if split:
-                            lyt2.add_widget(InfoLargeLabel(text = a, font_size=Helpers.getfontsize(a)))
+                        lyt.add_widget(InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title'])))
+                    # check to see if album is a single or EP
+                    amatch=re.match(r'(.*) (\(single\)|EP)(.*)',result['album'])
+                    if amatch:
+                        special=str(amatch.group(2)).strip("()")
+                        Logger.debug("ALBUM: special release: "+special)
+                        self.ids.releasetype.text=special
+                        galbum=str(amatch.group(1))+str(amatch.group(3))
+                    else:
+                        galbum=result['album']
+                        self.ids.releasetype.text='album'
+                    # check to see if album title is a split (has a ' / ' in the middle)
+                    talbum=galbum.split(' / ')
+                    Logger.debug('ALBUM1: '+format(talbum))
+                    lyt2=BoxLayout(orientation='horizontal',padding_x='2sp')
+                    if len(talbum)>1:
+                        Logger.debug('ALBUM1: album is a split')
+                        split=True
+                    else:
+                        split=False
+                    for j, a in enumerate(talbum):
+                        #if j>0: lyt2.add_widget(InfoStretchLabel(text=u'\u2571',size_hint_x=None))
+                        if j>0: lyt2.add_widget(InfoLargeLabel(font_size='50sp',text=u'\u2571',size_hint_x=None,font_name=App.get_running_app().normalfont))
+                        # check to see if album title has any data deliminated by () or []
+                        salbum=re.split('[\(\[\]\)]',a)
+                        Logger.debug('ALBUM2: '+format(salbum))
+                        if len(salbum) > 1:
+                            lyt3=BoxLayout(orientation='vertical',padding_y='2sp')
+                            # split the album up and put the parentheses in smaller text below
+                            lyt3.add_widget(InfoLargeLabel(text = salbum[0], font_size=Helpers.getfontsize(salbum[0])))
+                            l2=""
+                            for i, v in enumerate(salbum):
+                                if i > 0 and v.strip():
+                                    if l2: l2=l2+' '
+                                    l2=l2+'('+v.strip()+')'
+                            lyt3.add_widget(InfoLargeLabel(text = l2, font_size=Helpers.getfontsize(l2,2)))
+                            lyt2.add_widget(lyt3)
                         else:
-                            lyt2.add_widget(InfoLargeLabel(text = a, font_size=Helpers.getfontsize(a)))
-                lyt.add_widget(lyt2)
+                            if split:
+                                lyt2.add_widget(InfoLargeLabel(text = a, font_size=Helpers.getfontsize(a)))
+                            else:
+                                lyt2.add_widget(InfoLargeLabel(text = a, font_size=Helpers.getfontsize(a)))
+                    lyt.add_widget(lyt2)
+                else:
+                    self.ids.releasetype.text=''
+                    lyt.add_widget(InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title'])))
+                    lyt.add_widget(InfoLargeLabel(text = result['album'],font_size=Helpers.getfontsize(result['album'])))
                 ti.add_widget(lyt)
         else:
             # there's not a current song, so zero everything out
@@ -713,6 +718,7 @@ class KmpcApp(App):
         config.setdefaults('system', {
             'rpienable': '0',
             'originalyear': '1',
+            'advancedtitles': '0',
             'updatecommand': 'sudo pip install -U kmpc',
         })
         config.setdefaults('songratings', {
