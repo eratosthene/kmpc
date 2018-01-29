@@ -155,6 +155,12 @@ class KmpcInterface(TabbedPanel):
         self.active_tab = value.text
         Logger.info("Application: Changed active tab to "+self.active_tab)
         # Playlist is the only one that needs help when activating
+        if self.active_tab != 'Now Playing':
+            # pause the track slider task
+            self.track_slider_task.cancel()
+        else:
+            # update current track status
+            mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(mainmpdconnection.handle_mpd_error)
         if self.active_tab == 'Playlist':
             # switching to the playlist tab repopulates it if it is empty
             if len(self.ids.playlist_tab.rv.data) == 0:
@@ -269,8 +275,6 @@ class KmpcInterface(TabbedPanel):
             a=int(result['song'])+1
             b=int(result['playlistlength'])
             self.ids.current_playlist_track_number_label.text = "%d of %d" % (a,b)
-        # update the playlist tab with status results
-        self.ids.playlist_tab.update_mpd_status(result)
 
     def change_artist_image(self,img,al_path,instance):
         """Called when you click on an artist logo, changes it to another at random."""
