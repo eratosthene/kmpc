@@ -428,15 +428,18 @@ class KmpcInterface(TabbedPanel):
                             data.seek(0)
                             cimg = CoreImage(data,ext=ext)
                     if self.config.getboolean('system','originalyear') and originalyear and year and int(originalyear)!=int(year):
-                        tt="["+originalyear+"]\n{"+year+"}"
+                        self.ids.yearlabel.text="["+originalyear+"]"
+                        self.ids.remasterlabel.text="{"+year+"}"
                     elif year:
-                        tt="["+year+"]"
+                        self.ids.yearlabel.text="["+year+"]"
+                        self.ids.remasterlabel.text=""
                     else:
-                        tt=""
+                        self.ids.yearlabel.text=""
+                        self.ids.remasterlabel.text=""
                     if cimg:
-                        img=CoverButton(img=cimg,layout=self.ids.album_cover_layout,text=tt,halign='center')
+                        img=CoverButton(img=cimg,layout=self.ids.album_cover_layout,halign='center')
                     else:
-                        img=CoverButton(img=CoreImage(resource_filename(__name__,os.path.join('resources','clear.png'))),layout=self.ids.album_cover_layout,text=tt,halign='center')
+                        img=CoverButton(img=CoreImage(resource_filename(__name__,os.path.join('resources','clear.png'))),layout=self.ids.album_cover_layout,halign='center')
                     self.ids.album_cover_layout.add_widget(img)
                     # popup the cover large if you press it
                     img.bind(on_press=partial(self.cover_popup,originalyear,year,result['album']))
@@ -468,11 +471,11 @@ class KmpcInterface(TabbedPanel):
                     if amatch:
                         special=str(amatch.group(2)).strip("()")
                         Logger.debug("ALBUM: special release: "+special)
-                        self.ids.releasetype.text=special
+                        self.ids.releasetypelabel.text=special
                         galbum=str(amatch.group(1))+str(amatch.group(3))
                     else:
                         galbum=result['album']
-                        self.ids.releasetype.text='album'
+                        self.ids.releasetypelabel.text='album'
                     # check to see if album title is a split (has a ' / ' in the middle)
                     talbum=galbum.split(' / ')
                     Logger.debug('ALBUM1: '+format(talbum))
@@ -506,7 +509,7 @@ class KmpcInterface(TabbedPanel):
                                 lyt2.add_widget(InfoLargeLabel(text = a, font_size=Helpers.getfontsize(a)))
                     lyt.add_widget(lyt2)
                 else:
-                    self.ids.releasetype.text=''
+                    self.ids.releasetypelabel.text=''
                     lyt.add_widget(InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title'])))
                     lyt.add_widget(InfoLargeLabel(text = result['album'],font_size=Helpers.getfontsize(result['album'])))
                 ti.add_widget(lyt)
