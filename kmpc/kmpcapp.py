@@ -34,9 +34,10 @@ from kivy.uix.image import Image,AsyncImage
 from kivy.uix.popup import Popup
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.slider import Slider
+from kivy.uix.label import Label
 from kivy.factory import Factory
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty,StringProperty,BooleanProperty
 
 # import our local modules
 from kmpc.extra import KmpcHelpers,ExtraSlider,ClearButton,OutlineLabel,OutlineButton,MpdConnection
@@ -433,8 +434,6 @@ class KmpcInterface(TabbedPanel):
                     else:
                         tt=""
                     if cimg:
-                        # TODO: sometimes this just returns a black rectangle, i think i need to catch more specific exceptions
-                        # and figure out what exactly is happening
                         img=CoverButton(img=cimg,layout=self.ids.album_cover_layout,text=tt,halign='center')
                     else:
                         img=CoverButton(img=CoreImage(resource_filename(__name__,os.path.join('resources','clear.png'))),layout=self.ids.album_cover_layout,text=tt,halign='center')
@@ -454,7 +453,7 @@ class KmpcInterface(TabbedPanel):
                 # check to see if song title has any data deliminated by () or []
                 stitle=re.split('[\(\[\]\)]',result['title'])
                 Logger.debug('TITLE: '+format(stitle))
-                if len(stitle) > 0:
+                if len(stitle) > 1:
                     lyt2=BoxLayout(orientation='vertical',padding_y='2sp')
                     # split the title up and put the parentheses in smaller text below
                     lyt2.add_widget(InfoLargeLabel(text = stitle[0], font_size=Helpers.getfontsize(stitle[0])))
@@ -471,12 +470,18 @@ class KmpcInterface(TabbedPanel):
                 talbum=result['album'].split(' / ')
                 Logger.debug('ALBUM1: '+format(talbum))
                 lyt2=BoxLayout(orientation='horizontal',padding_x='2sp')
+                if len(talbum)>1:
+                    Logger.debug('ALBUM1: album is a split')
+                    split=True
+                else:
+                    split=False
                 for j, a in enumerate(talbum):
-                    if j>0: lyt2.add_widget(InfoLargeLabel(text='/',size_hint_x=None,font_size=Helpers.getfontsize(a)))
+                    #if j>0: lyt2.add_widget(InfoStretchLabel(text=u'\u2571',size_hint_x=None))
+                    if j>0: lyt2.add_widget(InfoLargeLabel(font_size='50sp',text=u'\u2571',size_hint_x=None,font_name=App.get_running_app().normalfont))
                     # check to see if album title has any data deliminated by () or []
                     salbum=re.split('[\(\[\]\)]',a)
                     Logger.debug('ALBUM2: '+format(salbum))
-                    if len(salbum) > 0:
+                    if len(salbum) > 1:
                         lyt3=BoxLayout(orientation='vertical',padding_y='2sp')
                         # split the album up and put the parentheses in smaller text below
                         lyt3.add_widget(InfoLargeLabel(text = salbum[0], font_size=Helpers.getfontsize(salbum[0])))
@@ -488,7 +493,10 @@ class KmpcInterface(TabbedPanel):
                         lyt3.add_widget(InfoLargeLabel(text = l2, font_size=Helpers.getfontsize(l2,2)))
                         lyt2.add_widget(lyt3)
                     else:
-                        lyt2.add_widget(InfoLargeLabel(text = a, font_size=Helpers.getfontsize(a)))
+                        if split:
+                            lyt2.add_widget(InfoLargeLabel(text = a, font_size=Helpers.getfontsize(a)))
+                        else:
+                            lyt2.add_widget(InfoLargeLabel(text = a, font_size=Helpers.getfontsize(a)))
                 lyt.add_widget(lyt2)
                 ti.add_widget(lyt)
         else:
@@ -758,6 +766,18 @@ class InfoLargeLabel(OutlineLabel):
 class InfoSmallLabel(OutlineLabel):
     """A label with small text."""
     pass
+
+class InfoStretchLabel(Image):
+    """ A label whose font stretches to the size of the container."""
+    text = StringProperty('')
+    #allow_stretch = BooleanProperty(True)
+    #keep_ratio = BooleanProperty(False)
+
+    def on_text(self,*_):
+        l = Label(outline_color=(0,0,0),outline_width='1sp',text=self.text,font_name=resource_filename(__name__,os.path.join('resources','DejaVuSans.ttf')))
+        l.font_size='100sp'
+        l.texture_update()
+        self.texture=l.texture
 
 class ImageButton(ButtonBehavior, AsyncImage):
     """An image that you can press."""
