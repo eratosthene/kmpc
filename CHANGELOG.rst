@@ -5,7 +5,7 @@ kmpc Change Log
 ###############
 
 ******************
-0.6.1 - 2018-01-??
+0.6.1 - 2018-01-29
 ******************
 
 - Added new 'advanced titles' feature which will attempt to parse information
