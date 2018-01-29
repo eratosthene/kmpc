@@ -184,6 +184,20 @@
     canvas.after:
         PopMatrix
 
+<SidewaysLabel@OutlineLabel>
+#    text_size: (self.height,self.width)
+    valign: 'middle'
+    padding_x: '5sp'
+    font_size: '18sp'
+    canvas.before:
+        Clear
+        PushMatrix
+        Rotate:
+            angle: 90
+            origin: self.center
+    canvas.after:
+        PopMatrix
+
 <SettingsButton@Button+OutlineLabel>
     font_name: app.fontawesomefont
     font_size: '24sp'
@@ -455,7 +469,14 @@
                     SettingsButton:
                         text: u'\uf013'
                         on_press: app.open_settings()
-                    ClearButton:
+                    SidewaysLabel:
+                        id: remasterlabel
+                        text: ''
+                    SidewaysLabel:
+                        id: yearlabel
+                        text: ''
+                    SidewaysLabel:
+                        id: releasetypelabel
                         text: ''
                 BoxLayout:
                     orientation: 'vertical'

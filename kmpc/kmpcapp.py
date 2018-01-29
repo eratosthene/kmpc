@@ -6,6 +6,7 @@ import mutagen
 import io
 import random
 import socket
+import re
 from pkg_resources import resource_filename
 from functools import partial
 from PIL import Image as PImage
@@ -33,9 +34,10 @@ from kivy.uix.image import Image,AsyncImage
 from kivy.uix.popup import Popup
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.slider import Slider
+from kivy.uix.label import Label
 from kivy.factory import Factory
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty,StringProperty,BooleanProperty
 
 # import our local modules
 from kmpc.extra import KmpcHelpers,ExtraSlider,ClearButton,OutlineLabel,OutlineButton,MpdConnection
@@ -234,7 +236,7 @@ class KmpcInterface(TabbedPanel):
             # save current song, this is a 0-based index into the playlist
             self.currsong=result['song']
             # ask mpd for current song data
-            mainmpdconnection.protocol.currentsong().addCallback(self.update_mpd_currentsong).addErrback(self.handle_mpd_error)
+            mainmpdconnection.protocol.currentsong().addCallback(partial(self.update_mpd_currentsong,False)).addErrback(self.handle_mpd_error)
             # save next song, this is a 0-based index into the playlist
             if 'nextsong' in result:
                 self.nextsong=result['nextsong']
@@ -274,18 +276,23 @@ class KmpcInterface(TabbedPanel):
             a=int(result['song'])+1
             b=int(result['playlistlength'])
             self.ids.current_playlist_track_number_label.text = "%d of %d" % (a,b)
+        # update the playlist tab with status results so that current track will be highlighted
+        self.ids.playlist_tab.update_mpd_status(result)
 
     def change_artist_image(self,img,al_path,instance):
         """Called when you click on an artist logo, changes it to another at random."""
-        Logger.debug("NowPlaying: change_artist_image (current path is "+img.source+")")
+        Logger.debug("change_artist_image: (current path is "+img.source+")")
         img_path=img.source
-        while img_path==img.source:
-            img_path=os.path.join(al_path,random.choice(os.listdir(al_path)))
-        if os.path.isfile(img_path):
-            img.source=img_path
-        Logger.debug("NowPlaying: change_artist_image (new path is "+img.source+")")
+        if len(os.listdir(al_path))>1:
+            while img_path==img.source:
+                img_path=os.path.join(al_path,random.choice(os.listdir(al_path)))
+            if os.path.isfile(img_path):
+                img.source=img_path
+            Logger.debug("change_artist_image: (new path is "+img.source+")")
+        else:
+            Logger.debug("change_artist_image: no other choices for logo")
 
-    def update_mpd_currentsong(self,result):
+    def update_mpd_currentsong(self,force,result):
         """Callback for mpd currentsong data."""
         Logger.debug('NowPlaying: update_mpd_currentsong()')
         # this is so expensive screen updates only happen if the song has changed since the last time this callback was called
@@ -299,7 +306,7 @@ class KmpcInterface(TabbedPanel):
                 songchange=True
             # update class's current file
             self.currfile = result['file']
-            if songchange:
+            if songchange or force:
                 # clear the track info widget
                 ti.clear_widgets()
                 # clear the album cover
@@ -340,6 +347,8 @@ class KmpcInterface(TabbedPanel):
                             img.bind(on_press=partial(self.change_artist_image,img,al_path))
                             cbl.add_widget(img)
                             haslogo=True
+                    except OSError:
+                        Logger.debug("update_mpd_currentsong: No logos for artist "+mb_aid)
                     except Exception as e:
                         Logger.exception("update_mpd_currentsong: "+format(e))
                 if haslogo:
@@ -413,23 +422,24 @@ class KmpcInterface(TabbedPanel):
                             data2=io.BytesIO()
                             pimg.save(data2,'PNG')
                             data2.seek(0)
-                            cimg = CoreImage(data2,ext='png',filename=result['musicbrainz_artistid'])
+                            cimg = CoreImage(data2,ext='png')
                         else:
                             Logger.debug('update_mpd_currentsong: pulling cover directly from tag')
                             data.seek(0)
-                            cimg = CoreImage(data,ext=ext,filename=result['musicbrainz_artistid'])
+                            cimg = CoreImage(data,ext=ext)
                     if self.config.getboolean('system','originalyear') and originalyear and year and int(originalyear)!=int(year):
-                        tt="["+originalyear+"]\n{"+year+"}"
+                        self.ids.yearlabel.text="["+originalyear+"]"
+                        self.ids.remasterlabel.text="{"+year+"}"
                     elif year:
-                        tt="["+year+"]"
+                        self.ids.yearlabel.text="["+year+"]"
+                        self.ids.remasterlabel.text=""
                     else:
-                        tt=""
+                        self.ids.yearlabel.text=""
+                        self.ids.remasterlabel.text=""
                     if cimg:
-                        # TODO: sometimes this just returns a black rectangle, i think i need to catch more specific exceptions
-                        # and figure out what exactly is happening
-                        img=CoverButton(img=cimg,layout=self.ids.album_cover_layout,text=tt,halign='center')
+                        img=CoverButton(img=cimg,layout=self.ids.album_cover_layout,halign='center')
                     else:
-                        img=CoverButton(img=CoreImage(resource_filename(__name__,os.path.join('resources','clear.png'))),layout=self.ids.album_cover_layout,text=tt,halign='center')
+                        img=CoverButton(img=CoreImage(resource_filename(__name__,os.path.join('resources','clear.png'))),layout=self.ids.album_cover_layout,halign='center')
                     self.ids.album_cover_layout.add_widget(img)
                     # popup the cover large if you press it
                     img.bind(on_press=partial(self.cover_popup,originalyear,year,result['album']))
@@ -438,20 +448,84 @@ class KmpcInterface(TabbedPanel):
                     Logger.debug('NowPlaying: no file found at path '+p)
                 # add the correct artist name widget
                 ti.add_widget(current_artist_label)
-                if haslogo:
-                    # we found an artist logo, put the song and album labels in a separate boxlayout to separate them a bit
-                    lyt = BoxLayout(orientation='vertical',padding_y='10sp')
-                    current_song_label = InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title']))
-                    lyt.add_widget(current_song_label)
-                    current_album_label = InfoLargeLabel(text = result['album'],font_size=Helpers.getfontsize(result['album']))
-                    lyt.add_widget(current_album_label)
-                    ti.add_widget(lyt)
+                lyt = BoxLayout(orientation='vertical',padding_y='2sp')
+                if self.config.getboolean('system','advancedtitles'):
+                    # check to see if song title has any data deliminated by () or []
+                    stitle=re.split('[\(\[\]\)]',result['title'])
+                    Logger.debug('TITLE: '+format(stitle))
+                    if len(stitle) > 1:
+                        lyt2=BoxLayout(orientation='vertical',padding_y='2sp')
+                        # split the title up and put the parentheses in smaller text below
+                        lyt2.add_widget(InfoLargeLabel(text = stitle[0], font_size=Helpers.getfontsize(stitle[0])))
+                        l2=""
+                        for i, v in enumerate(stitle):
+                            if i > 0 and v.strip():
+                                if l2: l2=l2+' '
+                                l2=l2+'('+v.strip()+')'
+                        lyt2.add_widget(InfoLargeLabel(text = l2, font_size=Helpers.getfontsize(l2,2)))
+                        lyt.add_widget(lyt2)
+                    else:
+                        lyt.add_widget(InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title'])))
+                    # check to see if album is a single or EP
+                    amatch=re.match(r'(.*) (\(single\)|EP)( .*)',result['album'])
+                    # check if ' EP' is at the very end of the album title
+                    if not amatch: amatch=re.match(r'(.*) (EP)($)',result['album'])
+                    if amatch:
+                        special=str(amatch.group(2)).strip("()")
+                        Logger.debug("ALBUM: special release: "+special)
+                        self.ids.releasetypelabel.text=special
+                        galbum=str(amatch.group(1))+str(amatch.group(3))
+                    else:
+                        galbum=result['album']
+                        self.ids.releasetypelabel.text='album'
+                    # check to see if album is an import
+                    amatch=re.match(r'(.*) (\(.. Import\))(.*)',galbum)
+                    if amatch:
+                        aimport=str(amatch.group(2))
+                        Logger.debug("ALBUM: import: "+aimport)
+                        galbum=str(amatch.group(1))+str(amatch.group(3))
+                    else:
+                        aimport=None
+                    # check to see if album title is a split (has a ' / ' in the middle)
+                    talbum=galbum.split(' / ')
+                    Logger.debug('ALBUM1: '+format(talbum))
+                    lyt2=BoxLayout(orientation='horizontal',padding_x='2sp')
+                    if len(talbum)>1:
+                        Logger.debug('ALBUM1: album is a split')
+                        split=True
+                    else:
+                        split=False
+                    for j, a in enumerate(talbum):
+                        if j>0: lyt2.add_widget(InfoLargeLabel(font_size='50sp',text=u'\u2571',size_hint_x=None,font_name=App.get_running_app().normalfont))
+                        # check to see if album title has any data deliminated by () or []
+                        salbum=re.split('[\(\[\]\)]',a)
+                        Logger.debug('ALBUM2: '+format(salbum))
+                        if len(salbum) > 1:
+                            lyt3=BoxLayout(orientation='vertical',padding_y='2sp')
+                            # split the album up and put the parentheses in smaller text below
+                            if split:
+                                lyt3.add_widget(InfoLargeLabel(text = salbum[0], font_size=Helpers.getfontsize(salbum[0],1.5)))
+                            else:
+                                lyt3.add_widget(InfoLargeLabel(text = salbum[0], font_size=Helpers.getfontsize(salbum[0])))
+                            l2=""
+                            for i, v in enumerate(salbum):
+                                if i > 0 and v.strip():
+                                    if l2: l2=l2+' '
+                                    l2=l2+'('+v.strip()+')'
+                            lyt3.add_widget(InfoLargeLabel(text = l2, font_size=Helpers.getfontsize(l2,2)))
+                            lyt2.add_widget(lyt3)
+                        else:
+                            if split:
+                                lyt2.add_widget(InfoLargeLabel(text = a, font_size=Helpers.getfontsize(a,1.5)))
+                            else:
+                                lyt2.add_widget(InfoLargeLabel(text = a, font_size=Helpers.getfontsize(a)))
+                    lyt.add_widget(lyt2)
+                    if aimport: lyt.add_widget(InfoLargeLabel(text=aimport,font_size=Helpers.getfontsize(aimport,2)))
                 else:
-                    # no artist logo, just add the song and album labels directly to the track info widget
-                    current_song_label = InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title']))
-                    ti.add_widget(current_song_label)
-                    current_album_label = InfoLargeLabel(text = result['album'],font_size=Helpers.getfontsize(result['album']))
-                    ti.add_widget(current_album_label)
+                    self.ids.releasetypelabel.text=''
+                    lyt.add_widget(InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title'])))
+                    lyt.add_widget(InfoLargeLabel(text = result['album'],font_size=Helpers.getfontsize(result['album'])))
+                ti.add_widget(lyt)
         else:
             # there's not a current song, so zero everything out
             self.stop_zero_stuff()
@@ -594,6 +668,9 @@ class KmpcInterface(TabbedPanel):
             # set the brightness
             bl.set_brightness(int(value), smooth=True, duration=1)
 
+    def settings_update(self):
+        mainmpdconnection.protocol.currentsong().addCallback(partial(self.update_mpd_currentsong,True)).addErrback(mainmpdconnection.handle_mpd_error)
+
     def init_mpd(self,instance):
         # get the initial mpd status
         mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(mainmpdconnection.handle_mpd_error)
@@ -660,6 +737,7 @@ class KmpcApp(App):
         config.setdefaults('system', {
             'rpienable': '0',
             'originalyear': '1',
+            'advancedtitles': '0',
             'updatecommand': 'sudo pip install -U kmpc',
         })
         config.setdefaults('songratings', {
@@ -685,6 +763,11 @@ class KmpcApp(App):
         settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources','config_sync.json')))
         settings.add_json_panel('system settings',self.config,resource_filename(__name__,os.path.join('resources','config_system.json')))
         settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources','config_star.json')))
+
+    def on_config_change(self, config, section, key, value):
+        if config is self.config:
+            Logger.info("Application: config entry has changed: ["+section+"] "+key+"="+value)
+            if callable (self.root.settings_update): self.root.settings_update()
 
     def build(self,*args):
         """Instantiates KmpcInterface."""
