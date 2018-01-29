@@ -154,7 +154,6 @@ class KmpcInterface(TabbedPanel):
         """Callback when top tab is changed."""
         self.active_tab = value.text
         Logger.info("Application: Changed active tab to "+self.active_tab)
-        # Playlist is the only one that needs help when activating
         if self.active_tab != 'Now Playing':
             # pause the track slider task
             self.track_slider_task.cancel()
