@@ -40,7 +40,7 @@ from kivy.lang import Builder
 from kivy.properties import ObjectProperty,StringProperty,BooleanProperty
 
 # import our local modules
-from kmpc.extra import KmpcHelpers,ExtraSlider,ClearButton,OutlineLabel,OutlineButton,MpdConnection
+from kmpc.extra import KmpcHelpers,ExtraSlider,ClearButton,OutlineLabel,OutlineButton,MpdConnection,Sync
 from kmpc.playlistpanel import PlaylistTabbedPanelItem
 from kmpc.version import VERSION_STR
 
@@ -732,7 +732,8 @@ class KmpcApp(App):
             'synchost': '127.0.0.1',
             'syncmusicpath': '/mnt/music',
             'syncfanartpath': '/mnt/fanart',
-            'synctmppath': '/tmp'
+            'synctmppath': '/tmp',
+            'syncplaylist': 'synclist'
         })
         config.setdefaults('system', {
             'rpienable': '0',
@@ -791,6 +792,11 @@ class KmpcApp(App):
         # write out config file in case it doesn't exist yet
         self.config.write()
         if self.args.newconfig:
+            sys.exit(0)
+        elif self.args.sync:
+            global mainmpdconnection
+            mainmpdconnection=MpdConnection(self.config,self.config.get('mpd','mpdhost'),self.config.get('mpd','mpdport'),None,[])
+            Sync(self.config)
             sys.exit(0)
         else:
             return KmpcInterface(self.config)

@@ -20,6 +20,14 @@ from kivy.uix.slider import Slider
 from kivy.uix.label import Label
 from kivy.uix.tabbedpanel import TabbedPanelItem
 
+def Sync(config):
+    mpdhost=config.get('mpd','mpdhost')
+    synchost=config.get('sync','synchost')
+    Logger.info("Sync: running sync with synchost "+synchost)
+    if mpdhost==synchost:
+        Logger.warn('Sync: will not sync identical hosts!')
+        return
+
 # this class just returns a debug message for all calls to it to handle bad mpd connections
 class Dummy(object):
     def __getattr__(self,attr):

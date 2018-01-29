@@ -23,9 +23,6 @@ from pkg_resources import resource_filename
 from kmpc.extra import KmpcHelpers
 import kmpc.kmpcmanager
 
-# sets the location of the config folder
-configdir = os.path.join(os.path.expanduser('~'),".kmpc")
-
 Helpers=KmpcHelpers()
 
 class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
@@ -252,6 +249,7 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
                 Logger.debug("generate_play_list: rating ["+rating+"] file ["+uri+"]")
                 self.tlist[uri]=1
         if ltype=='playlist':
+            Logger.info("generate_play_list: writing to playlist ["+self.ids.minimum_stars.text+" star or more]")
             kmpc.kmpcmanager.mainmpdconnection.protocol.playlistclear(self.ids.minimum_stars.text+" star or more").addErrback(self.handle_mpd_error)
             for k in sorted(self.tlist.keys()):
                 kmpc.kmpcmanager.mainmpdconnection.protocol.playlistadd(self.ids.minimum_stars.text+" star or more",k).addErrback(self.handle_mpd_error)
@@ -270,9 +268,10 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
                     del self.tlist[uri]
                 except KeyError:
                     pass
-        kmpc.kmpcmanager.mainmpdconnection.protocol.playlistclear('synclist').addErrback(self.handle_mpd_error)
+        Logger.info("generate_sync_list: writing to playlist ["+self.config.get('sync','syncplaylist')+"]")
+        kmpc.kmpcmanager.mainmpdconnection.protocol.playlistclear(self.config.get('sync','syncplaylist')).addErrback(self.handle_mpd_error)
         for k in sorted(self.tlist.keys()):
-            kmpc.kmpcmanager.mainmpdconnection.protocol.playlistadd('synclist',k).addErrback(self.handle_mpd_error)
+            kmpc.kmpcmanager.mainmpdconnection.protocol.playlistadd(self.config.get('sync','syncplaylist'),k).addErrback(self.handle_mpd_error)
 
 class LibraryRecycleBoxLayout(FocusBehavior,LayoutSelectionBehavior,RecycleBoxLayout):
     ''' Adds selection and focus behaviour to the view. '''
