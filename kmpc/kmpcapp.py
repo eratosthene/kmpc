@@ -236,7 +236,7 @@ class KmpcInterface(TabbedPanel):
             # save current song, this is a 0-based index into the playlist
             self.currsong=result['song']
             # ask mpd for current song data
-            mainmpdconnection.protocol.currentsong().addCallback(self.update_mpd_currentsong).addErrback(self.handle_mpd_error)
+            mainmpdconnection.protocol.currentsong().addCallback(partial(self.update_mpd_currentsong,False)).addErrback(self.handle_mpd_error)
             # save next song, this is a 0-based index into the playlist
             if 'nextsong' in result:
                 self.nextsong=result['nextsong']
@@ -292,7 +292,7 @@ class KmpcInterface(TabbedPanel):
         else:
             Logger.debug("change_artist_image: no other choices for logo")
 
-    def update_mpd_currentsong(self,result):
+    def update_mpd_currentsong(self,force,result):
         """Callback for mpd currentsong data."""
         Logger.debug('NowPlaying: update_mpd_currentsong()')
         # this is so expensive screen updates only happen if the song has changed since the last time this callback was called
@@ -306,7 +306,7 @@ class KmpcInterface(TabbedPanel):
                 songchange=True
             # update class's current file
             self.currfile = result['file']
-            if songchange:
+            if songchange or force:
                 # clear the track info widget
                 ti.clear_widgets()
                 # clear the album cover
@@ -668,6 +668,9 @@ class KmpcInterface(TabbedPanel):
             # set the brightness
             bl.set_brightness(int(value), smooth=True, duration=1)
 
+    def settings_update(self):
+        mainmpdconnection.protocol.currentsong().addCallback(partial(self.update_mpd_currentsong,True)).addErrback(mainmpdconnection.handle_mpd_error)
+
     def init_mpd(self,instance):
         # get the initial mpd status
         mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(mainmpdconnection.handle_mpd_error)
@@ -760,6 +763,11 @@ class KmpcApp(App):
         settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources','config_sync.json')))
         settings.add_json_panel('system settings',self.config,resource_filename(__name__,os.path.join('resources','config_system.json')))
         settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources','config_star.json')))
+
+    def on_config_change(self, config, section, key, value):
+        if config is self.config:
+            Logger.info("Application: config entry has changed: ["+section+"] "+key+"="+value)
+            if callable (self.root.settings_update): self.root.settings_update()
 
     def build(self,*args):
         """Instantiates KmpcInterface."""
