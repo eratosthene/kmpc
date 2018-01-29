@@ -133,13 +133,9 @@
             orientation: 'horizontal'
             size_hint_y: 0.05
             SmallButton:
-                text: 'Generate rsync merge'
+                text: 'Generate synclist'
                 id: generate_button
-                on_press: root.generate_list('rsync')
-            SmallButton:
-                text: 'Write rsync merge'
-                id: write_rsync_button
-                on_press: root.write_rsync()
+                on_press: root.generate_list('synclist')
             SmallButton:
                 text: 'Generate playlist'
                 id: generate_playlist_button
