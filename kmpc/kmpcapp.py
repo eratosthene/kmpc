@@ -445,11 +445,7 @@ class KmpcInterface(TabbedPanel):
                     Logger.debug('NowPlaying: no file found at path '+p)
                 # add the correct artist name widget
                 ti.add_widget(current_artist_label)
-                if haslogo:
-                    py='10sp'
-                else:
-                    py='1sp'
-                lyt = BoxLayout(orientation='vertical',padding_y=py)
+                lyt = BoxLayout(orientation='vertical',padding_y='2sp')
                 # check to see if song title has any data deliminated by () or []
                 stitle=re.split('[\(\[\]\)]',result['title'])
                 Logger.debug('TITLE: '+format(stitle))
@@ -466,8 +462,18 @@ class KmpcInterface(TabbedPanel):
                     lyt.add_widget(lyt2)
                 else:
                     lyt.add_widget(InfoLargeLabel(text = result['title'],font_size=Helpers.getfontsize(result['title'])))
+                # check to see if album is a single or EP
+                amatch=re.match(r'(.*) (\(single\)|EP)(.*)',result['album'])
+                if amatch:
+                    special=str(amatch.group(2)).strip("()")
+                    Logger.debug("ALBUM: special release: "+special)
+                    self.ids.releasetype.text=special
+                    galbum=str(amatch.group(1))+str(amatch.group(3))
+                else:
+                    galbum=result['album']
+                    self.ids.releasetype.text='album'
                 # check to see if album title is a split (has a ' / ' in the middle)
-                talbum=result['album'].split(' / ')
+                talbum=galbum.split(' / ')
                 Logger.debug('ALBUM1: '+format(talbum))
                 lyt2=BoxLayout(orientation='horizontal',padding_x='2sp')
                 if len(talbum)>1:
