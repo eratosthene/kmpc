@@ -4,6 +4,22 @@
 kmpc Change Log
 ###############
 
+******************
+0.6.1 - 2018-01-29
+******************
+
+- Added new 'advanced titles' feature which will attempt to parse information
+  out of the track and album titles to format it better on the screen. A new
+  config file option was added as well, defaulting to off. (`issue #69
+  <https://github.com/eratosthene/kmpc/issues/69>`_)
+- Changed the track slider update task to pause when not on the Now Playing
+  tab. (`issue #64 <https://github.com/eratosthene/kmpc/issues/64>`_)
+- Added warning to prevent syncing synchost to itself. (`issue #73
+  <https://github.com/eratosthene/kmpc/issues/73>`_)
+- Changed sections in config file and updated docs accordingly to better
+  account for which fields are used in each program. (`issue #70
+  <https://github.com/eratosthene/kmpc/issues/70>`_)
+
 ********************
 0.6.0.1 - 2018-01-27
 ********************

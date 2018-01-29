@@ -5,10 +5,16 @@ config file ``~/.kmpc/config.ini``
 ##################################
 
 This file contains several sections, and must be customized for your use. It
-will be created with default values the first time ``kmpc`` is run.
+will be created with default values the first time ``kmpc`` or ``kmpcmanager``
+are run, or you may pass the -n/--newconfig flag to either program to create
+the config file only. Several fields are used by only one or the other, and
+are described as such below.
 
 [mpd] section
 -------------
+
+kmpc-only
+^^^^^^^^^
 
 mpdhost
   Hostname or IP address that mpd is running on.
@@ -17,6 +23,9 @@ mpdport
 
 [paths] section
 ---------------
+
+kmpc-only
+^^^^^^^^^
 
 musicpath
   Path to the folder containing music. This should be the same file tree that
@@ -34,7 +43,13 @@ tmppath
 synchost
   Hostname or IP address of a host to sync with. This is useful if you have a
   main mpd server running at home and want to sync songs/ratings/fanart to your
-  car. The ``kmpcmanager`` program is used to manage this synchost.
+  car. The ``kmpcmanager`` program is used to manage this synchost. ``kmpc``
+  uses this as a host to ssh to for syncing. ``kmpcmanager`` uses this as the
+  mpd host to connect to.
+
+kmpc-only
+^^^^^^^^^
+
 syncmusicpath
   The path to the music folder on the synchost.
 syncfanartpath
@@ -42,8 +57,23 @@ syncfanartpath
 synctmppath
   Where temporary files should be written on the synchost.
 
+kmpcmanager-only
+^^^^^^^^^^^^^^^^
+
+syncmpdport
+  Port that mpd is running on on the synchost.
+synclocalmusicpath
+  The path to the music folder on whatever machine ``kmpcmanager`` is running
+  on.
+synclocalfanartpath
+  The path to the fanart folder on whatever machine ``kmpcmanager`` is running
+  on.
+
 [system] section
 ----------------
+
+kmpc-only
+^^^^^^^^^
 
 rpienable
   Set this to ``true`` if you are running this on a Pi and want to control
@@ -55,9 +85,15 @@ originalyear
 updatecommand
   This is what runs when you press the Update button. Defaults to ``sudo pip
   install -U kmpc``.
+advancedtitles
+  Whether to attempt to parse track and album titles to display them more
+  appropriately on the screen. Defaults to ``false``.
 
 [logs] section
 --------------
+
+kmpcmanager-only
+^^^^^^^^^^^^^^^^
 
 artlog
   Whether to generate a file named ``artlog.txt`` in the config dir that
@@ -66,6 +102,9 @@ artlog
 
 [fanart] section
 ----------------
+
+kmpcmanager-only
+^^^^^^^^^^^^^^^^
 
 client_key
   Your personal client key for fanart.tv. This is not necessary, but helps them
@@ -81,8 +120,11 @@ shown in the rating popup.
 [artblacklist] section
 ----------------------
 
-This section is not created by default. It allows you to blacklist certain
-fanart files from certain artistids in case you don't want them automatically
+kmpcmanager-only
+^^^^^^^^^^^^^^^^
+
+This section is empty by default. It allows you to blacklist certain fanart
+files from certain artistids in case you don't want them automatically
 downloaded. An entry would look like this::
 
   b38225b8-8e5f-42aa-bcdc-7bae5b5bdab3 = 128387,128388

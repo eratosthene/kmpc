@@ -1,0 +1,22 @@
+[
+  { "type": "string",
+    "title": "synchost",
+    "desc": "Hostname/IP address of synchost",
+    "section": "sync",
+    "key": "synchost" },
+  { "type": "string",
+    "title": "syncmpdport",
+    "desc": "mpd port of synchost",
+    "section": "sync",
+    "key": "syncmpdport" },
+  { "type": "string",
+    "title": "synclocalmusicpath",
+    "desc": "Path to music files where manager is running",
+    "section": "sync",
+    "key": "synclocalmusicpath" },
+  { "type": "string",
+    "title": "synclocalfanartpath",
+    "desc": "Path to fanart files where manager is running",
+    "section": "sync",
+    "key": "synclocalfanartpath" }
+]

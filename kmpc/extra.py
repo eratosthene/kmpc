@@ -30,14 +30,16 @@ class Dummy(object):
 
 class MpdConnection(object):
 
-    def __init__(self,config,idlehandler=None,initconnections=[]):
+    def __init__(self,config,mpdhost,mpdport,idlehandler=None,initconnections=[]):
         self.config = config
+        self.mpdhost = mpdhost
+        self.mpdport = mpdport
         # set up mpd connection
         self.initconnections=initconnections
         self.factory = MPDClientFactory(idlehandler)
         self.factory.connectionMade = self.mpd_connectionMade
         self.factory.connectionLost = self.mpd_connectionLost
-        reactor.connectTCP(self.config.get('mpd','mpdhost'), self.config.getint('mpd','mpdport'), self.factory)
+        reactor.connectTCP(mpdhost, int(mpdport), self.factory)
         self.noprotocol=Dummy()
 
     # this part handles calls to protocol when it hasn't been set up yet or is incorrectly specified in config
@@ -54,7 +56,7 @@ class MpdConnection(object):
         """Callback when mpd is connected."""
         # copy the protocol to all the classes
         self.realprotocol = protocol
-        Logger.info('mpd_connectionMade: Connected to mpd server host='+self.config.get('mpd','mpdhost')+' port='+self.config.get('mpd','mpdport'))
+        Logger.info('mpd_connectionMade: Connected to mpd server host='+self.mpdhost+' port='+self.mpdport)
         for ic in self.initconnections:
             if callable(ic):
                  ic(self)
@@ -104,18 +106,19 @@ class KmpcHelpers(object):
         }
         return sr
 
-    def getfontsize(self,str):
+    def getfontsize(self,str,scale=1):
         """Method that determines font size based on text length."""
         # helper array for scaling font sizes based on text length
-        sizearray = ['39sp','38sp','37sp','36sp','35sp','34sp','33sp','32sp','31sp','30sp','29sp','28sp','27sp','26sp','25sp']
+        #sizearray = ['39sp','38sp','37sp','36sp','35sp','34sp','33sp','32sp','31sp','30sp','29sp','28sp','27sp','26sp','25sp']
+        sizearray = ['39','38','37','36','35','34','33','32','31','30','29','28','27','26','25']
         lr = len(str)
         if lr < 33:
-            rsize = '40sp'
+            rsize = '40'
         elif lr >= 55:
-            rsize = '24sp'
+            rsize = '24'
         else:
             rsize = sizearray[int(round((lr-33)/21*14))]
-        return rsize
+        return format(int(round(int(rsize)/scale)))+'sp'
 
     def decodeFileName(self,name):
         """Method that tries to intelligently decode a filename to handle unicode weirdness."""
