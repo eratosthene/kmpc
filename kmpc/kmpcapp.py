@@ -38,6 +38,7 @@ from kivy.uix.label import Label
 from kivy.factory import Factory
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty,StringProperty,BooleanProperty
+from kivy.support import install_twisted_reactor
 
 # import our local modules
 from kmpc.extra import KmpcHelpers,ExtraSlider,ClearButton,OutlineLabel,OutlineButton,MpdConnection,Sync
@@ -73,6 +74,8 @@ class KmpcInterface(TabbedPanel):
         self.ocolor=0
         self.settingsPopup=Factory.SettingsPopup()
         self.config=config
+        #install twisted reactor to interface with mpd
+        install_twisted_reactor()
         global mainmpdconnection
         mainmpdconnection=MpdConnection(self.config,self.config.get('mpd','mpdhost'),self.config.get('mpd','mpdport'),self.mpd_idle_handler,[self.init_mpd])
 
@@ -730,6 +733,7 @@ class KmpcApp(App):
         })
         config.setdefaults('sync', {
             'synchost': '127.0.0.1',
+            'syncmpdport': '6600',
             'syncmusicpath': '/mnt/music',
             'syncfanartpath': '/mnt/fanart',
             'synctmppath': '/tmp',
@@ -794,9 +798,7 @@ class KmpcApp(App):
         if self.args.newconfig:
             sys.exit(0)
         elif self.args.sync:
-            global mainmpdconnection
-            mainmpdconnection=MpdConnection(self.config,self.config.get('mpd','mpdhost'),self.config.get('mpd','mpdport'),None,[])
-            Sync(self.config)
+            s=Sync(self.config,['synclist','test'])
             sys.exit(0)
         else:
             return KmpcInterface(self.config)

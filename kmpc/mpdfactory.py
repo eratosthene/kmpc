@@ -34,10 +34,10 @@ class MPDClientFactory(protocol.ReconnectingClientFactory):
             protocol.idle_result = self.idlehandler
         return protocol
 
-    def clientConnectionFailed(self, connector, reason):
-        """mpd connection failed for some reason."""
-        Logger.error('Connection failed - goodbye!: '+format(reason))
+#    def clientConnectionFailed(self, connector, reason):
+#        """mpd connection failed for some reason."""
+#        Logger.error('Connection failed - goodbye!: '+format(reason))
 
-    def clientConnectionLost(self, connector, reason):
-        """mpd connection lost for some reason."""
-        Logger.error('Connection lost - goodbye!: '+format(reason))
+#    def clientConnectionLost(self, connector, reason):
+#        """mpd connection lost for some reason."""
+#        Logger.error('Connection lost - goodbye!: '+format(reason))

@@ -1,15 +1,14 @@
 import os
+import io
+from functools import partial
+from subprocess import call, PIPE, Popen
 from kmpc.mpd import MPDProtocol
 from kmpc.mpdfactory import MPDClientFactory
 
 import kivy
 kivy.require('1.10.0')
 
-#install twisted reactor to interface with mpd
-from kivy.support import install_twisted_reactor
-install_twisted_reactor()
-from twisted.internet import reactor, protocol
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import Deferred
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -20,13 +19,103 @@ from kivy.uix.slider import Slider
 from kivy.uix.label import Label
 from kivy.uix.tabbedpanel import TabbedPanelItem
 
-def Sync(config):
-    mpdhost=config.get('mpd','mpdhost')
-    synchost=config.get('sync','synchost')
-    Logger.info("Sync: running sync with synchost "+synchost)
-    if mpdhost==synchost:
-        Logger.warn('Sync: will not sync identical hosts!')
-        return
+class Sync(object):
+
+    def __init__(self,config,runparts=[]):
+        from twisted.internet import reactor
+        self.config=config
+        self.mpdhost=config.get('mpd','mpdhost')
+        self.mpdport=config.get('mpd','mpdport')
+        self.synchost=config.get('sync','synchost')
+        self.syncmpdport=config.get('sync','syncmpdport')
+        self.synclist=config.get('sync','syncplaylist')
+        self.basepath=config.get('paths','musicpath')
+        self.syncbasepath=config.get('sync','syncmusicpath')
+        self.tmppath=config.get('paths','tmppath')
+        self.runparts=runparts
+        self.localconnected=False
+        self.syncconnected=False
+        self.kivy=True
+        Logger.info("Sync: running sync with synchost "+self.synchost)
+        if self.mpdhost==self.synchost:
+            Logger.warn('Sync: will not sync identical hosts!')
+            return
+        self.localmpd=MpdConnection(self.config,self.mpdhost,self.mpdport,None,[self.init_local_mpd],True)
+        self.syncmpd=MpdConnection(self.config,self.synchost,self.syncmpdport,None,[self.init_sync_mpd],True)
+        if not reactor.running:
+            self.kivy=False
+            reactor.run()
+
+    def init_local_mpd(self,conn):
+        Logger.debug("init_local_mpd: connected")
+        self.localconnected=True
+        self.do_sync()
+
+    def init_sync_mpd(self,conn):
+        Logger.debug("init_sync_mpd: connected")
+        self.syncconnected=True
+        self.do_sync()
+
+    def do_sync(self):
+        if self.localconnected and self.syncconnected:
+            Logger.info("Sync: beginning sync process")
+            d=Deferred()
+            for part in self.runparts:
+                d.addCallback(getattr(self,'sync_'+part))
+            d.addCallback(self.finish_sync)
+            d.addErrback(self.errback)
+            d.callback(None)
+
+    def errback(self,result):
+        Logger.error('Sync: Callback error: {}'.format(result))
+
+    def finish_sync(self,result):
+        from twisted.internet import reactor
+        Logger.debug("finish_sync: "+result)
+        if not self.kivy:
+            reactor.stop()
+
+    def sync_test(self,result):
+        Logger.debug("Sync: test "+result)
+        return "test done"
+
+    def sync_synclist(self,result):
+        Logger.info("Sync: syncing using playlist ["+self.synclist+"]")
+        return self.syncmpd.protocol.listplaylist(self.synclist).addCallback(self.build_filelist).addErrback(self.syncmpd.handle_mpd_error)
+
+    def build_filelist(self,result):
+        filelist={}
+        Helpers=KmpcHelpers()
+        # write synclist to a temp file and a hash
+        f=io.open(os.path.join(self.tmppath,'rsync.inc'),mode='w',encoding="utf-8")
+        for row in result:
+            f.write(Helpers.decodeFileName(row)+"\n")
+            filelist[Helpers.decodeFileName(row.rstrip())]=True
+        f.close()
+        # this whole block walks the filesystem and deletes any file that is not in the synclist
+        for dirpath, dirnames, filenames in os.walk(Helpers.decodeFileName(self.basepath)):
+            if len(filenames)>0:
+                rpath = dirpath[len(self.basepath+os.sep):]
+                for filename in filenames:
+                    fpath=os.path.join(Helpers.decodeFileName(rpath),Helpers.decodeFileName(filename))
+                    apath = os.path.join(Helpers.decodeFileName(dirpath),Helpers.decodeFileName(filename))
+                    if fpath not in filelist:
+                        Logger.debug("Filesync: Deleting "+apath)
+                        os.remove(Helpers.decodeFileName(apath))
+        # remove empty folders
+        Helpers.removeEmptyFolders(self.basepath)
+        # rsync the files
+        call([
+            'rsync',
+            '-vruxhm',
+            '--files-from='+os.path.join(self.tmppath,'rsync.inc'),
+            self.synchost+':'+self.syncbasepath+'/',
+            self.basepath
+            ])
+
+        # clean up
+#        os.remove(os.path.join(self.tmppath,'rsync.inc'))
+        return 'synclist done'
 
 # this class just returns a debug message for all calls to it to handle bad mpd connections
 class Dummy(object):
@@ -38,15 +127,18 @@ class Dummy(object):
 
 class MpdConnection(object):
 
-    def __init__(self,config,mpdhost,mpdport,idlehandler=None,initconnections=[]):
+    def __init__(self,config,mpdhost,mpdport,idlehandler=None,initconnections=[],quiet=False):
         self.config = config
         self.mpdhost = mpdhost
         self.mpdport = mpdport
+        self.quiet = quiet
+        Logger.debug("MpdConnection: connecting to "+mpdhost+":"+mpdport)
         # set up mpd connection
         self.initconnections=initconnections
         self.factory = MPDClientFactory(idlehandler)
         self.factory.connectionMade = self.mpd_connectionMade
         self.factory.connectionLost = self.mpd_connectionLost
+        from twisted.internet import reactor
         reactor.connectTCP(mpdhost, int(mpdport), self.factory)
         self.noprotocol=Dummy()
 
@@ -64,18 +156,18 @@ class MpdConnection(object):
         """Callback when mpd is connected."""
         # copy the protocol to all the classes
         self.realprotocol = protocol
-        Logger.info('mpd_connectionMade: Connected to mpd server host='+self.mpdhost+' port='+self.mpdport)
+        if not self.quiet: Logger.info('MpdConnection: Connected to mpd server host='+self.mpdhost+' port='+self.mpdport)
         for ic in self.initconnections:
             if callable(ic):
                  ic(self)
 
     def mpd_connectionLost(self,protocol, reason):
         """Callback when mpd connection is lost."""
-        Logger.warn('mpd_connectionLost: Connection lost: %s' % reason)
+        if not self.quiet: Logger.warn('MpdConnection: Connection lost: %s' % reason)
 
     def handle_mpd_error(self,result):
         """Prints handled errors to the error log."""
-        Logger.error('Application: MPDIdleHandler Callback error: {}'.format(result))
+        if not self.quiet: Logger.error('MpdConnection: Callback error: {}'.format(result))
 
 class KmpcHelpers(object):
 
@@ -136,6 +228,23 @@ class KmpcHelpers(object):
             except:
                 name = name.decode('windows-1252')
         return name
+
+    def removeEmptyFolders(self,path,removeRoot=True):
+        'Function to remove empty folders'
+        if not os.path.isdir(path):
+            return
+        # remove empty subfolders
+        files = os.listdir(path)
+        if len(files):
+            for f in files:
+                fullpath = os.path.join(path, f)
+                if os.path.isdir(fullpath):
+                     self.removeEmptyFolders(fullpath)
+        # if folder empty, delete it
+        files = os.listdir(path)
+        if len(files) == 0 and removeRoot:
+            Logger.debug("removeEmptyDir:"+path)
+            os.rmdir(path)
 
 class ExtraSlider(Slider):
     """Class that implements some extra stuff on top of a standard slider."""
