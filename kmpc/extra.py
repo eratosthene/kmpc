@@ -10,7 +10,7 @@ from kmpc.mpdfactory import MPDClientFactory
 import kivy
 kivy.require('1.10.0')
 
-from twisted.internet.defer import Deferred
+from twisted.internet.defer import Deferred,DeferredList
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -39,6 +39,9 @@ class Sync(object):
         self.syncconnected=False
         self.kivy=True
         self.thread=None
+        self.filelist={}
+        self.updating=False
+        self.updatedone=False
         if callable(outputto):
             self.outputto=outputto
         else:
@@ -47,11 +50,34 @@ class Sync(object):
         if self.mpdhost==self.synchost:
             Logger.warn('Sync: will not sync identical hosts!')
             return
-        self.localmpd=MpdConnection(self.config,self.mpdhost,self.mpdport,None,[self.init_local_mpd],True)
+        self.localmpd=MpdConnection(self.config,self.mpdhost,self.mpdport,self.mpd_idle_handler,[self.init_local_mpd],True)
         self.syncmpd=MpdConnection(self.config,self.synchost,self.syncmpdport,None,[self.init_sync_mpd],True)
         if not reactor.running:
             self.kivy=False
             reactor.run()
+
+    def mpd_idle_handler(self,result):
+        for s in result:
+            Logger.info('MPDIdleHandler: Changed '+format(s))
+            if format(s)=='update':
+                self.localmpd.protocol.status().addCallback(self.handle_update)
+
+    def handle_update(self,result):
+        if 'updating_db' in result:
+            self.updating=True
+        else:
+            if self.updating:
+                # this is where tasks that must wait til after update db go
+                callbacks=[]
+                for k in sorted(self.filelist.keys()):
+                    callbacks.append(self.localmpd.protocol.playlistadd('root',k).addErrback(self.localmpd.handle_mpd_error))
+                callbacks=DeferredList(callbacks)
+                callbacks.addCallback(self.set_updatedone)
+            self.updating=False
+
+    def set_updatedone(self,result):
+        Logger.debug('Sync: update done and playlist updated')
+        self.updatedone=True
 
     def is_thread_alive(self):
         if self.thread and self.thread.is_alive(): return True
@@ -62,7 +88,7 @@ class Sync(object):
             try: line=q.get_nowait()
             except Empty: pass
             else: Logger.info("Stdout Log: "+line.rstrip())
-        return self.thread_returncode()
+        return "Done"
 
     def init_local_mpd(self,conn):
         Logger.debug("init_local_mpd: connected")
@@ -77,36 +103,50 @@ class Sync(object):
     def do_sync(self):
         if self.localconnected and self.syncconnected:
             Logger.info("Sync: beginning sync process")
+            callbacks=[]
             d=Deferred()
             for part in self.runparts:
                 d.addCallback(getattr(self,'sync_'+part))
-            d.addCallback(self.finish_sync)
+                #callbacks.append(d.addCallback(getattr(self,'sync_'+part)))
+                #callbacks.append(getattr(self,'sync_'+part))
+            #callbacks = DeferredList(callbacks)
+            #callbacks.addCallback(self.finalize)
+            #callbacks.addErrback(self.errback)
+            #callbacks.callback(None)
             d.addErrback(self.errback)
             d.callback(None)
+
+    def finalize(self,result):
+        from twisted.internet import reactor
+        if not self.kivy:
+            print "REACTOR STOP"
+            #reactor.stop()
 
     def errback(self,result):
         Logger.error('Sync: Callback error: {}'.format(result))
 
-    def finish_sync(self,result):
-        from twisted.internet import reactor
+    def finish_filesync(self,result):
         Logger.info("Sync: cleaning up")
         # clean up
         os.remove(os.path.join(self.tmppath,'rsync.inc'))
-        if not self.kivy:
-            reactor.stop()
+        self.localmpd.protocol.update()
 
     def sync_synclist(self,result):
         Logger.info("Sync: syncing using playlist ["+self.synclist+"]")
-        return self.syncmpd.protocol.listplaylist(self.synclist).addCallback(self.build_filelist).addCallback(self.outputto).addErrback(self.syncmpd.handle_mpd_error)
+        # clear the local 'root' playlist
+        self.localmpd.protocol.playlistclear('root').addErrback(self.localmpd.handle_mpd_error)
+        return self.syncmpd.protocol.listplaylist(self.synclist).addCallback(self.build_filelist).addCallback(self.outputto).addCallback(self.finish_filesync).addErrback(self.syncmpd.handle_mpd_error)
+
+#    def pr(self,result):
+#        print format(result)
 
     def build_filelist(self,result):
-        filelist={}
         Helpers=KmpcHelpers()
-        # write synclist to a temp file and a hash
+        # write synclist to a temp file, and a hash
         f=io.open(os.path.join(self.tmppath,'rsync.inc'),mode='w',encoding="utf-8")
         for row in result:
             f.write(Helpers.decodeFileName(row)+"\n")
-            filelist[Helpers.decodeFileName(row.rstrip())]=True
+            self.filelist[Helpers.decodeFileName(row.rstrip())]=True
         f.close()
         # this whole block walks the filesystem and deletes any file that is not in the synclist
         for dirpath, dirnames, filenames in os.walk(Helpers.decodeFileName(self.basepath)):
@@ -115,7 +155,7 @@ class Sync(object):
                 for filename in filenames:
                     fpath=os.path.join(Helpers.decodeFileName(rpath),Helpers.decodeFileName(filename))
                     apath = os.path.join(Helpers.decodeFileName(dirpath),Helpers.decodeFileName(filename))
-                    if fpath not in filelist:
+                    if fpath not in self.filelist:
                         Logger.debug("Filesync: Deleting "+apath)
                         os.remove(Helpers.decodeFileName(apath))
         # remove empty folders
