@@ -26,7 +26,9 @@ class Sync(object):
         self.syncmpdport=config.get('sync','syncmpdport')
         self.synclist=config.get('sync','syncplaylist')
         self.basepath=config.get('paths','musicpath')
+        self.fanartpath=config.get('paths','fanartpath')
         self.syncbasepath=config.get('sync','syncmusicpath')
+        self.syncfanartpath=config.get('sync','syncfanartpath')
         self.tmppath=config.get('paths','tmppath')
         self.runparts=runparts
         self.localconnected=False
@@ -83,6 +85,7 @@ class Sync(object):
         else: return False
 
     def infolog(self,q):
+        Logger.debug("infolog: started")
         while self.is_thread_alive():
             try: line=q.get_nowait()
             except Empty: pass
@@ -115,8 +118,11 @@ class Sync(object):
         Logger.info("Sync: all sync modules run")
         self.modulesdone=True
         from twisted.internet import reactor
-        # only if update is complete
-        if self.updatedone:
+        if 'music' in self.runparts:
+            # only if update is complete
+            if self.updatedone:
+                if not self.kivy: reactor.stop()
+        else:
             if not self.kivy: reactor.stop()
 
     def errback(self,result):
@@ -178,3 +184,21 @@ class Sync(object):
             queue.put(line)
         Logger.debug("buffer_stdout: end")
 
+    def sync_fanart(self,result):
+        Logger.info("Sync: syncing fanart")
+        q = Queue()
+        # rsync the files
+        p=Popen([
+            'rsync',
+            '-vruxhm',
+            self.synchost+':'+self.syncfanartpath+'/',
+            self.fanartpath
+            ],stdout=PIPE,bufsize=1,close_fds=True)
+        self.thread = Thread(target=self.buffer_stdout,args=(p,q))
+        self.thread.daemon = True
+        self.thread.start()
+        d=Deferred()
+        d.addCallback(self.outputto)
+        d.addErrback(self.errback)
+        d.callback(q)
+        return "Done"
