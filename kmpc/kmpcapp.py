@@ -41,9 +41,11 @@ from kivy.properties import ObjectProperty,StringProperty,BooleanProperty
 from kivy.support import install_twisted_reactor
 
 # import our local modules
-from kmpc.extra import KmpcHelpers,ExtraSlider,ClearButton,OutlineLabel,OutlineButton,MpdConnection,Sync
+from kmpc.extra import KmpcHelpers,ExtraSlider,ClearButton,OutlineLabel,OutlineButton
 from kmpc.playlistpanel import PlaylistTabbedPanelItem
 from kmpc.version import VERSION_STR
+from kmpc.mpdfactory import MpdConnection
+from kmpc.sync import Sync
 
 # sets the location of the config folder
 configdir = os.path.join(os.path.expanduser('~'),".kmpc")

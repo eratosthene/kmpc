@@ -48,8 +48,9 @@ from kivy.clock import Clock
 from kivy.lang import Builder
 
 # import our local modules
-from kmpc.extra import KmpcHelpers,MpdConnection
+from kmpc.extra import KmpcHelpers
 from kmpc.version import VERSION, VERSION_STR
+from kmpc.mpdfactory import MpdConnection
 
 # sets the location of the config folder
 configdir = os.path.join(os.path.expanduser('~'),".kmpc")
