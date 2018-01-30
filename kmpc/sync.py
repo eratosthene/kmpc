@@ -15,6 +15,8 @@ from twisted.internet.defer import Deferred,DeferredList
 
 from kivy.logger import Logger
 
+Helpers=KmpcHelpers()
+
 class Sync(object):
 
     def __init__(self,config,runparts=[],outputto=None):
@@ -39,6 +41,7 @@ class Sync(object):
         self.updating=False
         self.updatedone=False
         self.modulesdone=False
+        self.ratingsdone=False
         if callable(outputto):
             self.outputto=outputto
         else:
@@ -76,9 +79,7 @@ class Sync(object):
         Logger.debug('Sync: update done and playlist updated')
         self.updatedone=True
         from twisted.internet import reactor
-        # only if all modules have run
-        if self.modulesdone:
-            if not self.kivy: reactor.stop()
+        if not self.kivy and self.check_stop(): print "REACTOR STOP"
 
     def is_thread_alive(self):
         if self.thread and self.thread.is_alive(): return True
@@ -114,16 +115,27 @@ class Sync(object):
             d.addErrback(self.errback)
             d.callback(None)
 
+    def check_stop(self):
+        stopit=False
+        if 'music' in self.runparts:
+            # only if update is complete
+            if self.updatedone: stopit=True
+            else: stopit=False
+        elif 'ratings' in self.runparts:
+            # only if ratings are complete
+            if self.ratingsdone: stopit=True
+            else: stopit=False
+        elif self.modulesdone:
+            stopit=True
+        else:
+            stopit=False
+        return stopit
+
     def finalize(self,result):
         Logger.info("Sync: all sync modules run")
         self.modulesdone=True
         from twisted.internet import reactor
-        if 'music' in self.runparts:
-            # only if update is complete
-            if self.updatedone:
-                if not self.kivy: reactor.stop()
-        else:
-            if not self.kivy: reactor.stop()
+        if not self.kivy and self.check_stop(): print "REACTOR STOP"
 
     def errback(self,result):
         Logger.error('Sync: Callback error: {}'.format(result))
@@ -140,11 +152,7 @@ class Sync(object):
         self.localmpd.protocol.playlistclear('root').addErrback(self.localmpd.handle_mpd_error)
         return self.syncmpd.protocol.listplaylist(self.synclist).addCallback(self.build_filelist).addCallback(self.outputto).addCallback(self.finish_filesync).addErrback(self.syncmpd.handle_mpd_error)
 
-#    def pr(self,result):
-#        print format(result)
-
     def build_filelist(self,result):
-        Helpers=KmpcHelpers()
         # write synclist to a temp file, and a hash
         f=io.open(os.path.join(self.tmppath,'rsync.inc'),mode='w',encoding="utf-8")
         for row in result:
@@ -202,3 +210,29 @@ class Sync(object):
         d.addErrback(self.errback)
         d.callback(q)
         return "Done"
+
+    def sync_ratings(self,result):
+        Logger.info("Sync: syncing ratings")
+        return self.syncmpd.protocol.sticker_find('song','','rating').addCallback(self.handle_ratings).addErrback(self.syncmpd.handle_mpd_error)
+
+    def handle_ratings(self,result):
+        callbacks=[]
+        for row in result:
+            uri=Helpers.decodeFileName(row['file'])
+            rating=str(row['sticker'].split('=')[1])
+            callbacks.append(self.localmpd.protocol.sticker_set('song',uri,'rating',rating).addCallback(partial(self.handle_rating_set,uri,rating,True)).addErrback(partial(self.handle_rating_set,uri,rating,False)))
+            callbacks=DeferredList(callbacks)
+            callbacks.addCallback(self.set_ratingsdone)
+
+    def handle_rating_set(self,uri,rating,succ,result):
+        if succ:
+            Logger.debug("Library: successfully set song rating for "+uri)
+        #else:
+        #    Logger.debug("Library: could not set song rating for "+uri)
+
+    def set_ratingsdone(self,result):
+        Logger.debug('Sync: ratings synced from synchost')
+        self.ratingsdone=True
+        from twisted.internet import reactor
+        if not self.kivy and self.check_stop(): print "REACTOR STOP"
+
