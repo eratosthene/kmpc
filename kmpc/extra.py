@@ -106,11 +106,11 @@ class Sync(object):
             callbacks=[]
             d=Deferred()
             for part in self.runparts:
-                d.addCallback(getattr(self,'sync_'+part))
-                #callbacks.append(d.addCallback(getattr(self,'sync_'+part)))
+                #d.addCallback(getattr(self,'sync_'+part))
+                callbacks.append(d.addCallback(getattr(self,'sync_'+part)))
                 #callbacks.append(getattr(self,'sync_'+part))
-            #callbacks = DeferredList(callbacks)
-            #callbacks.addCallback(self.finalize)
+            callbacks = DeferredList(callbacks)
+            callbacks.addCallback(self.finalize)
             #callbacks.addErrback(self.errback)
             #callbacks.callback(None)
             d.addErrback(self.errback)
