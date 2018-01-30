@@ -134,7 +134,7 @@ class Sync(object):
         os.remove(os.path.join(self.tmppath,'rsync.inc'))
         self.localmpd.protocol.update()
 
-    def sync_synclist(self,result):
+    def sync_music(self,result):
         Logger.info("Sync: syncing using playlist ["+self.synclist+"]")
         # clear the local 'root' playlist
         self.localmpd.protocol.playlistclear('root').addErrback(self.localmpd.handle_mpd_error)

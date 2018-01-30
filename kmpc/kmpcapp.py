@@ -798,7 +798,10 @@ class KmpcApp(App):
         if self.args.newconfig:
             sys.exit(0)
         elif self.args.sync:
-            s=Sync(self.config,['synclist'])
+            if self.args.sync=='all':
+                s=Sync(self.config,['music','ratings','fanart'])
+            else:
+                s=Sync(self.config,[self.args.sync])
             sys.exit(0)
         else:
             return KmpcInterface(self.config)

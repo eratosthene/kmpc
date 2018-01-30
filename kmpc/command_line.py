@@ -29,7 +29,7 @@ def do_args():
     return args
 
 def main_app():
-    parser.add_argument("--sync",help="run the 'sync' function and exit",action="store_true")
+    parser.add_argument("--sync",help="run the 'sync' function with the chosen module and exit",choices=['all','music','fanart','ratings'])
     args=do_args()
     from kmpc import kmpcapp
     kmpcapp.KmpcApp(args).run()
