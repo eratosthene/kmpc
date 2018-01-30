@@ -106,18 +106,15 @@ class Sync(object):
             callbacks=[]
             d=Deferred()
             for part in self.runparts:
-                #d.addCallback(getattr(self,'sync_'+part))
                 callbacks.append(d.addCallback(getattr(self,'sync_'+part)))
-                #callbacks.append(getattr(self,'sync_'+part))
             callbacks = DeferredList(callbacks)
             callbacks.addCallback(self.finalize)
-            #callbacks.addErrback(self.errback)
-            #callbacks.callback(None)
             d.addErrback(self.errback)
             d.callback(None)
 
     def finalize(self,result):
         from twisted.internet import reactor
+        # wait until update is complete
         if not self.kivy:
             print "REACTOR STOP"
             #reactor.stop()
