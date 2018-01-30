@@ -42,6 +42,7 @@ class Sync(object):
         self.filelist={}
         self.updating=False
         self.updatedone=False
+        self.modulesdone=False
         if callable(outputto):
             self.outputto=outputto
         else:
@@ -58,7 +59,7 @@ class Sync(object):
 
     def mpd_idle_handler(self,result):
         for s in result:
-            Logger.info('MPDIdleHandler: Changed '+format(s))
+            Logger.debug('MPDIdleHandler: Changed '+format(s))
             if format(s)=='update':
                 self.localmpd.protocol.status().addCallback(self.handle_update)
 
@@ -78,6 +79,10 @@ class Sync(object):
     def set_updatedone(self,result):
         Logger.debug('Sync: update done and playlist updated')
         self.updatedone=True
+        from twisted.internet import reactor
+        # only if all modules have run
+        if self.modulesdone:
+            if not self.kivy: reactor.stop()
 
     def is_thread_alive(self):
         if self.thread and self.thread.is_alive(): return True
@@ -113,11 +118,12 @@ class Sync(object):
             d.callback(None)
 
     def finalize(self,result):
+        Logger.info("Sync: all sync modules run")
+        self.modulesdone=True
         from twisted.internet import reactor
-        # wait until update is complete
-        if not self.kivy:
-            print "REACTOR STOP"
-            #reactor.stop()
+        # only if update is complete
+        if self.updatedone:
+            if not self.kivy: reactor.stop()
 
     def errback(self,result):
         Logger.error('Sync: Callback error: {}'.format(result))
