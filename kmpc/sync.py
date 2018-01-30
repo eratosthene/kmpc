@@ -42,6 +42,7 @@ class Sync(object):
         self.updatedone=False
         self.modulesdone=False
         self.ratingsdone=False
+        self.runatend=None
         if callable(outputto):
             self.outputto=outputto
         else:
@@ -54,7 +55,12 @@ class Sync(object):
         self.syncmpd=MpdConnection(self.config,self.synchost,self.syncmpdport,None,[self.init_sync_mpd],True)
         if not reactor.running:
             self.kivy=False
+            self.runatend=self.reactor_stop
             reactor.run()
+
+    def reactor_stop(self):
+        from twisted.internet import reactor
+        if not self.kivy: reactor.stop() # if this runs twice we get an unhandled exception
 
     def mpd_idle_handler(self,result):
         for s in result:
@@ -78,8 +84,7 @@ class Sync(object):
     def set_updatedone(self,result):
         Logger.debug('Sync: update done and playlist updated')
         self.updatedone=True
-        from twisted.internet import reactor
-        if not self.kivy and self.check_stop(): reactor.stop()
+        if self.check_stop() and callable(self.runatend): self.runatend()
 
     def is_thread_alive(self):
         if self.thread and self.thread.is_alive(): return True
@@ -112,30 +117,36 @@ class Sync(object):
                 callbacks.append(d.addCallback(getattr(self,'sync_'+part)))
             callbacks = DeferredList(callbacks)
             callbacks.addCallback(self.finalize)
-            d.addErrback(self.errback)
+            callbacks.addErrback(self.errback)
             d.callback(None)
 
     def check_stop(self):
-        stopit=False
-        if 'music' in self.runparts:
-            # only if update is complete
-            if self.updatedone: stopit=True
-            else: stopit=False
-        elif 'ratings' in self.runparts:
-            # only if ratings are complete
-            if self.ratingsdone: stopit=True
-            else: stopit=False
-        elif self.modulesdone:
-            stopit=True
-        else:
+        try:
             stopit=False
-        return stopit
+            if 'music' in self.runparts:
+                # only if update is complete
+                if self.updatedone: stopit=True
+                else: stopit=False
+            elif 'ratings' in self.runparts:
+                # only if ratings are complete
+                if self.ratingsdone: stopit=True
+                else: stopit=False
+            elif self.modulesdone:
+                stopit=True
+            else:
+                stopit=False
+            return stopit
+        except Exception as e:
+            Logger.error("check_stop: "+format(e))
+            return False
 
     def finalize(self,result):
         Logger.info("Sync: all sync modules run")
-        self.modulesdone=True
-        from twisted.internet import reactor
-        if not self.kivy and self.check_stop(): reactor.stop()
+        try:
+            self.modulesdone=True
+            if self.check_stop() and callable(self.runatend): self.runatend()
+        except Exception as e:
+            print "finalize EXCEPTION: "+format(e)
 
     def errback(self,result):
         Logger.error('Sync: Callback error: {}'.format(result))
@@ -213,24 +224,55 @@ class Sync(object):
 
     def sync_ratings(self,result):
         Logger.info("Sync: syncing ratings")
-        return self.syncmpd.protocol.sticker_find('song','','rating').addCallback(self.handle_ratings).addErrback(self.syncmpd.handle_mpd_error)
+        try:
+            return self.localmpd.protocol.sticker_find('song','','rating').addCallback(self.handle_export_ratings).addErrback(self.errback)
+        except Exception as e:
+            print "sync_ratings EXCEPTION: "+format(e)
 
-    def handle_ratings(self,result):
-        callbacks=[]
-        for row in result:
-            uri=Helpers.decodeFileName(row['file'])
-            rating=str(row['sticker'].split('=')[1])
-            callbacks.append(self.localmpd.protocol.sticker_set('song',uri,'rating',rating).addCallback(partial(self.handle_rating_set,uri,rating,True)).addErrback(partial(self.handle_rating_set,uri,rating,False)))
-        callbacks=DeferredList(callbacks)
-        callbacks.addCallback(self.set_ratingsdone)
+    def handle_export_ratings(self,result):
+        Logger.debug("Sync: handle_export_ratings")
+        try:
+            callbacks=[]
+            for row in result:
+                uri=Helpers.decodeFileName(row['file'])
+                rating=str(row['sticker'].split('=')[1])
+                callbacks.append(self.syncmpd.protocol.sticker_set('song',uri,'rating',rating).addCallback(partial(self.handle_rating_set,'export',uri,rating,True)).addErrback(partial(self.handle_rating_set,'export',uri,rating,False)))
+            callbacks=DeferredList(callbacks)
+            callbacks.addCallback(self.import_ratings)
+            return callbacks
+        except Exception as e:
+            print "handle_export_ratings EXCEPTION: "+format(e)
 
-    def handle_rating_set(self,uri,rating,succ,result):
+    def import_ratings(self,result):
+        Logger.debug("Sync: import_ratings")
+        try:
+            return self.syncmpd.protocol.sticker_find('song','','rating').addCallback(self.handle_import_ratings).addErrback(self.errback)
+        except Exception as e:
+            print "import_ratings EXCEPTION: "+format(e)
+
+    def handle_import_ratings(self,result):
+        Logger.debug("Sync: handle_import_ratings")
+        try:
+            callbacks=[]
+            for row in result:
+                uri=Helpers.decodeFileName(row['file'])
+                rating=str(row['sticker'].split('=')[1])
+                callbacks.append(self.localmpd.protocol.sticker_set('song',uri,'rating',rating).addCallback(partial(self.handle_rating_set,'import',uri,rating,True)).addErrback(partial(self.handle_rating_set,'import',uri,rating,False)))
+            callbacks=DeferredList(callbacks)
+            callbacks.addCallback(self.set_ratingsdone)
+            return callbacks
+        except Exception as e:
+            print "handle_import_ratings EXCEPTION: "+format(e)
+
+    def handle_rating_set(self,sdir,uri,rating,succ,result):
         if succ:
-            Logger.debug("Library: successfully set song rating for "+uri)
+            Logger.debug("Library: successfully "+sdir+"ed rating for "+uri)
 
     def set_ratingsdone(self,result):
-        Logger.debug('Sync: ratings synced from synchost')
-        self.ratingsdone=True
-        from twisted.internet import reactor
-        if not self.kivy and self.check_stop(): reactor.stop()
+        Logger.info('Sync: ratings synced with synchost')
+        try:
+            self.ratingsdone=True
+            if self.check_stop() and callable(self.runatend): self.runatend()
+        except Exception as e:
+            print "set_retingsdone EXCEPTION: "+format(e)
 
