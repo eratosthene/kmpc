@@ -1,5 +1,7 @@
 import os
 import io
+from threading import Thread
+from Queue import Queue, Empty
 from functools import partial
 from subprocess import call, PIPE, Popen
 from kmpc.mpd import MPDProtocol
@@ -21,7 +23,7 @@ from kivy.uix.tabbedpanel import TabbedPanelItem
 
 class Sync(object):
 
-    def __init__(self,config,runparts=[]):
+    def __init__(self,config,runparts=[],outputto=None):
         from twisted.internet import reactor
         self.config=config
         self.mpdhost=config.get('mpd','mpdhost')
@@ -36,6 +38,11 @@ class Sync(object):
         self.localconnected=False
         self.syncconnected=False
         self.kivy=True
+        self.thread=None
+        if callable(outputto):
+            self.outputto=outputto
+        else:
+            self.outputto=self.infolog
         Logger.info("Sync: running sync with synchost "+self.synchost)
         if self.mpdhost==self.synchost:
             Logger.warn('Sync: will not sync identical hosts!')
@@ -45,6 +52,17 @@ class Sync(object):
         if not reactor.running:
             self.kivy=False
             reactor.run()
+
+    def is_thread_alive(self):
+        if self.thread and self.thread.is_alive(): return True
+        else: return False
+
+    def infolog(self,q):
+        while self.is_thread_alive():
+            try: line=q.get_nowait()
+            except Empty: pass
+            else: Logger.info("Stdout Log: "+line.rstrip())
+        return self.thread_returncode()
 
     def init_local_mpd(self,conn):
         Logger.debug("init_local_mpd: connected")
@@ -71,17 +89,15 @@ class Sync(object):
 
     def finish_sync(self,result):
         from twisted.internet import reactor
-        Logger.debug("finish_sync: "+result)
+        Logger.info("Sync: cleaning up")
+        # clean up
+        os.remove(os.path.join(self.tmppath,'rsync.inc'))
         if not self.kivy:
             reactor.stop()
 
-    def sync_test(self,result):
-        Logger.debug("Sync: test "+result)
-        return "test done"
-
     def sync_synclist(self,result):
         Logger.info("Sync: syncing using playlist ["+self.synclist+"]")
-        return self.syncmpd.protocol.listplaylist(self.synclist).addCallback(self.build_filelist).addErrback(self.syncmpd.handle_mpd_error)
+        return self.syncmpd.protocol.listplaylist(self.synclist).addCallback(self.build_filelist).addCallback(self.outputto).addErrback(self.syncmpd.handle_mpd_error)
 
     def build_filelist(self,result):
         filelist={}
@@ -104,18 +120,26 @@ class Sync(object):
                         os.remove(Helpers.decodeFileName(apath))
         # remove empty folders
         Helpers.removeEmptyFolders(self.basepath)
+        # queue to hold stdout
+        q = Queue()
         # rsync the files
-        call([
+        p=Popen([
             'rsync',
             '-vruxhm',
             '--files-from='+os.path.join(self.tmppath,'rsync.inc'),
             self.synchost+':'+self.syncbasepath+'/',
             self.basepath
-            ])
+            ],stdout=PIPE,bufsize=1,close_fds=True)
+        self.thread = Thread(target=self.buffer_stdout,args=(p,q))
+        self.thread.daemon = True
+        self.thread.start()
+        return q
 
-        # clean up
-#        os.remove(os.path.join(self.tmppath,'rsync.inc'))
-        return 'synclist done'
+    def buffer_stdout(self,proc,queue):
+        Logger.debug("buffer_stdout: start")
+        for line in iter(proc.stdout.readline, b''):
+            queue.put(line)
+        Logger.debug("buffer_stdout: end")
 
 # this class just returns a debug message for all calls to it to handle bad mpd connections
 class Dummy(object):

@@ -798,7 +798,7 @@ class KmpcApp(App):
         if self.args.newconfig:
             sys.exit(0)
         elif self.args.sync:
-            s=Sync(self.config,['synclist','test'])
+            s=Sync(self.config,['synclist'])
             sys.exit(0)
         else:
             return KmpcInterface(self.config)
