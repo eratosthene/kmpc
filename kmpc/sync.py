@@ -79,7 +79,7 @@ class Sync(object):
         Logger.debug('Sync: update done and playlist updated')
         self.updatedone=True
         from twisted.internet import reactor
-        if not self.kivy and self.check_stop(): print "REACTOR STOP"
+        if not self.kivy and self.check_stop(): reactor.stop()
 
     def is_thread_alive(self):
         if self.thread and self.thread.is_alive(): return True
@@ -135,7 +135,7 @@ class Sync(object):
         Logger.info("Sync: all sync modules run")
         self.modulesdone=True
         from twisted.internet import reactor
-        if not self.kivy and self.check_stop(): print "REACTOR STOP"
+        if not self.kivy and self.check_stop(): reactor.stop()
 
     def errback(self,result):
         Logger.error('Sync: Callback error: {}'.format(result))
@@ -221,18 +221,16 @@ class Sync(object):
             uri=Helpers.decodeFileName(row['file'])
             rating=str(row['sticker'].split('=')[1])
             callbacks.append(self.localmpd.protocol.sticker_set('song',uri,'rating',rating).addCallback(partial(self.handle_rating_set,uri,rating,True)).addErrback(partial(self.handle_rating_set,uri,rating,False)))
-            callbacks=DeferredList(callbacks)
-            callbacks.addCallback(self.set_ratingsdone)
+        callbacks=DeferredList(callbacks)
+        callbacks.addCallback(self.set_ratingsdone)
 
     def handle_rating_set(self,uri,rating,succ,result):
         if succ:
             Logger.debug("Library: successfully set song rating for "+uri)
-        #else:
-        #    Logger.debug("Library: could not set song rating for "+uri)
 
     def set_ratingsdone(self,result):
         Logger.debug('Sync: ratings synced from synchost')
         self.ratingsdone=True
         from twisted.internet import reactor
-        if not self.kivy and self.check_stop(): print "REACTOR STOP"
+        if not self.kivy and self.check_stop(): reactor.stop()
 
