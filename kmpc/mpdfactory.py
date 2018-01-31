@@ -16,7 +16,25 @@ class MPDFactoryProtocol(MPDProtocol):
         if callable(self.factory.connectionLost):
             self.factory.connectionLost(self, reason)
 
-class MPDClientFactory(protocol.ReconnectingClientFactory):
+class MPDClientFactory(protocol.ClientFactory):
+    """Factory for MPDClient."""
+    protocol = MPDFactoryProtocol
+    connectionMade = None
+    connectionLost = None
+
+    def __init__(self,idlehandler=None,**kwargs):
+        self.idlehandler=idlehandler
+
+    def buildProtocol(self, addr):
+        """Hook up protocol and idle handler."""
+        Logger.debug('MPDClientFactory: buildProtocol')
+        protocol = self.protocol()
+        protocol.factory = self
+        if callable(self.idlehandler):
+            protocol.idle_result = self.idlehandler
+        return protocol
+
+class MPDReconnectingClientFactory(protocol.ReconnectingClientFactory):
     """Factory for MPDClient."""
     protocol = MPDFactoryProtocol
     connectionMade = None
@@ -52,7 +70,7 @@ class Dummy(object):
 
 class MpdConnection(object):
 
-    def __init__(self,config,mpdhost,mpdport,idlehandler=None,initconnections=[],quiet=False):
+    def __init__(self,config,mpdhost,mpdport,idlehandler=None,initconnections=[],quiet=False,reconnect=True):
         self.config = config
         self.mpdhost = mpdhost
         self.mpdport = mpdport
@@ -60,7 +78,8 @@ class MpdConnection(object):
         Logger.debug("MpdConnection: connecting to "+mpdhost+":"+mpdport)
         # set up mpd connection
         self.initconnections=initconnections
-        self.factory = MPDClientFactory(idlehandler)
+        if reconnect: self.factory = MPDReconnectingClientFactory(idlehandler)
+        else: self.factory = MPDClientFactory(idlehandler)
         self.factory.connectionMade = self.mpd_connectionMade
         self.factory.connectionLost = self.mpd_connectionLost
         from twisted.internet import reactor

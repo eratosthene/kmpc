@@ -6,13 +6,13 @@ from Queue import Queue, Empty
 from functools import partial
 from subprocess import call, PIPE, Popen
 from kmpc.mpd import MPDProtocol
-from kmpc.mpdfactory import MPDClientFactory,MpdConnection
+from kmpc.mpdfactory import MpdConnection
 from kmpc.extra import KmpcHelpers
 
 import kivy
 kivy.require('1.10.0')
 
-from twisted.internet.defer import Deferred,DeferredList
+from twisted.internet.defer import Deferred,DeferredList,inlineCallbacks
 
 from kivy.logger import Logger
 
@@ -46,8 +46,8 @@ class Sync(object):
         if self.mpdhost==self.synchost:
             Logger.warn('Sync: will not sync identical hosts!')
             return
-        self.localmpd=MpdConnection(self.config,self.mpdhost,self.mpdport,self.mpd_idle_handler,[self.init_local_mpd],True)
-        self.syncmpd=MpdConnection(self.config,self.synchost,self.syncmpdport,None,[self.init_sync_mpd],True)
+        self.localmpd=MpdConnection(self.config,self.mpdhost,self.mpdport,self.mpd_idle_handler,[self.init_local_mpd],True,False)
+        self.syncmpd=MpdConnection(self.config,self.synchost,self.syncmpdport,None,[self.init_sync_mpd],True,False)
         self.d = Deferred()
         self.d2 = Deferred()
         self.d3 = Deferred()
@@ -59,7 +59,7 @@ class Sync(object):
             self.callbacks.append(self.d2)
         if 'fanart' in runparts:
             self.callbacks.append(self.d.addCallbacks(self.sync_fanart,self.errback))
-            self.callbacks.append(self.d.addCallbacks(self.output_to,self.errback))
+#            self.callbacks.append(self.d.addCallbacks(self.output_to,self.errback))
             self.callbacks.append(self.d.addCallbacks(self.finish_fanart_sync,self.errback))
         if 'ratings' in runparts:
             self.callbacks.append(self.d.addCallbacks(self.sync_ratings,self.errback))
@@ -78,13 +78,17 @@ class Sync(object):
         Logger.debug("Sync: callbacks done: "+format(result))
         if not self.kivy: reactor.stop()
 
+    @inlineCallbacks
     def output_to(self,q):
         Logger.debug("infolog: started")
         while self.is_thread_alive():
             try: line=q.get_nowait()
-            except Empty: pass
-            else: Logger.info("Stdout Log: "+line.rstrip())
-        return True
+            except Empty:
+                yield None
+            else:
+                q.task_done()
+                yield Logger.info("Stdout Log: "+line.rstrip())
+        #return True
 
     def show_ratings_progress(self,done,total):
         print(done,'of',total,end='\r')
@@ -133,7 +137,9 @@ class Sync(object):
         self.thread = Thread(target=self.buffer_stdout,args=(p,q))
         self.thread.daemon = True
         self.thread.start()
-        return q
+        return self.output_to(q)
+        #return q.join()
+#        return q
 
     def finish_fanart_sync(self,result):
         self.print_line("Fanart synced from synchost")
@@ -271,10 +277,8 @@ class Sync(object):
         Logger.error('Sync: Callback error: {}'.format(result))
 
     def buffer_stdout(self,proc,queue):
-    #def buffer_stdout(self,proc):
         Logger.debug("buffer_stdout: start")
         for line in iter(proc.stdout.readline, b''):
             queue.put(line)
-#            self.print_line(line)
         Logger.debug("buffer_stdout: end")
 
