@@ -8,23 +8,26 @@ from kivy.logger import Logger
 from kivy.app import App
 from kivy.factory import Factory
 
-from kmpc.extra import OutlineTabbedPanelItem
+from kmpc.extra import OutlineTabbedPanelItem,OutlineLabel
 from kmpc.sync import Sync
 
 class GuiSync(Sync):
 
+    def __init__(self,popup,config,runparts=[]):
+        self.popup=popup
+        super(self.__class__,self).__init__(config,runparts)
+
     def run_at_end(self,result):
         #super(self.__class__,self).run_at_end(result)
+        self.popup.dismiss()
         App.get_running_app().root.ids.system_tab.syncPopup.dismiss()
 
-#    def output_to(self,q):
-#        super(self.__class__,self).output_to(q)
-
-#    def print_line(self,line):
-#        super(self.__class__,self).print_line(line)
-
-#    def show_ratings_progress(self,done,total):
-#        super(self.__class__,self).show_ratings_progress(done,total)
+    def print_line(self,line):
+        super(self.__class__,self).print_line(line)
+        l=OutlineLabel(text=line.rstrip(),size_hint=(None,None),font_size='12sp',halign='left')
+        l.bind(texture_size=l.setter('size'))
+        self.popup.ids.layout.add_widget(l)
+        self.popup.ids.sv.scroll_to(l)
 
 class SystemTabbedPanelItem(OutlineTabbedPanelItem):
     """The System tab, for internal functions."""
@@ -37,7 +40,24 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
         self.syncPopup.open()
 
     def sync_fanart(self):
-        GuiSync(self.config,'fanart')
+        stdoutPopup=Factory.StdoutPopup()
+        stdoutPopup.open()
+        GuiSync(stdoutPopup,self.config,['fanart'])
+
+    def sync_music(self):
+        stdoutPopup=Factory.StdoutPopup()
+        stdoutPopup.open()
+        GuiSync(stdoutPopup,self.config,['music'])
+
+    def sync_ratings(self):
+        stdoutPopup=Factory.StdoutPopup()
+        stdoutPopup.open()
+        GuiSync(stdoutPopup,self.config,['ratings'])
+
+    def sync_all(self):
+        stdoutPopup=Factory.StdoutPopup()
+        stdoutPopup.open()
+        GuiSync(stdoutPopup,self.config,['music','fanart','ratings'])
 
     def update(self):
         """Runs the 'updatecommand' from the config file."""
