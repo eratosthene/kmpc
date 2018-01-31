@@ -52,7 +52,7 @@ class Sync(object):
             self.callbacks.append(self.d.addCallbacks(self.sync_music,self.errback))
             self.callbacks.append(self.d.addCallbacks(self.build_filelist,self.errback))
             self.callbacks.append(self.d.addCallbacks(self.cleanup_music_sync,self.errback))
-            self.callbacks.append(self.d2)
+            self.callbacks.append(self.d2.addErrback(self.errback))
         if 'fanart' in runparts:
             self.callbacks.append(self.d.addCallbacks(self.sync_fanart,self.errback))
             self.callbacks.append(self.d.addCallbacks(self.finish_fanart_sync,self.errback))
@@ -61,7 +61,7 @@ class Sync(object):
             self.callbacks.append(self.d.addCallbacks(self.handle_export_ratings,self.errback))
             self.callbacks.append(self.d.addCallbacks(self.import_ratings,self.errback))
             self.callbacks.append(self.d.addCallbacks(self.handle_import_ratings,self.errback))
-            self.callbacks.append(self.d3)
+            self.callbacks.append(self.d3.addErrback(self.errback))
         if not reactor.running:
             self.kivy=False
             reactor.run()
@@ -99,8 +99,8 @@ class Sync(object):
         if self.localconnected and self.syncconnected:
             self.print_line("Beginning sync process")
             dlist=DeferredList(self.callbacks,consumeErrors=True)
-            dlist.addCallback(self.disconnect)
-            dlist.addCallback(self.run_at_end)
+            dlist.addCallbacks(self.disconnect,self.errback)
+            dlist.addCallbacks(self.run_at_end,self.errback)
             self.d.callback('BEGIN')
 
     def disconnect(self,result):
@@ -150,7 +150,7 @@ class Sync(object):
             cb.append(self.syncmpd.protocol.sticker_set('song',uri,'rating',rating).addBoth(partial(self.handle_rating_set,'Export',uri,rating,i,total)))
             i=i+1
         udl=DeferredList(cb,consumeErrors=True)
-        return udl.addCallback(self.finish_export_ratings)
+        return udl.addCallbacks(self.finish_export_ratings,self.errback)
 
     def finish_export_ratings(self,result):
         Logger.debug("Sync: finish_export_ratings")
@@ -173,7 +173,7 @@ class Sync(object):
             cb.append(self.localmpd.protocol.sticker_set('song',uri,'rating',rating).addBoth(partial(self.handle_rating_set,'Import',uri,rating,i,total)))
             i=i+1
         udl=DeferredList(cb,consumeErrors=True)
-        return udl.addCallback(self.finish_import_ratings)
+        return udl.addCallbacks(self.finish_import_ratings,self.errback)
 
     def finish_import_ratings(self,result):
         Logger.debug("Sync: finish_import_ratings")
@@ -239,7 +239,7 @@ class Sync(object):
         for s in result:
             if format(s)=='update':
                 Logger.debug('mpd_idle_handler: Changed '+format(s))
-                self.localmpd.protocol.status().addCallback(self.handle_update)
+                self.localmpd.protocol.status().addCallbacks(self.handle_update,self.errback)
 
     def handle_update(self,result):
         if 'updating_db' not in result:
@@ -248,7 +248,7 @@ class Sync(object):
             for k in sorted(self.filelist.keys()):
                 cb.append(self.localmpd.protocol.playlistadd('root',k))
             udl=DeferredList(cb,consumeErrors=True)
-            udl.addCallback(self.finish_update)
+            udl.addCallbacks(self.finish_update,self.errback)
         return True
 
     def finish_update(self,result):

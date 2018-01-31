@@ -76,6 +76,7 @@ class KmpcInterface(TabbedPanel):
         self.ocolor=0
         self.settingsPopup=Factory.SettingsPopup()
         self.config=config
+        self.do_idle_handler=True
         #install twisted reactor to interface with mpd
         install_twisted_reactor()
         global mainmpdconnection
@@ -686,31 +687,33 @@ class KmpcInterface(TabbedPanel):
         mainmpdconnection.protocol.subscribe('kmpc')
 
     def mpd_idle_handler(self,result):
-        # notify various subsystems based on what changed
-        for s in result:
-            Logger.info('mpd_idle_handler: Changed '+format(s))
-            if format(s) == 'playlist':
-                # playlist was changed, ask mpd for playlist info
-                mainmpdconnection.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
-                # force a reload of nextsong if playlist changes
-                self.nextsong = None
-                mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
-            elif format(s) == 'player':
-                # player was changed, ask mpd for player status
-                mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
-            elif format(s) == 'sticker':
-                # song rating sticker was changed, ask mpd for current song rating
-                mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
-                mainmpdconnection.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
-            elif format(s) == 'options':
-                # some playback option was changed, ask mpd for player status
-                mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
-            elif format(s) == 'message':
-                # an mpd message was received, ask mpd what it was
-                mainmpdconnection.protocol.readmessages().addCallback(self.handle_mpd_message).addErrback(self.handle_mpd_error)
-            else:
-                # default if none of the above, ask mpd for player status
-                mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
+        # global flag for disabling during sync
+        if self.do_idle_handler:
+            # notify various subsystems based on what changed
+            for s in result:
+                Logger.info('mpd_idle_handler: Changed '+format(s))
+                if format(s) == 'playlist':
+                    # playlist was changed, ask mpd for playlist info
+                    mainmpdconnection.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
+                    # force a reload of nextsong if playlist changes
+                    self.nextsong = None
+                    mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
+                elif format(s) == 'player':
+                    # player was changed, ask mpd for player status
+                    mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
+                elif format(s) == 'sticker':
+                    # song rating sticker was changed, ask mpd for current song rating
+                    mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
+                    mainmpdconnection.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
+                elif format(s) == 'options':
+                    # some playback option was changed, ask mpd for player status
+                    mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
+                elif format(s) == 'message':
+                    # an mpd message was received, ask mpd what it was
+                    mainmpdconnection.protocol.readmessages().addCallback(self.handle_mpd_message).addErrback(self.handle_mpd_error)
+                else:
+                    # default if none of the above, ask mpd for player status
+                    mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
 
 class KmpcApp(App):
     """The overall app class, builds the main interface widget."""
