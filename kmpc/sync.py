@@ -67,6 +67,7 @@ class Sync(object):
             self.callbacks.append(self.d.addCallbacks(self.import_ratings,self.errback))
             self.callbacks.append(self.d.addCallbacks(self.handle_import_ratings,self.errback))
             self.callbacks.append(self.d3)
+        self.callbacks.append(self.d.addCallbacks(self.disconnect,self.errback))
         if not reactor.running:
             self.kivy=False
             reactor.run()
@@ -108,6 +109,15 @@ class Sync(object):
             dlist=DeferredList(self.callbacks,consumeErrors=True)
             dlist.addCallback(self.run_at_end)
             self.d.callback('BEGIN')
+
+    def disconnect(self,result):
+        self.print_line("Disconnecting from synchost")
+        try:
+            self.localmpd.reactor.disconnect()
+            self.syncmpd.reactor.disconnect()
+        except Exception as e:
+            Logger.debug("Exception: "+format(e))
+        return True
 
 #### fanart sync functions
     def sync_fanart(self,result):
@@ -219,9 +229,9 @@ class Sync(object):
             self.synchost+':'+self.syncbasepath+'/',
             self.basepath
             ],stdout=PIPE,bufsize=1,close_fds=True)
-        self.thread = Thread(target=self.buffer_stdout,args=(p,q))
-        self.thread.daemon = True
-        self.thread.start()
+#        self.thread = Thread(target=self.buffer_stdout,args=(p,q))
+#        self.thread.daemon = True
+#        self.thread.start()
         return q
 
     def cleanup_music_sync(self,result):
@@ -261,8 +271,10 @@ class Sync(object):
         Logger.error('Sync: Callback error: {}'.format(result))
 
     def buffer_stdout(self,proc,queue):
+    #def buffer_stdout(self,proc):
         Logger.debug("buffer_stdout: start")
         for line in iter(proc.stdout.readline, b''):
             queue.put(line)
+#            self.print_line(line)
         Logger.debug("buffer_stdout: end")
 

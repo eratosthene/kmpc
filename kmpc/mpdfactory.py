@@ -64,7 +64,7 @@ class MpdConnection(object):
         self.factory.connectionMade = self.mpd_connectionMade
         self.factory.connectionLost = self.mpd_connectionLost
         from twisted.internet import reactor
-        reactor.connectTCP(mpdhost, int(mpdport), self.factory)
+        self.reactor=reactor.connectTCP(mpdhost, int(mpdport), self.factory)
         self.noprotocol=Dummy()
 
     # this part handles calls to protocol when it hasn't been set up yet or is incorrectly specified in config

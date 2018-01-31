@@ -9,6 +9,22 @@ from kivy.app import App
 from kivy.factory import Factory
 
 from kmpc.extra import OutlineTabbedPanelItem
+from kmpc.sync import Sync
+
+class GuiSync(Sync):
+
+    def run_at_end(self,result):
+        #super(self.__class__,self).run_at_end(result)
+        App.get_running_app().root.ids.system_tab.syncPopup.dismiss()
+
+    def output_to(self,q):
+        super(self.__class__,self).output_to(q)
+
+    def print_line(self,line):
+        super(self.__class__,self).print_line(line)
+
+    def show_ratings_progress(self,done,total):
+        super(self.__class__,self).show_ratings_progress(done,total)
 
 class SystemTabbedPanelItem(OutlineTabbedPanelItem):
     """The System tab, for internal functions."""
@@ -20,9 +36,8 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
     def sync_popup(self):
         self.syncPopup.open()
 
-    def printit(self,result):
-        """An internal debugging function. Probably shouldn't ever be used."""
-        print format(result)
+    def sync_fanart(self):
+        GuiSync(self.config,'fanart')
 
     def update(self):
         """Runs the 'updatecommand' from the config file."""
