@@ -107,6 +107,8 @@ class ManagerInterface(TabbedPanel):
         musicbrainzngs.set_useragent("kmpcmanager",VERSION_STR,'https://github.com/eratosthene/kmpc')
         self.fanarturl="http://webservice.fanart.tv/v3/music/"
         self.api_key="406b2a5af85c14b819c1c6332354b313"
+        #install twisted reactor to interface with mpd
+        install_twisted_reactor()
         global mainmpdconnection
         mainmpdconnection=MpdConnection(self.config,self.config.get('sync','synchost'),self.config.get('sync','syncmpdport'),None,[self.init_mpd])
 
