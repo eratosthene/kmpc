@@ -42,7 +42,7 @@ class Sync(object):
         self.callbacks=[]
         self.pltotal=0
         self.pldone=0
-        Logger.info("Sync: running sync with synchost "+self.synchost+" with modules "+format(runparts))
+        self.print_line("Running sync with synchost "+self.synchost+" with modules "+format(runparts))
         if self.mpdhost==self.synchost:
             Logger.warn('Sync: will not sync identical hosts!')
             return
@@ -88,6 +88,9 @@ class Sync(object):
     def show_ratings_progress(self,done,total):
         print(done,'of',total,end='\r')
 
+    def print_line(self,line):
+        Logger.info("Sync: "+line)
+
 #### overall operation functions
     def init_local_mpd(self,conn):
         Logger.debug("init_local_mpd: connected")
@@ -101,14 +104,14 @@ class Sync(object):
 
     def do_sync(self):
         if self.localconnected and self.syncconnected:
-            Logger.info("Sync: beginning sync process")
+            self.print_line("Beginning sync process")
             dlist=DeferredList(self.callbacks,consumeErrors=True)
             dlist.addCallback(self.run_at_end)
             self.d.callback('BEGIN')
 
 #### fanart sync functions
     def sync_fanart(self,result):
-        Logger.info("Sync: syncing fanart")
+        self.print_line("Syncing fanart")
         q = Queue()
         # rsync the files
         p=Popen([
@@ -123,12 +126,12 @@ class Sync(object):
         return q
 
     def finish_fanart_sync(self,result):
-        Logger.info("Sync: fanart synced from synchost")
+        self.print_line("Fanart synced from synchost")
         return True
 
 #### ratings sync functions
     def sync_ratings(self,result):
-        Logger.info("Sync: syncing ratings")
+        self.print_line("Syncing ratings")
         return self.localmpd.protocol.sticker_find('song','','rating')
 
     def handle_export_ratings(self,result):
@@ -179,7 +182,7 @@ class Sync(object):
 
 #### music sync functions
     def sync_music(self,result):
-        Logger.info("Sync: syncing using playlist ["+self.synclist+"]")
+        self.print_line("Syncing music using playlist ["+self.synclist+"]")
         # clear the local 'root' playlist
         self.localmpd.protocol.playlistclear('root').addErrback(self.localmpd.handle_mpd_error)
         return self.syncmpd.protocol.listplaylist(self.synclist)
@@ -222,7 +225,7 @@ class Sync(object):
         return q
 
     def cleanup_music_sync(self,result):
-        Logger.info("Sync: cleaning up")
+        self.print_line("Cleaning up temp files and updating mpd database")
         # clean up
         os.remove(os.path.join(self.tmppath,'rsync.inc'))
         self.localmpd.protocol.update()
@@ -245,7 +248,7 @@ class Sync(object):
         return True
 
     def finish_update(self,result):
-        Logger.info("Sync: music synced and playlist updated")
+        self.print_line("Music synced and playlist updated")
         self.d2.callback(True)
         return True
 
