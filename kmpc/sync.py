@@ -42,6 +42,7 @@ class Sync(object):
         self.updatedone=False
         self.modulesdone=False
         self.ratingsdone=False
+        self.fanartdone=False
         self.finished=False
         Logger.info("Sync: running sync with synchost "+self.synchost+" with modules "+format(runparts))
         if self.mpdhost==self.synchost:
@@ -55,22 +56,26 @@ class Sync(object):
 
     def runatend(self):
         from twisted.internet import reactor
+        #print "RUNATEND"
         if not self.finished:
+            #print "NOTFINISHED"
             self.finished=True
             if not self.kivy:
+                #print "REACTOR STOP"
                 reactor.stop() # if this runs twice we get an unhandled exception
-            else:
-                print "ALREADYFINISHED"
+        #else:
+            #print "ALREADYFINISHED"
 
     def mpd_idle_handler(self,result):
         for s in result:
-            Logger.debug('MPDIdleHandler: Changed '+format(s))
+            Logger.debug('mpd_idle_handler: Changed '+format(s))
             if format(s)=='update':
                 self.localmpd.protocol.status().addCallback(self.handle_update)
 
     def handle_update(self,result):
         if 'updating_db' in result:
             self.updating=True
+            #print "SET UPDATING TRUE"
         else:
             if self.updating:
                 # this is where tasks that must wait til after update db go
@@ -79,12 +84,14 @@ class Sync(object):
                     callbacks.append(self.localmpd.protocol.playlistadd('root',k).addErrback(self.localmpd.handle_mpd_error))
                 callbacks=DeferredList(callbacks)
                 callbacks.addCallback(self.set_updatedone)
-            self.updating=False
+                callbacks.callback(0)
 
     def set_updatedone(self,result):
-        Logger.debug('Sync: update done and playlist updated')
+        Logger.info('Sync: update done and playlist updated')
+        self.updating=False
+        #print "SET UPDATING FALSE"
         self.updatedone=True
-        if self.check_stop() and callable(self.runatend): self.runatend()
+        if self.check_stop(): self.runatend()
 
     def is_thread_alive(self):
         if self.thread and self.thread.is_alive(): return True
@@ -121,25 +128,27 @@ class Sync(object):
             d.callback(None)
 
     def check_stop(self):
-        stopit=False
+        stopit=self.modulesdone
+        #print "MODULESDONE: "+format(stopit)
+        if 'ratings' in self.runparts:
+            # only if ratings are complete
+            stopit=stopit and self.ratingsdone
+            #print "RATINGSDONE: "+format(stopit)
+        if 'fanart' in self.runparts:
+            # only if fanart sync is complete
+            stopit=stopit and self.fanartdone
+            #print "FANARTDONE: "+format(stopit)
         if 'music' in self.runparts:
             # only if update is complete
-            if self.updatedone: stopit=True
-            else: stopit=False
-        elif 'ratings' in self.runparts:
-            # only if ratings are complete
-            if self.ratingsdone: stopit=True
-            else: stopit=False
-        elif self.modulesdone:
-            stopit=True
-        else:
-            stopit=False
+            stopit=stopit and self.updatedone
+            #print "MUSICDONE: "+format(stopit)
+        #print "RETURNING "+format(stopit)
         return stopit
 
     def finalize(self,result):
         Logger.info("Sync: all sync modules run")
         self.modulesdone=True
-        if self.check_stop() and callable(self.runatend): self.runatend()
+        if self.check_stop(): self.runatend()
 
     def errback(self,result):
         Logger.error('Sync: Callback error: {}'.format(result))
@@ -211,9 +220,15 @@ class Sync(object):
         self.thread.start()
         d=Deferred()
         d.addCallback(self.outputto)
+        d.addCallback(self.finish_fanart_sync)
         d.addErrback(self.errback)
         d.callback(q)
         return "Done"
+
+    def finish_fanart_sync(self,result):
+        Logger.info("Sync: fanart synced from synchost")
+        self.fanartdone=True
+        if self.check_stop(): self.runatend()
 
     def sync_ratings(self,result):
         Logger.info("Sync: syncing ratings")
@@ -247,10 +262,11 @@ class Sync(object):
 
     def handle_rating_set(self,sdir,uri,rating,succ,result):
         if succ:
-            Logger.debug("Library: successfully "+sdir+"ed rating for "+uri)
+            Logger.debug("handle_rating_set: successfully "+sdir+"ed rating for "+uri)
 
     def set_ratingsdone(self,result):
         Logger.info('Sync: ratings synced with synchost')
         self.ratingsdone=True
-        if self.check_stop() and callable(self.runatend): self.runatend()
+        self.localmpd.protocol.update()
+        if self.check_stop(): self.runatend()
 

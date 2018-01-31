@@ -688,7 +688,7 @@ class KmpcInterface(TabbedPanel):
     def mpd_idle_handler(self,result):
         # notify various subsystems based on what changed
         for s in result:
-            Logger.info('MPDIdleHandler: Changed '+format(s))
+            Logger.info('mpd_idle_handler: Changed '+format(s))
             if format(s) == 'playlist':
                 # playlist was changed, ask mpd for playlist info
                 mainmpdconnection.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
@@ -801,7 +801,7 @@ class KmpcApp(App):
             sys.exit(0)
         elif self.args.sync:
             if self.args.sync=='all':
-                s=Sync(self.config,['music','ratings','fanart'])
+                s=Sync(self.config,['music','fanart','ratings'])
             else:
                 s=Sync(self.config,[self.args.sync])
             sys.exit(0)
