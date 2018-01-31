@@ -9,7 +9,7 @@ from kmpc.extra import KmpcHelpers
 import kivy
 kivy.require('1.10.0')
 
-from twisted.internet import protocol,reactor
+from twisted.internet import protocol
 from twisted.internet.defer import Deferred,DeferredList,inlineCallbacks
 
 from kivy.logger import Logger
@@ -19,6 +19,7 @@ Helpers=KmpcHelpers()
 class Sync(object):
 
     def __init__(self,config,runparts=[]):
+        from twisted.internet import reactor
         self.config=config
         self.mpdhost=config.get('mpd','mpdhost')
         self.mpdport=config.get('mpd','mpdport')
@@ -67,6 +68,7 @@ class Sync(object):
 
 #### override these when subclassing
     def run_at_end(self,result):
+        from twisted.internet import reactor
         Logger.debug("Sync: callbacks done: "+format(result))
         if not self.kivy: reactor.stop()
         #if not self.kivy: self.pline("REACTOR STOP")
@@ -113,6 +115,7 @@ class Sync(object):
 
 #### fanart sync functions
     def sync_fanart(self,result):
+        from twisted.internet import reactor
         self.print_line("Syncing fanart")
         # rsync the files
         cmdline=[
@@ -189,6 +192,7 @@ class Sync(object):
         return self.syncmpd.protocol.listplaylist(self.synclist)
 
     def build_filelist(self,result):
+        from twisted.internet import reactor
         Logger.debug("build_filelist: writing file/hash")
         # write synclist to a temp file, and a hash
         f=io.open(os.path.join(self.tmppath,'rsync.inc'),mode='w',encoding="utf-8")
