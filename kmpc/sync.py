@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import io
 from threading import Thread
@@ -39,6 +40,8 @@ class Sync(object):
         self.thread=None
         self.filelist={}
         self.callbacks=[]
+        self.pltotal=0
+        self.pldone=0
         Logger.info("Sync: running sync with synchost "+self.synchost+" with modules "+format(runparts))
         if self.mpdhost==self.synchost:
             Logger.warn('Sync: will not sync identical hosts!')
@@ -81,6 +84,9 @@ class Sync(object):
             except Empty: pass
             else: Logger.info("Stdout Log: "+line.rstrip())
         return True
+
+    def show_ratings_progress(self,done,total):
+        print(done,'of',total,end='\r')
 
 #### overall operation functions
     def init_local_mpd(self,conn):
@@ -128,10 +134,14 @@ class Sync(object):
     def handle_export_ratings(self,result):
         Logger.debug("Sync: handle_export_ratings")
         cb=[]
-        for row in result:
+        i=1
+        rlist=list(result)
+        total=len(rlist)
+        for row in rlist:
             uri=Helpers.decodeFileName(row['file'])
             rating=str(row['sticker'].split('=')[1])
-            cb.append(self.syncmpd.protocol.sticker_set('song',uri,'rating',rating).addCallback(partial(self.handle_rating_set,'export',uri,rating,True)).addErrback(partial(self.handle_rating_set,'export',uri,rating,False)))
+            cb.append(self.syncmpd.protocol.sticker_set('song',uri,'rating',rating).addBoth(partial(self.handle_rating_set,'export',uri,rating,i,total)))
+            i=i+1
         udl=DeferredList(cb,consumeErrors=True)
         return udl.addCallback(self.finish_export_ratings)
 
@@ -146,10 +156,14 @@ class Sync(object):
     def handle_import_ratings(self,result):
         Logger.debug("Sync: handle_import_ratings")
         cb=[]
-        for row in result:
+        i=1
+        rlist=list(result)
+        total=len(rlist)
+        for row in rlist:
             uri=Helpers.decodeFileName(row['file'])
             rating=str(row['sticker'].split('=')[1])
-            cb.append(self.localmpd.protocol.sticker_set('song',uri,'rating',rating).addCallback(partial(self.handle_rating_set,'import',uri,rating,True)).addErrback(partial(self.handle_rating_set,'import',uri,rating,False)))
+            cb.append(self.localmpd.protocol.sticker_set('song',uri,'rating',rating).addBoth(partial(self.handle_rating_set,'import',uri,rating,i,total)))
+            i=i+1
         udl=DeferredList(cb,consumeErrors=True)
         return udl.addCallback(self.finish_import_ratings)
 
@@ -158,9 +172,8 @@ class Sync(object):
         self.d3.callback(True)
         return True
 
-    def handle_rating_set(self,sdir,uri,rating,succ,result):
-        # eventually this will be to handle a percent finished-type thing
-        pass
+    def handle_rating_set(self,sdir,uri,rating,done,total,result):
+        self.show_ratings_progress(done,total)
 #        if succ:
 #            Logger.debug("handle_rating_set: successfully "+sdir+"ed rating for "+uri)
 
@@ -249,5 +262,4 @@ class Sync(object):
         for line in iter(proc.stdout.readline, b''):
             queue.put(line)
         Logger.debug("buffer_stdout: end")
-
 
