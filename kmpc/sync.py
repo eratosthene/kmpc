@@ -38,12 +38,6 @@ class Sync(object):
         self.kivy=True
         self.thread=None
         self.filelist={}
-        self.updating=False
-        self.updatedone=False
-        self.modulesdone=False
-        self.ratingsdone=False
-        self.fanartdone=False
-        self.finished=False
         self.callbacks=[]
         Logger.info("Sync: running sync with synchost "+self.synchost+" with modules "+format(runparts))
         if self.mpdhost==self.synchost:
@@ -75,17 +69,10 @@ class Sync(object):
             reactor.run()
 
 #### override these when subclassing
-    def runatend(self):
+    def run_at_end(self,result):
         from twisted.internet import reactor
-        #print "RUNATEND"
-        if not self.finished:
-            #print "NOTFINISHED"
-            self.finished=True
-            if not self.kivy:
-                #print "REACTOR STOP"
-                reactor.stop() # if this runs twice we get an unhandled exception
-        #else:
-            #print "ALREADYFINISHED"
+        Logger.debug("Sync: callbacks done: "+format(result))
+        if not self.kivy: reactor.stop()
 
     def output_to(self,q):
         Logger.debug("infolog: started")
@@ -110,19 +97,8 @@ class Sync(object):
         if self.localconnected and self.syncconnected:
             Logger.info("Sync: beginning sync process")
             dlist=DeferredList(self.callbacks,consumeErrors=True)
-            dlist.addCallback(self.finishup)
+            dlist.addCallback(self.run_at_end)
             self.d.callback('BEGIN')
-#            callbacks=[]
-#            d=Deferred()
-#            for part in self.runparts:
-#                callbacks.append(d.addCallback(getattr(self,'sync_'+part)))
-#            callbacks = DeferredList(callbacks)
-#            callbacks.addCallback(self.finalize)
-#            callbacks.addErrback(self.errback)
-#            d.callback(None)
-
-    def finishup(self,result):
-        print format(result)
 
 #### fanart sync functions
     def sync_fanart(self,result):
@@ -138,24 +114,16 @@ class Sync(object):
         self.thread = Thread(target=self.buffer_stdout,args=(p,q))
         self.thread.daemon = True
         self.thread.start()
-        #self.dfanart=Deferred()
-        #d.addCallback(self.output_to)
-        #d.addCallback(self.finish_fanart_sync)
-        #d.addErrback(self.errback)
-        #d.callback(q)
         return q
 
     def finish_fanart_sync(self,result):
         Logger.info("Sync: fanart synced from synchost")
         return True
-#        self.fanartdone=True
-#        if self.check_stop(): self.runatend()
 
 #### ratings sync functions
     def sync_ratings(self,result):
         Logger.info("Sync: syncing ratings")
         return self.localmpd.protocol.sticker_find('song','','rating')
-        #return self.localmpd.protocol.sticker_find('song','','rating').addCallback(self.handle_export_ratings).addErrback(self.errback)
 
     def handle_export_ratings(self,result):
         Logger.debug("Sync: handle_export_ratings")
@@ -169,29 +137,21 @@ class Sync(object):
 
     def finish_export_ratings(self,result):
         Logger.debug("Sync: finish_export_ratings")
-        #self.d3.callback(True)
         return True
 
     def import_ratings(self,result):
         Logger.debug("Sync: import_ratings")
         return self.syncmpd.protocol.sticker_find('song','','rating')
-        #return self.syncmpd.protocol.sticker_find('song','','rating').addCallback(self.handle_import_ratings).addErrback(self.errback)
 
     def handle_import_ratings(self,result):
         Logger.debug("Sync: handle_import_ratings")
-#        callbacks=[]
         cb=[]
         for row in result:
             uri=Helpers.decodeFileName(row['file'])
             rating=str(row['sticker'].split('=')[1])
-#            callbacks.append(self.localmpd.protocol.sticker_set('song',uri,'rating',rating).addCallback(partial(self.handle_rating_set,'import',uri,rating,True)).addErrback(partial(self.handle_rating_set,'import',uri,rating,False)))
             cb.append(self.localmpd.protocol.sticker_set('song',uri,'rating',rating).addCallback(partial(self.handle_rating_set,'import',uri,rating,True)).addErrback(partial(self.handle_rating_set,'import',uri,rating,False)))
-        #callbacks=DeferredList(callbacks)
-        #callbacks.addCallback(self.set_ratingsdone)
         udl=DeferredList(cb,consumeErrors=True)
         return udl.addCallback(self.finish_import_ratings)
-        #return callbacks
-        #return True
 
     def finish_import_ratings(self,result):
         Logger.debug("Sync: finish_import_ratings")
@@ -199,14 +159,10 @@ class Sync(object):
         return True
 
     def handle_rating_set(self,sdir,uri,rating,succ,result):
-        if succ:
-            Logger.debug("handle_rating_set: successfully "+sdir+"ed rating for "+uri)
-
-    def set_ratingsdone(self,result):
-        Logger.info('Sync: ratings synced with synchost')
-        self.ratingsdone=True
-        self.localmpd.protocol.update()
-        if self.check_stop(): self.runatend()
+        # eventually this will be to handle a percent finished-type thing
+        pass
+#        if succ:
+#            Logger.debug("handle_rating_set: successfully "+sdir+"ed rating for "+uri)
 
 #### music sync functions
     def sync_music(self,result):
@@ -214,7 +170,6 @@ class Sync(object):
         # clear the local 'root' playlist
         self.localmpd.protocol.playlistclear('root').addErrback(self.localmpd.handle_mpd_error)
         return self.syncmpd.protocol.listplaylist(self.synclist)
-        #return self.syncmpd.protocol.listplaylist(self.synclist).addCallback(self.build_filelist).addCallback(self.output_to).addCallback(self.finish_filesync).addErrback(self.syncmpd.handle_mpd_error)
 
     def build_filelist(self,result):
         Logger.debug("build_filelist: writing file/hash")
@@ -277,58 +232,14 @@ class Sync(object):
         return True
 
     def finish_update(self,result):
-        print "FINISHUPDATE"
+        Logger.info("Sync: music synced and playlist updated")
         self.d2.callback(True)
         return True
-
-    def old_handle_update(self,result):
-        if 'updating_db' in result:
-            self.updating=True
-            #print "SET UPDATING TRUE"
-        else:
-            if self.updating:
-                # this is where tasks that must wait til after update db go
-                callbacks=[]
-                for k in sorted(self.filelist.keys()):
-                    callbacks.append(self.localmpd.protocol.playlistadd('root',k).addErrback(self.localmpd.handle_mpd_error))
-                callbacks=DeferredList(callbacks)
-                callbacks.addCallback(self.set_updatedone)
-                callbacks.callback(0)
-
-    def set_updatedone(self,result):
-        Logger.info('Sync: update done and playlist updated')
-        self.updating=False
-        #print "SET UPDATING FALSE"
-        self.updatedone=True
-        #if self.check_stop(): self.runatend()
-
-#    def finalize(self,result):
-#        Logger.info("Sync: all sync modules run")
-#        self.modulesdone=True
-#        if self.check_stop(): self.runatend()
 
 #### helper functions
     def is_thread_alive(self):
         if self.thread and self.thread.is_alive(): return True
         else: return False
-
-    def check_stop(self):
-        stopit=self.modulesdone
-        #print "MODULESDONE: "+format(stopit)
-        if 'ratings' in self.runparts:
-            # only if ratings are complete
-            stopit=stopit and self.ratingsdone
-            #print "RATINGSDONE: "+format(stopit)
-        if 'fanart' in self.runparts:
-            # only if fanart sync is complete
-            stopit=stopit and self.fanartdone
-            #print "FANARTDONE: "+format(stopit)
-        if 'music' in self.runparts:
-            # only if update is complete
-            stopit=stopit and self.updatedone
-            #print "MUSICDONE: "+format(stopit)
-        #print "RETURNING "+format(stopit)
-        return stopit
 
     def errback(self,result):
         Logger.error('Sync: Callback error: {}'.format(result))
