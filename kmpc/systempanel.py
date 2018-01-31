@@ -17,14 +17,14 @@ class GuiSync(Sync):
         #super(self.__class__,self).run_at_end(result)
         App.get_running_app().root.ids.system_tab.syncPopup.dismiss()
 
-    def output_to(self,q):
-        super(self.__class__,self).output_to(q)
+#    def output_to(self,q):
+#        super(self.__class__,self).output_to(q)
 
-    def print_line(self,line):
-        super(self.__class__,self).print_line(line)
+#    def print_line(self,line):
+#        super(self.__class__,self).print_line(line)
 
-    def show_ratings_progress(self,done,total):
-        super(self.__class__,self).show_ratings_progress(done,total)
+#    def show_ratings_progress(self,done,total):
+#        super(self.__class__,self).show_ratings_progress(done,total)
 
 class SystemTabbedPanelItem(OutlineTabbedPanelItem):
     """The System tab, for internal functions."""

@@ -1,10 +1,7 @@
 from __future__ import print_function
 import os
 import io
-from threading import Thread
-from Queue import Queue, Empty
 from functools import partial
-from subprocess import call, PIPE, Popen
 from kmpc.mpd import MPDProtocol
 from kmpc.mpdfactory import MpdConnection
 from kmpc.extra import KmpcHelpers
@@ -12,6 +9,7 @@ from kmpc.extra import KmpcHelpers
 import kivy
 kivy.require('1.10.0')
 
+from twisted.internet import protocol,reactor
 from twisted.internet.defer import Deferred,DeferredList,inlineCallbacks
 
 from kivy.logger import Logger
@@ -21,7 +19,6 @@ Helpers=KmpcHelpers()
 class Sync(object):
 
     def __init__(self,config,runparts=[]):
-        from twisted.internet import reactor
         self.config=config
         self.mpdhost=config.get('mpd','mpdhost')
         self.mpdport=config.get('mpd','mpdport')
@@ -37,7 +34,6 @@ class Sync(object):
         self.localconnected=False
         self.syncconnected=False
         self.kivy=True
-        self.thread=None
         self.filelist={}
         self.callbacks=[]
         self.pltotal=0
@@ -54,12 +50,10 @@ class Sync(object):
         if 'music' in runparts:
             self.callbacks.append(self.d.addCallbacks(self.sync_music,self.errback))
             self.callbacks.append(self.d.addCallbacks(self.build_filelist,self.errback))
-            self.callbacks.append(self.d.addCallbacks(self.output_to,self.errback))
             self.callbacks.append(self.d.addCallbacks(self.cleanup_music_sync,self.errback))
             self.callbacks.append(self.d2)
         if 'fanart' in runparts:
             self.callbacks.append(self.d.addCallbacks(self.sync_fanart,self.errback))
-#            self.callbacks.append(self.d.addCallbacks(self.output_to,self.errback))
             self.callbacks.append(self.d.addCallbacks(self.finish_fanart_sync,self.errback))
         if 'ratings' in runparts:
             self.callbacks.append(self.d.addCallbacks(self.sync_ratings,self.errback))
@@ -67,34 +61,27 @@ class Sync(object):
             self.callbacks.append(self.d.addCallbacks(self.import_ratings,self.errback))
             self.callbacks.append(self.d.addCallbacks(self.handle_import_ratings,self.errback))
             self.callbacks.append(self.d3)
-        self.callbacks.append(self.d.addCallbacks(self.disconnect,self.errback))
         if not reactor.running:
             self.kivy=False
             reactor.run()
 
 #### override these when subclassing
     def run_at_end(self,result):
-        from twisted.internet import reactor
         Logger.debug("Sync: callbacks done: "+format(result))
         if not self.kivy: reactor.stop()
-
-    @inlineCallbacks
-    def output_to(self,q):
-        Logger.debug("infolog: started")
-        while self.is_thread_alive():
-            try: line=q.get_nowait()
-            except Empty:
-                yield None
-            else:
-                q.task_done()
-                yield Logger.info("Stdout Log: "+line.rstrip())
-        #return True
+        #if not self.kivy: self.pline("REACTOR STOP")
 
     def show_ratings_progress(self,done,total):
         print(done,'of',total,end='\r')
 
     def print_line(self,line):
         Logger.info("Sync: "+line)
+
+    def pline(self,line):
+        Logger.warn('pline: '+format(line))
+
+    def errback(self,result):
+        Logger.error('Sync: Callback error: {}'.format(result))
 
 #### overall operation functions
     def init_local_mpd(self,conn):
@@ -111,6 +98,7 @@ class Sync(object):
         if self.localconnected and self.syncconnected:
             self.print_line("Beginning sync process")
             dlist=DeferredList(self.callbacks,consumeErrors=True)
+            dlist.addCallback(self.disconnect)
             dlist.addCallback(self.run_at_end)
             self.d.callback('BEGIN')
 
@@ -126,20 +114,17 @@ class Sync(object):
 #### fanart sync functions
     def sync_fanart(self,result):
         self.print_line("Syncing fanart")
-        q = Queue()
         # rsync the files
-        p=Popen([
+        cmdline=[
             'rsync',
             '-vruxhm',
             self.synchost+':'+self.syncfanartpath+'/',
             self.fanartpath
-            ],stdout=PIPE,bufsize=1,close_fds=True)
-        self.thread = Thread(target=self.buffer_stdout,args=(p,q))
-        self.thread.daemon = True
-        self.thread.start()
-        return self.output_to(q)
-        #return q.join()
-#        return q
+            ]
+        pp=Subproc(self.print_line)
+        pp.deferred=Deferred()
+        p=reactor.spawnProcess(pp,cmdline[0],cmdline,{})
+        return pp.deferred
 
     def finish_fanart_sync(self,result):
         self.print_line("Fanart synced from synchost")
@@ -225,20 +210,18 @@ class Sync(object):
         Logger.debug("build_filelist: removing empty folders")
         # remove empty folders
         Helpers.removeEmptyFolders(self.basepath)
-        # queue to hold stdout
-        q = Queue()
         # rsync the files
-        p=Popen([
+        cmdline=[
             'rsync',
             '-vruxhm',
             '--files-from='+os.path.join(self.tmppath,'rsync.inc'),
             self.synchost+':'+self.syncbasepath+'/',
             self.basepath
-            ],stdout=PIPE,bufsize=1,close_fds=True)
-#        self.thread = Thread(target=self.buffer_stdout,args=(p,q))
-#        self.thread.daemon = True
-#        self.thread.start()
-        return q
+            ]
+        pp=Subproc(self.print_line)
+        pp.deferred=Deferred()
+        p=reactor.spawnProcess(pp,cmdline[0],cmdline,{})
+        return pp.deferred
 
     def cleanup_music_sync(self,result):
         self.print_line("Cleaning up temp files and updating mpd database")
@@ -268,17 +251,20 @@ class Sync(object):
         self.d2.callback(True)
         return True
 
-#### helper functions
-    def is_thread_alive(self):
-        if self.thread and self.thread.is_alive(): return True
-        else: return False
+#### class to handle subprocesses
 
-    def errback(self,result):
-        Logger.error('Sync: Callback error: {}'.format(result))
+class Subproc(protocol.ProcessProtocol):
 
-    def buffer_stdout(self,proc,queue):
-        Logger.debug("buffer_stdout: start")
-        for line in iter(proc.stdout.readline, b''):
-            queue.put(line)
-        Logger.debug("buffer_stdout: end")
+    def __init__(self,printer):
+        self.printer=printer
 
+    def connectionMade(self):
+        Logger.debug("Subproc: spawning subprocess")
+
+    def processExited(self,reason):
+        Logger.debug("Subproc: exited, status: "+format(reason.value.exitCode))
+        self.deferred.callback(True)
+
+    def outReceived(self,data):
+        for line in data.split('\n'):
+            if line: self.printer(line)
