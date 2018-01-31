@@ -19,7 +19,7 @@ Helpers=KmpcHelpers()
 
 class Sync(object):
 
-    def __init__(self,config,runparts=[],outputto=None):
+    def __init__(self,config,runparts=[]):
         from twisted.internet import reactor
         self.config=config
         self.mpdhost=config.get('mpd','mpdhost')
@@ -42,11 +42,7 @@ class Sync(object):
         self.updatedone=False
         self.modulesdone=False
         self.ratingsdone=False
-        self.runatend=None
-        if callable(outputto):
-            self.outputto=outputto
-        else:
-            self.outputto=self.infolog
+        self.finished=False
         Logger.info("Sync: running sync with synchost "+self.synchost+" with modules "+format(runparts))
         if self.mpdhost==self.synchost:
             Logger.warn('Sync: will not sync identical hosts!')
@@ -55,12 +51,16 @@ class Sync(object):
         self.syncmpd=MpdConnection(self.config,self.synchost,self.syncmpdport,None,[self.init_sync_mpd],True)
         if not reactor.running:
             self.kivy=False
-            self.runatend=self.reactor_stop
             reactor.run()
 
-    def reactor_stop(self):
+    def runatend(self):
         from twisted.internet import reactor
-        if not self.kivy: reactor.stop() # if this runs twice we get an unhandled exception
+        if not self.finished:
+            self.finished=True
+            if not self.kivy:
+                reactor.stop() # if this runs twice we get an unhandled exception
+            else:
+                print "ALREADYFINISHED"
 
     def mpd_idle_handler(self,result):
         for s in result:
@@ -90,7 +90,7 @@ class Sync(object):
         if self.thread and self.thread.is_alive(): return True
         else: return False
 
-    def infolog(self,q):
+    def outputto(self,q):
         Logger.debug("infolog: started")
         while self.is_thread_alive():
             try: line=q.get_nowait()
@@ -121,32 +121,25 @@ class Sync(object):
             d.callback(None)
 
     def check_stop(self):
-        try:
+        stopit=False
+        if 'music' in self.runparts:
+            # only if update is complete
+            if self.updatedone: stopit=True
+            else: stopit=False
+        elif 'ratings' in self.runparts:
+            # only if ratings are complete
+            if self.ratingsdone: stopit=True
+            else: stopit=False
+        elif self.modulesdone:
+            stopit=True
+        else:
             stopit=False
-            if 'music' in self.runparts:
-                # only if update is complete
-                if self.updatedone: stopit=True
-                else: stopit=False
-            elif 'ratings' in self.runparts:
-                # only if ratings are complete
-                if self.ratingsdone: stopit=True
-                else: stopit=False
-            elif self.modulesdone:
-                stopit=True
-            else:
-                stopit=False
-            return stopit
-        except Exception as e:
-            Logger.error("check_stop: "+format(e))
-            return False
+        return stopit
 
     def finalize(self,result):
         Logger.info("Sync: all sync modules run")
-        try:
-            self.modulesdone=True
-            if self.check_stop() and callable(self.runatend): self.runatend()
-        except Exception as e:
-            print "finalize EXCEPTION: "+format(e)
+        self.modulesdone=True
+        if self.check_stop() and callable(self.runatend): self.runatend()
 
     def errback(self,result):
         Logger.error('Sync: Callback error: {}'.format(result))
@@ -224,45 +217,33 @@ class Sync(object):
 
     def sync_ratings(self,result):
         Logger.info("Sync: syncing ratings")
-        try:
-            return self.localmpd.protocol.sticker_find('song','','rating').addCallback(self.handle_export_ratings).addErrback(self.errback)
-        except Exception as e:
-            print "sync_ratings EXCEPTION: "+format(e)
+        return self.localmpd.protocol.sticker_find('song','','rating').addCallback(self.handle_export_ratings).addErrback(self.errback)
 
     def handle_export_ratings(self,result):
         Logger.debug("Sync: handle_export_ratings")
-        try:
-            callbacks=[]
-            for row in result:
-                uri=Helpers.decodeFileName(row['file'])
-                rating=str(row['sticker'].split('=')[1])
-                callbacks.append(self.syncmpd.protocol.sticker_set('song',uri,'rating',rating).addCallback(partial(self.handle_rating_set,'export',uri,rating,True)).addErrback(partial(self.handle_rating_set,'export',uri,rating,False)))
-            callbacks=DeferredList(callbacks)
-            callbacks.addCallback(self.import_ratings)
-            return callbacks
-        except Exception as e:
-            print "handle_export_ratings EXCEPTION: "+format(e)
+        callbacks=[]
+        for row in result:
+            uri=Helpers.decodeFileName(row['file'])
+            rating=str(row['sticker'].split('=')[1])
+            callbacks.append(self.syncmpd.protocol.sticker_set('song',uri,'rating',rating).addCallback(partial(self.handle_rating_set,'export',uri,rating,True)).addErrback(partial(self.handle_rating_set,'export',uri,rating,False)))
+        callbacks=DeferredList(callbacks)
+        callbacks.addCallback(self.import_ratings)
+        return callbacks
 
     def import_ratings(self,result):
         Logger.debug("Sync: import_ratings")
-        try:
-            return self.syncmpd.protocol.sticker_find('song','','rating').addCallback(self.handle_import_ratings).addErrback(self.errback)
-        except Exception as e:
-            print "import_ratings EXCEPTION: "+format(e)
+        return self.syncmpd.protocol.sticker_find('song','','rating').addCallback(self.handle_import_ratings).addErrback(self.errback)
 
     def handle_import_ratings(self,result):
         Logger.debug("Sync: handle_import_ratings")
-        try:
-            callbacks=[]
-            for row in result:
-                uri=Helpers.decodeFileName(row['file'])
-                rating=str(row['sticker'].split('=')[1])
-                callbacks.append(self.localmpd.protocol.sticker_set('song',uri,'rating',rating).addCallback(partial(self.handle_rating_set,'import',uri,rating,True)).addErrback(partial(self.handle_rating_set,'import',uri,rating,False)))
-            callbacks=DeferredList(callbacks)
-            callbacks.addCallback(self.set_ratingsdone)
-            return callbacks
-        except Exception as e:
-            print "handle_import_ratings EXCEPTION: "+format(e)
+        callbacks=[]
+        for row in result:
+            uri=Helpers.decodeFileName(row['file'])
+            rating=str(row['sticker'].split('=')[1])
+            callbacks.append(self.localmpd.protocol.sticker_set('song',uri,'rating',rating).addCallback(partial(self.handle_rating_set,'import',uri,rating,True)).addErrback(partial(self.handle_rating_set,'import',uri,rating,False)))
+        callbacks=DeferredList(callbacks)
+        callbacks.addCallback(self.set_ratingsdone)
+        return callbacks
 
     def handle_rating_set(self,sdir,uri,rating,succ,result):
         if succ:
@@ -270,9 +251,6 @@ class Sync(object):
 
     def set_ratingsdone(self,result):
         Logger.info('Sync: ratings synced with synchost')
-        try:
-            self.ratingsdone=True
-            if self.check_stop() and callable(self.runatend): self.runatend()
-        except Exception as e:
-            print "set_retingsdone EXCEPTION: "+format(e)
+        self.ratingsdone=True
+        if self.check_stop() and callable(self.runatend): self.runatend()
 
