@@ -2,8 +2,10 @@ import kivy
 kivy.require('1.10.0')
 from kivy.uix.tabbedpanel import TabbedPanelItem
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
+from kivy.uix.progressbar import ProgressBar
 from kivy.logger import Logger
 from kivy.app import App
 from kivy.factory import Factory
@@ -15,10 +17,10 @@ class GuiSync(Sync):
 
     def __init__(self,popup,config,runparts=[]):
         self.popup=popup
+        self.pb={}
         super(self.__class__,self).__init__(config,runparts)
 
     def run_at_end(self,result):
-        #super(self.__class__,self).run_at_end(result)
         self.popup.dismiss()
         App.get_running_app().root.ids.system_tab.syncPopup.dismiss()
 
@@ -28,6 +30,25 @@ class GuiSync(Sync):
         l.bind(texture_size=l.setter('size'))
         self.popup.ids.layout.add_widget(l)
         self.popup.ids.sv.scroll_to(l)
+
+    def show_ratings_progress(self,done,total,sdir):
+        self.pb[sdir].max=total
+        self.pb[sdir].value=done
+
+    def ratings_incoming(self,sdir):
+        self.pb[sdir] = ProgressBar()
+        #l=BoxLayout(orientation='horizontal',size_hint_y=0.1)
+        #ll=OutlineLabel(text=sdir,size_hint_x=None,font_size='12sp',halign='left')
+        #ll.bind(texture_size=l.setter('size'))
+        #l.add_widget(ll)
+        #l.add_widget(self.pb[sdir])
+        #self.popup.ids.layout.add_widget(l)
+        #self.popup.ids.sv.scroll_to(l)
+        l=OutlineLabel(text=sdir,size_hint=(None,None),font_size='12sp',halign='left')
+        l.bind(texture_size=l.setter('size'))
+        self.popup.ids.layout.add_widget(l)
+        self.popup.ids.layout.add_widget(self.pb[sdir])
+        self.popup.ids.sv.scroll_to(self.pb[sdir])
 
 class SystemTabbedPanelItem(OutlineTabbedPanelItem):
     """The System tab, for internal functions."""

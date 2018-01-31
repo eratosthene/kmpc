@@ -71,16 +71,15 @@ class Sync(object):
         from twisted.internet import reactor
         Logger.debug("Sync: callbacks done: "+format(result))
         if not self.kivy: reactor.stop()
-        #if not self.kivy: self.pline("REACTOR STOP")
 
-    def show_ratings_progress(self,done,total):
+    def show_ratings_progress(self,done,total,sdir):
         print(done,'of',total,end='\r')
+
+    def ratings_incoming(self,sdir):
+        pass
 
     def print_line(self,line):
         Logger.info("Sync: "+line)
-
-    def pline(self,line):
-        Logger.warn('pline: '+format(line))
 
     def errback(self,result):
         Logger.error('Sync: Callback error: {}'.format(result))
@@ -144,10 +143,11 @@ class Sync(object):
         i=1
         rlist=list(result)
         total=len(rlist)
+        self.ratings_incoming('Export')
         for row in rlist:
             uri=Helpers.decodeFileName(row['file'])
             rating=str(row['sticker'].split('=')[1])
-            cb.append(self.syncmpd.protocol.sticker_set('song',uri,'rating',rating).addBoth(partial(self.handle_rating_set,'export',uri,rating,i,total)))
+            cb.append(self.syncmpd.protocol.sticker_set('song',uri,'rating',rating).addBoth(partial(self.handle_rating_set,'Export',uri,rating,i,total)))
             i=i+1
         udl=DeferredList(cb,consumeErrors=True)
         return udl.addCallback(self.finish_export_ratings)
@@ -166,10 +166,11 @@ class Sync(object):
         i=1
         rlist=list(result)
         total=len(rlist)
+        self.ratings_incoming('Import')
         for row in rlist:
             uri=Helpers.decodeFileName(row['file'])
             rating=str(row['sticker'].split('=')[1])
-            cb.append(self.localmpd.protocol.sticker_set('song',uri,'rating',rating).addBoth(partial(self.handle_rating_set,'import',uri,rating,i,total)))
+            cb.append(self.localmpd.protocol.sticker_set('song',uri,'rating',rating).addBoth(partial(self.handle_rating_set,'Import',uri,rating,i,total)))
             i=i+1
         udl=DeferredList(cb,consumeErrors=True)
         return udl.addCallback(self.finish_import_ratings)
@@ -180,7 +181,7 @@ class Sync(object):
         return True
 
     def handle_rating_set(self,sdir,uri,rating,done,total,result):
-        self.show_ratings_progress(done,total)
+        self.show_ratings_progress(done,total,sdir)
 #        if succ:
 #            Logger.debug("handle_rating_set: successfully "+sdir+"ed rating for "+uri)
 
