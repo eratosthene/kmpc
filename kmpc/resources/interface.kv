@@ -135,7 +135,43 @@
                 text: 'White'
                 group: 'outline-color'
                 on_press: app.root.change_outline_color(.7)
-        
+
+<SyncPopup@Popup>:
+    auto_dismiss: True
+    title: 'Sync'
+    size_hint_x: 0.6
+    size_hint_y: 0.8
+    BackdropBoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.5
+            Button:
+                text: 'Fanart'
+                #on_press: root.sync_popup()
+            Button:
+                text: 'Music'
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.5
+            Button:
+                text: 'Ratings'
+            Button:
+                text: 'All'
+
+<SyncWarningPopup@Popup>:
+    title: "Warning"
+    size_hint_x: 0.6
+    size_hint_y: 0.3
+    size_hint_min_y: l.height
+    OutlineLabel:
+        id: l
+        text: "Your mpdhost and synchost config fields are identical, sync is disabled to prevent data corruption."
+        size_hint_y: None
+        text_size: self.width, None
+        height: self.texture_size[1]
+        valign: 'middle'
+
 <AccessoryPopup@Popup>:
     auto_dismiss: False
     title: 'Accessory Power Off'
@@ -185,7 +221,6 @@
         PopMatrix
 
 <SidewaysLabel@OutlineLabel>
-#    text_size: (self.height,self.width)
     valign: 'middle'
     padding_x: '5sp'
     font_size: '18sp'
@@ -249,7 +284,7 @@
                 on_press: root.update()
             Button:
                 text: 'Sync'
-                on_press: root.filesync()
+                on_press: root.sync_popup()
             Button:
                 text: 'Exit'
                 on_press: App.get_running_app().stop()
