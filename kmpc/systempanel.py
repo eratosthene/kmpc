@@ -86,17 +86,27 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
         stdoutPopup.open()
         GuiSync(stdoutPopup,self.config,['music'])
 
-    def sync_ratings(self):
+    def sync_export_ratings(self):
         stdoutPopup=Factory.StdoutPopup()
         stdoutPopup.ids.layout.bind(minimum_height=stdoutPopup.ids.layout.setter('height'))
         stdoutPopup.open()
-        GuiSync(stdoutPopup,self.config,['ratings'])
+        GuiSync(stdoutPopup,self.config,['exportratings'])
+
+    def sync_import_ratings(self):
+        stdoutPopup=Factory.StdoutPopup()
+        stdoutPopup.ids.layout.bind(minimum_height=stdoutPopup.ids.layout.setter('height'))
+        stdoutPopup.open()
+        GuiSync(stdoutPopup,self.config,['importratings'])
 
     def sync_all(self):
         stdoutPopup=Factory.StdoutPopup()
         stdoutPopup.ids.layout.bind(minimum_height=stdoutPopup.ids.layout.setter('height'))
         stdoutPopup.open()
-        GuiSync(stdoutPopup,self.config,['music','fanart','ratings'])
+        if self.config.getboolean('system','exportfirst'):
+            GuiSync(stdoutPopup,self.config,['music','fanart','exportratings','importratings'])
+        else:
+            GuiSync(stdoutPopup,self.config,['music','fanart','importratings','exportratings'])
+
 
     def update_print_line(self,popup,line):
         try:

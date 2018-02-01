@@ -8,6 +8,9 @@ kmpc Change Log
 0.6.3 - 2018-02-??
 ******************
 
+- Split ratings sync into export and import sections to allow running each
+  separately and in a specific order. (`issue #82
+  <https://github.com/eratosthene/kmpc/issues/82>`_)
 - Added new rebootcommand and poweroffcommand fields to config file to control
   what those buttons do.
 - Added output from update command to popup on screen. (`issue #83
