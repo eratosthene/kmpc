@@ -1,4 +1,5 @@
 from subprocess import call
+from functools import partial
 
 import kivy
 kivy.require('1.10.0')
@@ -69,37 +70,40 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
     def __init__(self,**kwargs):
         super(self.__class__,self).__init__(**kwargs)
         self.syncPopup=Factory.SyncPopup()
-        self.updatePopup=Factory.StdoutPopup(title='Update kmpc')
 
     def sync_popup(self):
         self.syncPopup.open()
 
     def sync_fanart(self):
         stdoutPopup=Factory.StdoutPopup()
+        stdoutPopup.ids.layout.bind(minimum_height=stdoutPopup.ids.layout.setter('height'))
         stdoutPopup.open()
         GuiSync(stdoutPopup,self.config,['fanart'])
 
     def sync_music(self):
         stdoutPopup=Factory.StdoutPopup()
+        stdoutPopup.ids.layout.bind(minimum_height=stdoutPopup.ids.layout.setter('height'))
         stdoutPopup.open()
         GuiSync(stdoutPopup,self.config,['music'])
 
     def sync_ratings(self):
         stdoutPopup=Factory.StdoutPopup()
+        stdoutPopup.ids.layout.bind(minimum_height=stdoutPopup.ids.layout.setter('height'))
         stdoutPopup.open()
         GuiSync(stdoutPopup,self.config,['ratings'])
 
     def sync_all(self):
         stdoutPopup=Factory.StdoutPopup()
+        stdoutPopup.ids.layout.bind(minimum_height=stdoutPopup.ids.layout.setter('height'))
         stdoutPopup.open()
         GuiSync(stdoutPopup,self.config,['music','fanart','ratings'])
 
-    def update_print_line(self,line):
+    def update_print_line(self,popup,line):
         try:
             l=OutlineLabel(text=line.rstrip(),size_hint=(None,None),font_size='12sp',halign='left')
             l.bind(texture_size=l.setter('size'))
-            self.updatePopup.ids.layout.add_widget(l)
-            self.updatePopup.ids.sv.scroll_to(l)
+            popup.ids.layout.add_widget(l)
+            popup.ids.sv.scroll_to(l)
             Logger.debug("Update: "+line.rstrip())
         except Exception as e:
             Logger.error("update_print_line: "+format(e))
@@ -108,17 +112,19 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
         """Runs the 'updatecommand' from the config file."""
         Logger.info('System: update')
         from twisted.internet import reactor
-        self.updatePopup.open()
+        updatePopup=Factory.StdoutPopup(title='Update kmpc')
+        updatePopup.ids.layout.bind(minimum_height=updatePopup.ids.layout.setter('height'))
+        updatePopup.open()
         d=Deferred()
         cb=[]
         cmdline=self.config.get('system','updatecommand').split(' ')
-        pp=Subproc(self.update_print_line)
+        pp=Subproc(partial(self.update_print_line,updatePopup))
         pp.deferred=Deferred()
-        pp.deferred.addCallback(self.closeit)
+        pp.deferred.addCallback(partial(self.closeit,updatePopup))
         reactor.spawnProcess(pp,cmdline[0],cmdline,{})
 
-    def closeit(self,r):
-        self.updatePopup.dismiss()
+    def closeit(self,popup,r):
+        popup.dismiss()
 
     def do_reboot(self):
         """Method that reboots the host."""
