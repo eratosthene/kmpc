@@ -5,9 +5,10 @@ kmpc Change Log
 ###############
 
 ******************
-0.6.3 - 2018-02-??
+0.6.3 - 2018-02-01
 ******************
 
+- Fixed a bug in advanced titles parsing.
 - Split ratings sync into export and import sections to allow running each
   separately and in a specific order. (`issue #82
   <https://github.com/eratosthene/kmpc/issues/82>`_)

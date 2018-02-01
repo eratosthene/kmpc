@@ -475,7 +475,7 @@ class KmpcInterface(TabbedPanel):
                     # check to see if album is a single or EP
                     amatch=re.match(r'(.*) (\(single\)|EP)( .*)',result['album'])
                     # check if ' EP' is at the very end of the album title
-                    if not amatch: amatch=re.match(r'(.*) (EP)($)',result['album'])
+                    if not amatch: amatch=re.match(r'(.*) (\(single\)|EP)($)',result['album'])
                     if amatch:
                         special=str(amatch.group(2)).strip("()")
                         Logger.debug("ALBUM: special release: "+special)
