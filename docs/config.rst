@@ -88,6 +88,12 @@ originalyear
 updatecommand
   This is what runs when you press the Update button. Defaults to ``sudo pip
   install -U kmpc``.
+rebootcommand
+  This is what runs when you press the Reboot button. Defaults to ``sudo
+  reboot``.
+poweroffcommand
+  This is what runs when you press the Poweroff button. Defaults to ``sudo
+  poweroff``.
 advancedtitles
   Whether to attempt to parse track and album titles to display them more
   appropriately on the screen. Defaults to ``false``.

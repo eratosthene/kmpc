@@ -8,6 +8,8 @@ kmpc Change Log
 0.6.3 - 2018-02-??
 ******************
 
+- Added new rebootcommand and poweroffcommand fields to config file to control
+  what those buttons do.
 - Added output from update command to popup on screen. (`issue #83
   <https://github.com/eratosthene/kmpc/issues/83>`_)
 - Fixed stdout popups to scroll correctly. (`issue #81
