@@ -12,7 +12,9 @@ from kivy.app import App
 from kivy.factory import Factory
 
 from kmpc.extra import OutlineTabbedPanelItem,OutlineLabel
-from kmpc.sync import Sync
+from kmpc.sync import Sync,Subproc
+
+from twisted.internet.defer import Deferred,DeferredList
 
 class GuiSync(Sync):
 
@@ -67,6 +69,7 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
     def __init__(self,**kwargs):
         super(self.__class__,self).__init__(**kwargs)
         self.syncPopup=Factory.SyncPopup()
+        self.updatePopup=Factory.StdoutPopup(title='Update kmpc')
 
     def sync_popup(self):
         self.syncPopup.open()
@@ -91,10 +94,31 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
         stdoutPopup.open()
         GuiSync(stdoutPopup,self.config,['music','fanart','ratings'])
 
+    def update_print_line(self,line):
+        try:
+            l=OutlineLabel(text=line.rstrip(),size_hint=(None,None),font_size='12sp',halign='left')
+            l.bind(texture_size=l.setter('size'))
+            self.updatePopup.ids.layout.add_widget(l)
+            self.updatePopup.ids.sv.scroll_to(l)
+            Logger.debug("Update: "+line.rstrip())
+        except Exception as e:
+            Logger.error("update_print_line: "+format(e))
+
     def update(self):
         """Runs the 'updatecommand' from the config file."""
         Logger.info('System: update')
-        call(self.config.get('system','updatecommand').split(' '))
+        from twisted.internet import reactor
+        self.updatePopup.open()
+        d=Deferred()
+        cb=[]
+        cmdline=self.config.get('system','updatecommand').split(' ')
+        pp=Subproc(self.update_print_line)
+        pp.deferred=Deferred()
+        pp.deferred.addCallback(self.closeit)
+        reactor.spawnProcess(pp,cmdline[0],cmdline,{})
+
+    def closeit(self,r):
+        self.updatePopup.dismiss()
 
     def do_reboot(self):
         """Method that reboots the host."""

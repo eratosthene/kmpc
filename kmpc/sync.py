@@ -10,7 +10,7 @@ import kivy
 kivy.require('1.10.0')
 
 from twisted.internet import protocol
-from twisted.internet.defer import Deferred,DeferredList,inlineCallbacks
+from twisted.internet.defer import Deferred,DeferredList
 
 from kivy.logger import Logger
 
