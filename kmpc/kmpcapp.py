@@ -749,6 +749,8 @@ class KmpcApp(App):
             'originalyear': '1',
             'advancedtitles': '0',
             'updatecommand': 'sudo pip install -U kmpc',
+            'rebootcommand': 'sudo reboot',
+            'poweroffcommand': 'sudo poweroff'
         })
         config.setdefaults('songratings', {
             'star0': 'Silence',
