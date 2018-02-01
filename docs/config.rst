@@ -85,12 +85,21 @@ rpienable
 originalyear
   Set this to ``true`` to display an mp3's originalyear tag as well as the
   regular year tag. Defaults to ``true``.
-updatecommand
-  This is what runs when you press the Update button. Defaults to ``sudo pip
-  install -U kmpc``.
 advancedtitles
   Whether to attempt to parse track and album titles to display them more
   appropriately on the screen. Defaults to ``false``.
+exportfirst
+  Whether to export ratings before importing them when running Sync All.
+  Defaults to ``true``.
+updatecommand
+  This is what runs when you press the Update button. Defaults to ``sudo pip
+  install -U kmpc``.
+rebootcommand
+  This is what runs when you press the Reboot button. Defaults to ``sudo
+  reboot``.
+poweroffcommand
+  This is what runs when you press the Poweroff button. Defaults to ``sudo
+  poweroff``.
 
 [logs] section
 --------------

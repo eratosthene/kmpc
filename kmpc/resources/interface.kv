@@ -145,7 +145,7 @@
         orientation: 'vertical'
         BoxLayout:
             orientation: 'horizontal'
-            size_hint_y: 0.5
+            size_hint_y: 0.33
             Button:
                 text: 'Fanart'
                 on_press: app.root.ids.system_tab.sync_fanart()
@@ -154,13 +154,17 @@
                 on_press: app.root.ids.system_tab.sync_music()
         BoxLayout:
             orientation: 'horizontal'
-            size_hint_y: 0.5
+            size_hint_y: 0.33
             Button:
-                text: 'Ratings'
-                on_press: app.root.ids.system_tab.sync_ratings()
+                text: 'Export Ratings'
+                on_press: app.root.ids.system_tab.sync_export_ratings()
             Button:
-                text: 'All'
-                on_press: app.root.ids.system_tab.sync_all()
+                text: 'Import Ratings'
+                on_press: app.root.ids.system_tab.sync_import_ratings()
+        Button:
+            size_hint_y: 0.33
+            text: 'All'
+            on_press: app.root.ids.system_tab.sync_all()
 
 <StdoutPopup@Popup>:
     auto_dismiss: False

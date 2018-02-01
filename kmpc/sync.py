@@ -10,7 +10,7 @@ import kivy
 kivy.require('1.10.0')
 
 from twisted.internet import protocol
-from twisted.internet.defer import Deferred,DeferredList,inlineCallbacks
+from twisted.internet.defer import Deferred,DeferredList
 
 from kivy.logger import Logger
 
@@ -48,6 +48,7 @@ class Sync(object):
         self.d = Deferred()
         self.d2 = Deferred()
         self.d3 = Deferred()
+        self.d4 = Deferred()
         if 'music' in runparts:
             self.callbacks.append(self.d.addCallbacks(self.sync_music,self.errback))
             self.callbacks.append(self.d.addCallbacks(self.build_filelist,self.errback))
@@ -56,12 +57,14 @@ class Sync(object):
         if 'fanart' in runparts:
             self.callbacks.append(self.d.addCallbacks(self.sync_fanart,self.errback))
             self.callbacks.append(self.d.addCallbacks(self.finish_fanart_sync,self.errback))
-        if 'ratings' in runparts:
-            self.callbacks.append(self.d.addCallbacks(self.sync_ratings,self.errback))
+        if 'exportratings' in runparts:
+            self.callbacks.append(self.d.addCallbacks(self.sync_export_ratings,self.errback))
             self.callbacks.append(self.d.addCallbacks(self.handle_export_ratings,self.errback))
-            self.callbacks.append(self.d.addCallbacks(self.import_ratings,self.errback))
-            self.callbacks.append(self.d.addCallbacks(self.handle_import_ratings,self.errback))
             self.callbacks.append(self.d3.addErrback(self.errback))
+        if 'importratings' in runparts:
+            self.callbacks.append(self.d.addCallbacks(self.sync_import_ratings,self.errback))
+            self.callbacks.append(self.d.addCallbacks(self.handle_import_ratings,self.errback))
+            self.callbacks.append(self.d4.addErrback(self.errback))
         if not reactor.running:
             self.kivy=False
             reactor.run()
@@ -133,8 +136,8 @@ class Sync(object):
         return True
 
 #### ratings sync functions
-    def sync_ratings(self,result):
-        self.print_line("Syncing ratings")
+    def sync_export_ratings(self,result):
+        self.print_line("Exporting ratings")
         return self.localmpd.protocol.sticker_find('song','','rating')
 
     def handle_export_ratings(self,result):
@@ -154,10 +157,11 @@ class Sync(object):
 
     def finish_export_ratings(self,result):
         Logger.debug("Sync: finish_export_ratings")
+        self.d3.callback(True)
         return True
 
-    def import_ratings(self,result):
-        Logger.debug("Sync: import_ratings")
+    def sync_import_ratings(self,result):
+        self.print_line("Importing ratings")
         return self.syncmpd.protocol.sticker_find('song','','rating')
 
     def handle_import_ratings(self,result):
@@ -177,13 +181,11 @@ class Sync(object):
 
     def finish_import_ratings(self,result):
         Logger.debug("Sync: finish_import_ratings")
-        self.d3.callback(True)
+        self.d4.callback(True)
         return True
 
     def handle_rating_set(self,sdir,uri,rating,done,total,result):
         self.show_ratings_progress(done,total,sdir)
-#        if succ:
-#            Logger.debug("handle_rating_set: successfully "+sdir+"ed rating for "+uri)
 
 #### music sync functions
     def sync_music(self,result):

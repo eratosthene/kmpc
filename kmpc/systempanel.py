@@ -1,4 +1,5 @@
 from subprocess import call
+from functools import partial
 
 import kivy
 kivy.require('1.10.0')
@@ -12,7 +13,9 @@ from kivy.app import App
 from kivy.factory import Factory
 
 from kmpc.extra import OutlineTabbedPanelItem,OutlineLabel
-from kmpc.sync import Sync
+from kmpc.sync import Sync,Subproc
+
+from twisted.internet.defer import Deferred,DeferredList
 
 class GuiSync(Sync):
 
@@ -73,36 +76,73 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
 
     def sync_fanart(self):
         stdoutPopup=Factory.StdoutPopup()
+        stdoutPopup.ids.layout.bind(minimum_height=stdoutPopup.ids.layout.setter('height'))
         stdoutPopup.open()
         GuiSync(stdoutPopup,self.config,['fanart'])
 
     def sync_music(self):
         stdoutPopup=Factory.StdoutPopup()
+        stdoutPopup.ids.layout.bind(minimum_height=stdoutPopup.ids.layout.setter('height'))
         stdoutPopup.open()
         GuiSync(stdoutPopup,self.config,['music'])
 
-    def sync_ratings(self):
+    def sync_export_ratings(self):
         stdoutPopup=Factory.StdoutPopup()
+        stdoutPopup.ids.layout.bind(minimum_height=stdoutPopup.ids.layout.setter('height'))
         stdoutPopup.open()
-        GuiSync(stdoutPopup,self.config,['ratings'])
+        GuiSync(stdoutPopup,self.config,['exportratings'])
+
+    def sync_import_ratings(self):
+        stdoutPopup=Factory.StdoutPopup()
+        stdoutPopup.ids.layout.bind(minimum_height=stdoutPopup.ids.layout.setter('height'))
+        stdoutPopup.open()
+        GuiSync(stdoutPopup,self.config,['importratings'])
 
     def sync_all(self):
         stdoutPopup=Factory.StdoutPopup()
+        stdoutPopup.ids.layout.bind(minimum_height=stdoutPopup.ids.layout.setter('height'))
         stdoutPopup.open()
-        GuiSync(stdoutPopup,self.config,['music','fanart','ratings'])
+        if self.config.getboolean('system','exportfirst'):
+            GuiSync(stdoutPopup,self.config,['music','fanart','exportratings','importratings'])
+        else:
+            GuiSync(stdoutPopup,self.config,['music','fanart','importratings','exportratings'])
+
+
+    def update_print_line(self,popup,line):
+        try:
+            l=OutlineLabel(text=line.rstrip(),size_hint=(None,None),font_size='12sp',halign='left')
+            l.bind(texture_size=l.setter('size'))
+            popup.ids.layout.add_widget(l)
+            popup.ids.sv.scroll_to(l)
+            Logger.debug("Update: "+line.rstrip())
+        except Exception as e:
+            Logger.error("update_print_line: "+format(e))
 
     def update(self):
         """Runs the 'updatecommand' from the config file."""
         Logger.info('System: update')
-        call(self.config.get('system','updatecommand').split(' '))
+        from twisted.internet import reactor
+        updatePopup=Factory.StdoutPopup(title='Update kmpc')
+        updatePopup.ids.layout.bind(minimum_height=updatePopup.ids.layout.setter('height'))
+        updatePopup.open()
+        d=Deferred()
+        cb=[]
+        cmdline=self.config.get('system','updatecommand').split(' ')
+        pp=Subproc(partial(self.update_print_line,updatePopup))
+        pp.deferred=Deferred()
+        pp.deferred.addCallback(partial(self.closeit,updatePopup))
+        reactor.spawnProcess(pp,cmdline[0],cmdline,{})
+
+    def closeit(self,popup,r):
+        popup.dismiss()
 
     def do_reboot(self):
         """Method that reboots the host."""
         Logger.info('System: reboot')
-        call(['sudo','reboot'])
+        call(self.config.get('system','rebootcommand').split(' '))
 
     def do_poweroff(self):
         """Method that shuts down the host."""
         Logger.info('System: poweroff')
-        call(['sudo','poweroff'])
+        call(self.config.get('system','poweroffcommand').split(' '))
 

@@ -475,7 +475,7 @@ class KmpcInterface(TabbedPanel):
                     # check to see if album is a single or EP
                     amatch=re.match(r'(.*) (\(single\)|EP)( .*)',result['album'])
                     # check if ' EP' is at the very end of the album title
-                    if not amatch: amatch=re.match(r'(.*) (EP)($)',result['album'])
+                    if not amatch: amatch=re.match(r'(.*) (\(single\)|EP)($)',result['album'])
                     if amatch:
                         special=str(amatch.group(2)).strip("()")
                         Logger.debug("ALBUM: special release: "+special)
@@ -749,6 +749,9 @@ class KmpcApp(App):
             'originalyear': '1',
             'advancedtitles': '0',
             'updatecommand': 'sudo pip install -U kmpc',
+            'rebootcommand': 'sudo reboot',
+            'poweroffcommand': 'sudo poweroff',
+            'exportfirst': '1',
         })
         config.setdefaults('songratings', {
             'star0': 'Silence',
@@ -804,8 +807,10 @@ class KmpcApp(App):
             sys.exit(0)
         elif self.args.sync:
             if self.args.sync=='all':
-                s=Sync(self.config,['music','fanart','ratings'])
-                #s=Sync(self.config,['fanart','music'])
+                if self.config.getboolean('system','exportfirst'):
+                    s=Sync(self.config,['music','fanart','exportratings','importratings'])
+                else:
+                    s=Sync(self.config,['music','fanart','importratings','exportratings'])
             else:
                 s=Sync(self.config,[self.args.sync])
             sys.exit(0)
