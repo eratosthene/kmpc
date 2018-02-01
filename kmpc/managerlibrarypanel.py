@@ -23,16 +23,13 @@ from pkg_resources import resource_filename
 from kmpc.extra import KmpcHelpers
 import kmpc.kmpcmanager
 
-# sets the location of the config folder
-configdir = os.path.join(os.path.expanduser('~'),".kmpc")
-
 Helpers=KmpcHelpers()
 
 class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
     current_view = {'value': 'root', 'base':'/','info':{'type':'uri'}}
     library_selection = {}
-    rsync_data={}
-    rsync_file=None
+    #rsync_data={}
+    #rsync_file=None
 
     def change_view_type(self,value):
         Logger.info("Library: View changed to "+value)
@@ -239,44 +236,42 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
             Logger.info("Library: could not set song rating for "+self.rv.data[index]['base'])
 
     def generate_list(self,ltype):
-        Logger.info(ltype+': generating with minimum stars '+self.ids.minimum_stars.text)
-        if ltype=='rsync':
-            self.rsync_data={}
-            self.rsync_file=open(os.path.join(configdir,'rsync.inc'),'w')
-        kmpc.kmpcmanager.mainmpdconnection.protocol.listallinfo('/').addCallback(partial(self.generate_list2,ltype)).addErrback(self.handle_mpd_error)
+        Logger.info('generate_list: generating with minimum stars '+self.ids.minimum_stars.text)
+        self.tlist={}
+        kmpc.kmpcmanager.mainmpdconnection.protocol.sticker_find('song','','rating').addCallback(partial(self.generate_play_list,ltype)).addErrback(self.handle_mpd_error)
 
-    def generate_list2(self,ltype,result):
+    def generate_play_list(self,ltype,result):
+        Logger.debug("generate_play_list: "+ltype)
         for row in result:
-            if 'file' in row:
-                uri=row['file']
-                kmpc.kmpcmanager.mainmpdconnection.protocol.sticker_list('song',uri).addCallback(partial(self.list_add_uri,ltype,uri)).addErrback(partial(self.list_add_uri,ltype,uri))
+            rating=row['sticker'].split('=')[1]
+            uri=row['file']
+            if int(rating) >= int(self.ids.minimum_stars.text):
+                Logger.debug("generate_play_list: rating ["+rating+"] file ["+uri+"]")
+                self.tlist[uri]=1
+        if ltype=='playlist':
+            Logger.info("generate_play_list: writing to playlist ["+self.ids.minimum_stars.text+" star or more]")
+            kmpc.kmpcmanager.mainmpdconnection.protocol.playlistclear(self.ids.minimum_stars.text+" star or more").addErrback(self.handle_mpd_error)
+            for k in sorted(self.tlist.keys()):
+                kmpc.kmpcmanager.mainmpdconnection.protocol.playlistadd(self.ids.minimum_stars.text+" star or more",k).addErrback(self.handle_mpd_error)
+        elif ltype=='synclist':
+            kmpc.kmpcmanager.mainmpdconnection.protocol.sticker_find('song','','copy_flag').addCallback(self.generate_sync_list).addErrback(self.handle_mpd_error)
 
-    def list_add_uri(self,ltype,uri,result):
-        docopy = False
-        try:
-            if 'rating' in result:
-                if int(result['rating']) >= int(self.ids.minimum_stars.text):
-                    docopy=True
-            if 'copy_flag' in result:
-                if ltype == 'rsync':
-                    if result['copy_flag'] == 'Y':
-                        docopy=True
-                if result['copy_flag'] == 'N':
-                    docopy=False
-        except:
-            docopy = False
-        if docopy:
-            self.ids.status.text=ltype+': '+uri
-            Logger.debug(ltype+': '+uri)
-            if ltype == 'rsync':
-                wline=uri.encode("UTF-8")
-                self.rsync_file.write(wline+"\n")
-            elif ltype == 'playlist':
-                kmpc.kmpcmanager.mainmpdconnection.protocol.playlistadd(self.ids.minimum_stars.text+" star or more",uri).addErrback(self.handle_mpd_error)
-
-    def write_rsync(self):
-        Logger.info('Rsync: writing to disk')
-        self.rsync_file.close()
+    def generate_sync_list(self,result):
+        for row in result:
+            uri=row['file']
+            if row['sticker'] == 'copy_flag=Y':
+                Logger.debug("generate_sync_list: copy flag adding "+uri)
+                self.tlist[uri]=1
+            else:
+                Logger.debug("generate_sync_list: copy flag removing "+uri)
+                try:
+                    del self.tlist[uri]
+                except KeyError:
+                    pass
+        Logger.info("generate_sync_list: writing to playlist ["+self.config.get('sync','syncplaylist')+"]")
+        kmpc.kmpcmanager.mainmpdconnection.protocol.playlistclear(self.config.get('sync','syncplaylist')).addErrback(self.handle_mpd_error)
+        for k in sorted(self.tlist.keys()):
+            kmpc.kmpcmanager.mainmpdconnection.protocol.playlistadd(self.config.get('sync','syncplaylist'),k).addErrback(self.handle_mpd_error)
 
 class LibraryRecycleBoxLayout(FocusBehavior,LayoutSelectionBehavior,RecycleBoxLayout):
     ''' Adds selection and focus behaviour to the view. '''

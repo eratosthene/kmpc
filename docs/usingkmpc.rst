@@ -274,23 +274,29 @@ Syncing with the synchost
 This is the way I have the system set up at my home. There is a Linux server on
 my local network which contains all of my music (way more than I can fit on the
 128G thumb drive connected to the Pi in my car), indexed by an mpd server
-running on the same box. I use the ``kmpcmanager`` program to create a file
-containing all the files I want to copy to the car (the rsync file). This uses
+running on the same box. I use the ``kmpcmanager`` program to create a playlist
+containing all the files I want to copy to the car (the *synclist*). This uses
 both the star ratings (to set a threshold for the minimum rating to copy) as
 well as another mpd sticker called 'copy_flag'. If 'copy_flag' is 'Y', the file
-is always copied. If 'N', the file is never copied. When the 'Sync' button is
-pressed, the following commands are carried out against the synchost listed in
-the config file:
+is always copied. If 'N', the file is never copied. 
 
-#. The rsync file is copied (via scp) from the synchost to the Pi.
-#. The filesystem on the Pi is walked, and any file not existing in the rsync
-   file is deleted.
-#. All empty directories are deleted.
-#. ``rsync`` is run with the rsync file as input to copy any new/updated files
-   from the synchost to the Pi.
-#. mpd's sticker database is copied to the synchost.
-#. Stickers (song ratings) are merged into the synchost's mpd sticker database.
-#. The synchost's sticker database is copied to the Pi.
-#. Stickers are merged into the Pi's sticker database.
-#. The fanart folder is rsynced from the synchost.
-#. An 'update' command is issued to mpd on the Pi
+When the 'Sync' button is pressed, you can choose between 'Fanart', 'Music',
+'Ratings', or 'All'.
+
+Fanart:
+  #. The entire fanart directory is rsynced from *synchost*:*syncfanartpath* to
+     *fanartpath* on the Pi.
+
+Music:
+  #. The *musicpath* directory on the Pi is walked, and any file not existing in the
+     *synclist* is deleted.
+  #. All empty directories in *musicpath* are deleted.
+  #. ``rsync`` is run with the *synclist* as input to copy any new/updated files
+     from the synchost to the Pi.
+  #. The mpd database is updated.
+  #. All files in the *synclist* are added to a playlist called 'root' on the
+     Pi.
+
+Ratings:
+  #. All song rating stickers are exported from the Pi to the *synchost*.
+  #. All song rating stickers are imported from the *synchost* to the Pi.
