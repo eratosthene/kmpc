@@ -5,6 +5,14 @@ kmpc Change Log
 ###############
 
 ******************
+0.6.2 - 2018-01-31
+******************
+
+- Drastically rewrote sync handling. You can now run each part from the command
+  line or the gui. No longer requires anything but mpd and ssh to work. (`issue
+  #75 <https://github.com/eratosthene/kmpc/issues/75>`_)
+
+******************
 0.6.1 - 2018-01-29
 ******************
 

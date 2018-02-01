@@ -1,5 +1,20 @@
 [
   { "type": "string",
+    "title": "synchost",
+    "desc": "Hostname/IP address of synchost",
+    "section": "sync",
+    "key": "synchost" },
+  { "type": "string",
+    "title": "syncmpdport",
+    "desc": "mpd port of synchost",
+    "section": "sync",
+    "key": "syncmpdport" },
+  { "type": "string",
+    "title": "syncplaylist",
+    "desc": "playlist on synchost to use for sync",
+    "section": "sync",
+    "key": "syncplaylist" },
+  { "type": "string",
     "title": "syncmusicpath",
     "desc": "Path to music files on synchost",
     "section": "sync",
@@ -13,10 +28,5 @@
     "title": "synctmppath",
     "desc": "Path to write temporary files on synchost",
     "section": "sync",
-    "key": "synctmppath" },
-  { "type": "string",
-    "title": "synchost",
-    "desc": "Hostname/IP address of synchost",
-    "section": "sync",
-    "key": "synchost" }
+    "key": "synctmppath" }
 ]
