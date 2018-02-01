@@ -99,10 +99,10 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
     def do_reboot(self):
         """Method that reboots the host."""
         Logger.info('System: reboot')
-        call(['sudo','reboot'])
+        call(self.config.get('system','rebootcommand').split(' '))
 
     def do_poweroff(self):
         """Method that shuts down the host."""
         Logger.info('System: poweroff')
-        call(['sudo','poweroff'])
+        call(self.config.get('system','poweroffcommand').split(' '))
 

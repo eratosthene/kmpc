@@ -18,5 +18,15 @@
     "title": "updatecommand",
     "desc": "What command to run when you press 'Update'",
     "section": "system",
-    "key": "updatecommand" }
+    "key": "updatecommand" },
+  { "type": "string",
+    "title": "rebootcommand",
+    "desc": "What command to run when you press 'Reboot'",
+    "section": "system",
+    "key": "rebootcommand" },
+  { "type": "string",
+    "title": "poweroffcommand",
+    "desc": "What command to run when you press 'Poweroff'",
+    "section": "system",
+    "key": "poweroffcommand" }
 ]
