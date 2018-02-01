@@ -102,7 +102,11 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
         stdoutPopup=Factory.StdoutPopup()
         stdoutPopup.ids.layout.bind(minimum_height=stdoutPopup.ids.layout.setter('height'))
         stdoutPopup.open()
-        GuiSync(stdoutPopup,self.config,['music','fanart','exportratings','importratings'])
+        if self.config.getboolean('system','exportfirst'):
+            GuiSync(stdoutPopup,self.config,['music','fanart','exportratings','importratings'])
+        else:
+            GuiSync(stdoutPopup,self.config,['music','fanart','importratings','exportratings'])
+
 
     def update_print_line(self,popup,line):
         try:

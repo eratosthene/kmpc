@@ -750,7 +750,8 @@ class KmpcApp(App):
             'advancedtitles': '0',
             'updatecommand': 'sudo pip install -U kmpc',
             'rebootcommand': 'sudo reboot',
-            'poweroffcommand': 'sudo poweroff'
+            'poweroffcommand': 'sudo poweroff',
+            'exportfirst': '1',
         })
         config.setdefaults('songratings', {
             'star0': 'Silence',
@@ -806,7 +807,10 @@ class KmpcApp(App):
             sys.exit(0)
         elif self.args.sync:
             if self.args.sync=='all':
-                s=Sync(self.config,['music','fanart','exportratings','importratings'])
+                if self.config.getboolean('system','exportfirst'):
+                    s=Sync(self.config,['music','fanart','exportratings','importratings'])
+                else:
+                    s=Sync(self.config,['music','fanart','importratings','exportratings'])
             else:
                 s=Sync(self.config,[self.args.sync])
             sys.exit(0)
