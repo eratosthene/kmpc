@@ -20,12 +20,13 @@ class KmpcHelpers(object):
         """Method used by library browser to properly format a song row."""
         song = ''
         # check if there is more than one disc and display if so
-        (d1,d2)=rec['disc'].split('/')
-        if int(d2) > 1:
-            song+='(Disc '+'%02d' % int(d1)+') '
+        dd=rec['disc'].split('/')
+        if len(dd)>1:
+            if int(dd[1]) > 1:
+                song+='(Disc '+'%02d' % int(dd[0])+') '
         # sometimes track numbers are like '01/05' (one of five), so drop that second number
-        (t1,t2)=rec['track'].split('/')
-        song+='%02d' % int(t1)+' '
+        tt=rec['track'].split('/')
+        song+='%02d' % int(tt[0])+' '
         # if albumartist is different than track artist, display the track artist
         if rec['artist'] != rec['albumartist']:
             song+=rec['artist']+' - '
