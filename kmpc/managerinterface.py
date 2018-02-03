@@ -11,58 +11,20 @@ kivy.require('1.10.0')
 
 from kivy.support import install_twisted_reactor
 from kivy.logger import Logger
-from kivy.properties import BooleanProperty
 from kivy.network.urlrequest import UrlRequest
 from kivy.uix.tabbedpanel import TabbedPanel
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.behaviors import ButtonBehavior, FocusBehavior
-from kivy.uix.recycleview.layout import LayoutSelectionBehavior
-from kivy.uix.recycleboxlayout import RecycleBoxLayout
-from kivy.uix.recycleview.views import RecycleDataViewBehavior
-from kivy.uix.textinput import TextInput
 from kivy.clock import Clock
 
 # import our local modules
 from kmpc.version import VERSION, VERSION_STR
 from kmpc.extra import KmpcHelpers
 from kmpc.mpdfactory import MpdConnection
+from kmpc.widgets import ArtistRecycleBoxLayout,ArtistRow,UneditTextInput
 
 # sets the location of the config folder
 configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
 Helpers=KmpcHelpers()
-
-class ArtistRecycleBoxLayout(FocusBehavior,LayoutSelectionBehavior,RecycleBoxLayout):
-    ''' Adds selection and focus behaviour to the view. '''
-
-class ArtistRow(RecycleDataViewBehavior,BoxLayout):
-    ''' Add selection support to the Label '''
-    index = None
-    selected = BooleanProperty(False)
-    selectable = BooleanProperty(True)
-
-    def refresh_view_attrs(self, rv, index, data):
-        ''' Catch and handle the view changes '''
-        self.index = index
-        return super(ArtistRow, self).refresh_view_attrs(
-            rv, index, data)
-
-    def on_touch_down(self, touch):
-        ''' Add selection on touch down '''
-        if super(ArtistRow, self).on_touch_down(touch):
-            return True
-        if self.collide_point(*touch.pos) and self.selectable:
-            return self.parent.select_with_touch(self.index, touch)
-
-    def apply_selection(self, rv, index, is_selected):
-        ''' Respond to the selection of items in the view. '''
-        self.selected = is_selected
-        if is_selected:
-            App.get_running_app().root.selected_row=index
-
-class UneditTextInput(TextInput):
-    def insert_text(self, substring, from_undo=False):
-        pass
 
 class ManagerInterface(TabbedPanel):
 

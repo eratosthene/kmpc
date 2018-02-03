@@ -15,6 +15,12 @@ from kivy.graphics import Rectangle
 from kivy.uix.image import Image,AsyncImage
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.properties import ObjectProperty
+from kivy.uix.behaviors import ButtonBehavior, FocusBehavior
+from kivy.uix.recycleview.layout import LayoutSelectionBehavior
+from kivy.uix.recycleboxlayout import RecycleBoxLayout
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
+from kivy.uix.textinput import TextInput
+from kivy.properties import BooleanProperty
 
 class ExtraSlider(Slider):
     """Class that implements some extra stuff on top of a standard slider."""
@@ -70,4 +76,36 @@ class CoverButton(OutlineButton):
         self.font_name = resource_filename(__name__,os.path.join('resources','DejaVuSans-Bold.ttf'))
         with self.canvas.before:
             Rectangle(texture=self.img.texture,pos=self.layout.pos,size=self.layout.size)
+
+class ArtistRecycleBoxLayout(FocusBehavior,LayoutSelectionBehavior,RecycleBoxLayout):
+    ''' Adds selection and focus behaviour to the view. '''
+
+class ArtistRow(RecycleDataViewBehavior,BoxLayout):
+    ''' Add selection support to the Label '''
+    index = None
+    selected = BooleanProperty(False)
+    selectable = BooleanProperty(True)
+
+    def refresh_view_attrs(self, rv, index, data):
+        ''' Catch and handle the view changes '''
+        self.index = index
+        return super(ArtistRow, self).refresh_view_attrs(
+            rv, index, data)
+
+    def on_touch_down(self, touch):
+        ''' Add selection on touch down '''
+        if super(ArtistRow, self).on_touch_down(touch):
+            return True
+        if self.collide_point(*touch.pos) and self.selectable:
+            return self.parent.select_with_touch(self.index, touch)
+
+    def apply_selection(self, rv, index, is_selected):
+        ''' Respond to the selection of items in the view. '''
+        self.selected = is_selected
+        if is_selected:
+            App.get_running_app().root.selected_row=index
+
+class UneditTextInput(TextInput):
+    def insert_text(self, substring, from_undo=False):
+        pass
 
