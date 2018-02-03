@@ -4,6 +4,13 @@
 kmpc Change Log
 ###############
 
+******************
+0.6.4 - 2018-02-??
+******************
+
+Restructured code and resources to break everything into smaller, separate
+files. (`issue #93 <https://github.com/eratosthene/kmpc/issues/93>`_)
+
 ********************
 0.6.3.1 - 2018-02-02
 ********************

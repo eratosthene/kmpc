@@ -12,7 +12,7 @@ from kivy.logger import Logger
 from kivy.app import App
 from kivy.factory import Factory
 
-from kmpc.extra import OutlineTabbedPanelItem,OutlineLabel
+from kmpc.widgets import OutlineTabbedPanelItem,OutlineLabel
 from kmpc.sync import Sync,Subproc
 
 from twisted.internet.defer import Deferred,DeferredList
