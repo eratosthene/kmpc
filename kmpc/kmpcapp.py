@@ -97,18 +97,6 @@ class KmpcApp(App):
 
     def build(self,*args):
         """Instantiates KmpcInterface."""
-        # setup some variables that interface.kv will use
-        # this is necessary to support packaging the app
-        self.normalfont = resource_filename(__name__,os.path.join('resources/fonts','DejaVuSans.ttf'))
-        self.boldfont = resource_filename(__name__,os.path.join('resources/fonts','DejaVuSans-Bold.ttf'))
-        self.fontawesomefont = resource_filename(__name__,os.path.join('resources/fonts','FontAwesome.ttf'))
-        self.buttonnormal = resource_filename(__name__,os.path.join('resources/images','button-normal.png'))
-        self.buttondown = resource_filename(__name__,os.path.join('resources/images','button-down.png'))
-        self.clear = resource_filename(__name__,os.path.join('resources/images','clear.png'))
-        self.backdrop = resource_filename(__name__,os.path.join('resources/images','backdrop.png'))
-        self.listbackdrop = resource_filename(__name__,os.path.join('resources/images','list-backdrop.png'))
-        self.listbackdropselected = resource_filename(__name__,os.path.join('resources/images','list-backdrop-selected.png'))
-        self.trackslidercursor = resource_filename(__name__,os.path.join('resources/images','track-slider-cursor.png'))
         self.version_str=VERSION_STR
         if not os.path.isdir(configdir):
             os.mkdir(configdir)

@@ -1,11 +1,12 @@
 #:kivy 1.10.0
 #:import OutlineLabel kmpc.widgets.OutlineLabel
 #:import LibraryTabbedPanelItem kmpc.librarypanel.LibraryTabbedPanelItem
+#:import listbackdrop kmpc.widgets.listbackdrop
 
 <LibraryBoxLayout@BoxLayout>:
     canvas.before:
         Rectangle:
-            source: app.listbackdrop
+            source: listbackdrop
             size: self.size
             pos: self.pos
 
@@ -16,7 +17,7 @@
 <LibraryRow>:
     canvas.before:
         Rectangle:
-            source: app.listbackdrop
+            source: listbackdrop
             size: self.size
             pos: self.pos
         Color:

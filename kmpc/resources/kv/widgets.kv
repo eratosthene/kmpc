@@ -3,9 +3,16 @@
 #:import OutlineButton kmpc.widgets.OutlineButton
 #:import ClearButton kmpc.widgets.ClearButton
 #:import InfoLargeLabel kmpc.widgets.InfoLargeLabel
+#:import normalfont kmpc.widgets.normalfont
+#:import boldfont kmpc.widgets.boldfont
+#:import fontawesomefont kmpc.widgets.fontawesomefont
+#:import buttonnormal kmpc.widgets.buttonnormal
+#:import buttondown kmpc.widgets.buttondown
+#:import clearimage kmpc.widgets.clearimage
+#:import backdrop kmpc.widgets.backdrop
 
 <OutlineLabel>:
-    font_name: app.boldfont
+    font_name: boldfont
     font_size: '20sp'
     outline_color: [0,0,0]
     outline_width: '1sp'
@@ -13,22 +20,22 @@
 
 <OutlineButton>:
     border: (4,4,4,4)
-    background_normal: app.buttonnormal
-    background_down: app.buttondown
-    font_name: app.normalfont
+    background_normal: buttonnormal
+    background_down: buttondown
+    font_name: normalfont
     font_size: '20sp'
 
 <Button>:
     border: (4,4,4,4)
-    background_normal: app.buttonnormal
-    background_down: app.buttondown
-    font_name: app.normalfont
+    background_normal: buttonnormal
+    background_down: buttondown
+    font_name: normalfont
     font_size: '20sp'
 
 <ClearButton>:
     border: (1,1,1,1)
-    background_normal: app.clear
-    background_down: app.clear
+    background_normal: clearimage
+    background_down: clearimage
 
 <TrackSlider@Slider>:
     OutlineLabel:
@@ -40,22 +47,22 @@
 <BackdropBoxLayout@BoxLayout>:
     canvas.before:
         Rectangle:
-            source: app.backdrop
+            source: backdrop
             size: self.size
             pos: self.pos
 
 <OutlineToggleButton@ToggleButton+OutlineLabel>:
 
 <MediaButton@OutlineButton,MediaToggleButton@ToggleButton+OutlineLabel>:
-    font_name: app.fontawesomefont
+    font_name: fontawesomefont
     font_size: '24sp'
 
 <BrightnessButton@Button+OutlineLabel>
-    font_name: app.fontawesomefont
+    font_name: fontawesomefont
     font_size: '24sp'
     border: (1,1,1,1)
-    background_normal: app.clear
-    background_down: app.clear
+    background_normal: clearimage
+    background_down: clearimage
     canvas.before:
         Clear
         PushMatrix
@@ -79,18 +86,18 @@
         PopMatrix
 
 <SettingsButton@Button+OutlineLabel>
-    font_name: app.fontawesomefont
+    font_name: fontawesomefont
     font_size: '24sp'
     border: (1,1,1,1)
-    background_normal: app.clear
-    background_down: app.clear
+    background_normal: clearimage
+    background_down: clearimage
 
 <InfoLargeLabel>:
     font_size: '40sp'
     text_size: self.width, None
     height: self.texture_size[1]
     halign: 'center'
-    font_name: app.boldfont
+    font_name: boldfont
     canvas.before:
         Color:
             rgba: 0, 0, 0, 0.75

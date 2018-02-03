@@ -6,7 +6,6 @@ import io
 import random
 import socket
 import re
-from pkg_resources import resource_filename
 from functools import partial
 from PIL import Image as PImage
 
@@ -33,7 +32,7 @@ from kivy.support import install_twisted_reactor
 from kmpc.extra import KmpcHelpers
 from kmpc.playlistpanel import PlaylistTabbedPanelItem
 from kmpc.mpdfactory import MpdConnection
-from kmpc.widgets import InfoLargeLabel,CoverButton,ImageButton,ExtraSlider,ClearButton,OutlineLabel
+from kmpc.widgets import InfoLargeLabel,CoverButton,ImageButton,ExtraSlider,ClearButton,OutlineLabel,normalfont,fontawesomefont,backdrop,clearimage
 
 # set the maximum size for cover images, to prevent texture overloading
 max_cover_size=1000
@@ -206,7 +205,7 @@ class KmpcInterface(TabbedPanel):
         self.ids.trackinfo.clear_widgets()
         lbl = OutlineLabel(text="Playback Stopped")
         self.ids.trackinfo.add_widget(lbl)
-        self.ids.player.canvas.before.add(Rectangle(source=resource_filename(__name__,os.path.join("resources/images","backdrop.png")),size=self.ids.player.size,pos=self.ids.player.pos))
+        self.ids.player.canvas.before.add(Rectangle(source=backdrop,size=self.ids.player.size,pos=self.ids.player.pos))
 
     def update_mpd_status(self,result):
         """Callback when mpd status changes."""
@@ -359,7 +358,7 @@ class KmpcInterface(TabbedPanel):
                     self.ids.player.canvas.before.add(Rectangle(source=os.path.join(ab_path,img_path),size=self.ids.player.size,pos=self.ids.player.pos))
                 except:
                     # update the player background with the default backdrop
-                    self.ids.player.canvas.before.add(Rectangle(source=resource_filename(__name__,os.path.join("resources/images","backdrop.png")),size=self.ids.player.size,pos=self.ids.player.pos))
+                    self.ids.player.canvas.before.add(Rectangle(source=backdrop,size=self.ids.player.size,pos=self.ids.player.pos))
                 if os.path.isfile(p):
                     Logger.debug('update_mpd_currentsong: found good file at path '+p)
                     # load up the file to read the tags
@@ -428,7 +427,7 @@ class KmpcInterface(TabbedPanel):
                     if cimg:
                         img=CoverButton(img=cimg,layout=self.ids.album_cover_layout,halign='center')
                     else:
-                        img=CoverButton(img=CoreImage(resource_filename(__name__,os.path.join('resources/images','clear.png'))),layout=self.ids.album_cover_layout,halign='center')
+                        img=CoverButton(img=CoreImage(clearimage),layout=self.ids.album_cover_layout,halign='center')
                     self.ids.album_cover_layout.add_widget(img)
                     # popup the cover large if you press it
                     img.bind(on_press=partial(self.cover_popup,originalyear,year,result['album']))
@@ -485,7 +484,7 @@ class KmpcInterface(TabbedPanel):
                     else:
                         split=False
                     for j, a in enumerate(talbum):
-                        if j>0: lyt2.add_widget(InfoLargeLabel(font_size='50sp',text=u'\u2571',size_hint_x=None,font_name=App.get_running_app().normalfont))
+                        if j>0: lyt2.add_widget(InfoLargeLabel(font_size='50sp',text=u'\u2571',size_hint_x=None,font_name=normalfont))
                         # check to see if album title has any data deliminated by () or []
                         salbum=re.split('[\(\[\]\)]',a)
                         Logger.debug('ALBUM2: '+format(salbum))
@@ -523,7 +522,7 @@ class KmpcInterface(TabbedPanel):
         """Callback for song that has a rating in mpd."""
         Logger.debug('NowPlaying: update_mpd_sticker_rating')
         # make a clear button for the star rating
-        btn = ClearButton(padding_x='10sp',font_name=resource_filename(__name__,os.path.join('resources/fonts','FontAwesome.ttf')),halign='center',valign='middle',markup=True)
+        btn = ClearButton(padding_x='10sp',font_name=fontawesomefont,halign='center',valign='middle',markup=True)
         # look up the correct string for the rating
         btn.text = Helpers.songratings(self.config)[result]['stars']
         # bind the popup for setting rating
@@ -536,7 +535,7 @@ class KmpcInterface(TabbedPanel):
         """Callback for song that has no rating in mpd."""
         Logger.debug('NowPlaying: handle_mpd_no_sticker')
         # make a clear button for the star rating
-        btn = ClearButton(padding_x='10sp',font_name=resource_filename(__name__,os.path.join('resources/fonts','FontAwesome.ttf')),halign='center',valign='middle',markup=True)
+        btn = ClearButton(padding_x='10sp',font_name=fontawesomefont,halign='center',valign='middle',markup=True)
         # set the string to the circled question mark icon
         btn.text = u"\uf29c"
         # bind the popup for setting rating
@@ -606,7 +605,7 @@ class KmpcInterface(TabbedPanel):
         # loop from 0-10
         for r in list(range(0,11)):
             # make a button
-            btn=Button(font_name=resource_filename(__name__,os.path.join('resources/fonts','FontAwesome.ttf')))
+            btn=Button(font_name=fontawesomefont)
             # look up the correct string for the rating
             btn.text=Helpers.songratings(self.config)[str(r)]['stars']
             # set some widget variables
