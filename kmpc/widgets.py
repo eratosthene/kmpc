@@ -23,6 +23,8 @@ from kivy.uix.textinput import TextInput
 from kivy.properties import BooleanProperty
 
 normalfont = resource_filename(__name__,os.path.join('resources/fonts','DejaVuSans.ttf'))
+boldfont = resource_filename(__name__,os.path.join('resources/fonts','DejaVuSans-Bold.ttf'))
+fontawesomefont = resource_filename(__name__,os.path.join('resources/fonts','FontAwesome.ttf'))
 
 class ExtraSlider(Slider):
     """Class that implements some extra stuff on top of a standard slider."""

@@ -99,8 +99,6 @@ class KmpcApp(App):
         """Instantiates KmpcInterface."""
         # setup some variables that interface.kv will use
         # this is necessary to support packaging the app
-        self.boldfont = resource_filename(__name__,os.path.join('resources/fonts','DejaVuSans-Bold.ttf'))
-        self.fontawesomefont = resource_filename(__name__,os.path.join('resources/fonts','FontAwesome.ttf'))
         self.buttonnormal = resource_filename(__name__,os.path.join('resources/images','button-normal.png'))
         self.buttondown = resource_filename(__name__,os.path.join('resources/images','button-down.png'))
         self.clear = resource_filename(__name__,os.path.join('resources/images','clear.png'))

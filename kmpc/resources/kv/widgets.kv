@@ -4,9 +4,11 @@
 #:import ClearButton kmpc.widgets.ClearButton
 #:import InfoLargeLabel kmpc.widgets.InfoLargeLabel
 #:import normalfont kmpc.widgets.normalfont
+#:import boldfont kmpc.widgets.boldfont
+#:import fontawesomefont kmpc.widgets.fontawesomefont
 
 <OutlineLabel>:
-    font_name: app.boldfont
+    font_name: boldfont
     font_size: '20sp'
     outline_color: [0,0,0]
     outline_width: '1sp'
@@ -48,11 +50,11 @@
 <OutlineToggleButton@ToggleButton+OutlineLabel>:
 
 <MediaButton@OutlineButton,MediaToggleButton@ToggleButton+OutlineLabel>:
-    font_name: app.fontawesomefont
+    font_name: fontawesomefont
     font_size: '24sp'
 
 <BrightnessButton@Button+OutlineLabel>
-    font_name: app.fontawesomefont
+    font_name: fontawesomefont
     font_size: '24sp'
     border: (1,1,1,1)
     background_normal: app.clear
@@ -80,7 +82,7 @@
         PopMatrix
 
 <SettingsButton@Button+OutlineLabel>
-    font_name: app.fontawesomefont
+    font_name: fontawesomefont
     font_size: '24sp'
     border: (1,1,1,1)
     background_normal: app.clear
@@ -91,7 +93,7 @@
     text_size: self.width, None
     height: self.texture_size[1]
     halign: 'center'
-    font_name: app.boldfont
+    font_name: boldfont
     canvas.before:
         Color:
             rgba: 0, 0, 0, 0.75

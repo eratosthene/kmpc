@@ -76,9 +76,6 @@ class ManagerApp(App):
         self.config=self.load_config()
         # write out config file in case it doesn't exist yet
         self.config.write()
-        # setup some variables that interface.kv will use
-        # this is necessary to support packaging the app
-        self.fontawesomefont = resource_filename(__name__,os.path.join('resources/fonts','FontAwesome.ttf'))
         if self.args.newconfig:
             sys.exit(0)
         else:
