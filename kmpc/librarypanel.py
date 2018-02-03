@@ -18,7 +18,8 @@ from copy import deepcopy
 from functools import partial
 import os
 
-from kmpc.extra import KmpcHelpers, OutlineTabbedPanelItem
+from kmpc.extra import KmpcHelpers
+from kmpc.widgets import OutlineTabbedPanelItem
 import kmpc.kmpcapp
 
 Helpers=KmpcHelpers()

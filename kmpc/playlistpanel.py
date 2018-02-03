@@ -18,7 +18,7 @@ from kivy.uix.vkeyboard import VKeyboard
 from kivy.clock import Clock
 from functools import partial
 
-from kmpc.extra import OutlineTabbedPanelItem
+from kmpc.widgets import OutlineTabbedPanelItem
 import kmpc.kmpcapp
 
 class PlaylistTabbedPanelItem(OutlineTabbedPanelItem):
