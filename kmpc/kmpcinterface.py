@@ -33,7 +33,7 @@ from kivy.support import install_twisted_reactor
 from kmpc.extra import KmpcHelpers
 from kmpc.playlistpanel import PlaylistTabbedPanelItem
 from kmpc.mpdfactory import MpdConnection
-from kmpc.widgets import InfoLargeLabel,CoverButton,ImageButton,ExtraSlider,ClearButton,OutlineLabel
+from kmpc.widgets import InfoLargeLabel,CoverButton,ImageButton,ExtraSlider,ClearButton,OutlineLabel,normalfont
 
 # set the maximum size for cover images, to prevent texture overloading
 max_cover_size=1000
@@ -485,7 +485,7 @@ class KmpcInterface(TabbedPanel):
                     else:
                         split=False
                     for j, a in enumerate(talbum):
-                        if j>0: lyt2.add_widget(InfoLargeLabel(font_size='50sp',text=u'\u2571',size_hint_x=None,font_name=App.get_running_app().normalfont))
+                        if j>0: lyt2.add_widget(InfoLargeLabel(font_size='50sp',text=u'\u2571',size_hint_x=None,font_name=normalfont))
                         # check to see if album title has any data deliminated by () or []
                         salbum=re.split('[\(\[\]\)]',a)
                         Logger.debug('ALBUM2: '+format(salbum))

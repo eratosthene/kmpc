@@ -78,7 +78,6 @@ class ManagerApp(App):
         self.config.write()
         # setup some variables that interface.kv will use
         # this is necessary to support packaging the app
-        self.normalfont = resource_filename(__name__,os.path.join('resources/fonts','DejaVuSans.ttf'))
         self.fontawesomefont = resource_filename(__name__,os.path.join('resources/fonts','FontAwesome.ttf'))
         if self.args.newconfig:
             sys.exit(0)
