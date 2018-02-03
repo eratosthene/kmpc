@@ -1,3 +1,6 @@
+import os
+from pkg_resources import resource_filename
+
 # make sure we are on an updated version of kivy
 import kivy
 kivy.require('1.10.0')
