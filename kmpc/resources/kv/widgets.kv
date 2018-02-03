@@ -22,7 +22,7 @@
     border: (4,4,4,4)
     background_normal: buttonnormal
     background_down: buttondown
-    font_name: normalfont
+    font_name: boldfont
     font_size: '20sp'
 
 <Button>:
@@ -112,3 +112,102 @@
     height: self.texture_size[1]
     halign: 'center'
 
+<BoxButton@BoxLayout+OutlineButton>:
+    orientation: 'horizontal'
+    pos: self.parent.pos
+    size: self.parent.size
+    rating: ''
+
+<BBLabel1@OutlineLabel>:
+    halign: 'left'
+    valign: 'middle'
+    padding_x: '5sp'
+    size_hint_x: 0.25
+    text_size: self.size
+    font_name: fontawesomefont
+    
+<BBLabel2@OutlineLabel>:
+    halign: 'left'
+    valign: 'middle'
+    padding_x: '5sp'
+    text_size: self.size
+
+<RatingPopup@Popup>:
+    title: 'Rating'
+    size_hint: (0.8,1)
+    BoxLayout:
+        orientation: 'horizontal'
+        OutlineButton:
+            on_press: app.root.rating_set('',root)
+            size_hint_x: 0.07
+            font_name: fontawesomefont
+            text: u'\uf057'
+        BoxLayout:
+            orientation: 'vertical'
+            BoxButton:
+                on_press: app.root.rating_set('0',root)
+                BBLabel1:
+                    text: u"\uf006\uf006\uf006\uf006\uf006"
+                BBLabel2:
+                    text: app.config.get('songratings','star0')
+            BoxButton:
+                on_press: app.root.rating_set('1',root)
+                BBLabel1:
+                    text: u"\uf123\uf006\uf006\uf006\uf006"
+                BBLabel2:
+                    text: app.config.get('songratings','star1')
+            BoxButton:
+                on_press: app.root.rating_set('2',root)
+                BBLabel1:
+                    text: u"\uf005\uf006\uf006\uf006\uf006"
+                BBLabel2:
+                    text: app.config.get('songratings','star2')
+            BoxButton:
+                on_press: app.root.rating_set('3',root)
+                BBLabel1:
+                    text: u"\uf005\uf123\uf006\uf006\uf006"
+                BBLabel2:
+                    text: app.config.get('songratings','star3')
+            BoxButton:
+                on_press: app.root.rating_set('4',root)
+                BBLabel1:
+                    text: u"\uf005\uf005\uf006\uf006\uf006"
+                BBLabel2:
+                    text: app.config.get('songratings','star4')
+            BoxButton:
+                on_press: app.root.rating_set('5',root)
+                BBLabel1:
+                    text: u"\uf005\uf005\uf123\uf006\uf006"
+                BBLabel2:
+                    text: app.config.get('songratings','star5')
+            BoxButton:
+                on_press: app.root.rating_set('6',root)
+                BBLabel1:
+                    text: u"\uf005\uf005\uf005\uf006\uf006"
+                BBLabel2:
+                    text: app.config.get('songratings','star6')
+            BoxButton:
+                on_press: app.root.rating_set('7',root)
+                BBLabel1:
+                    text: u"\uf005\uf005\uf005\uf123\uf006"
+                BBLabel2:
+                    text: app.config.get('songratings','star7')
+            BoxButton:
+                on_press: app.root.rating_set('8',root)
+                BBLabel1:
+                    text: u"\uf005\uf005\uf005\uf005\uf006"
+                BBLabel2:
+                    text: app.config.get('songratings','star8')
+            BoxButton:
+                on_press: app.root.rating_set('9',root)
+                BBLabel1:
+                    text: u"\uf005\uf005\uf005\uf005\uf123"
+                BBLabel2:
+                    text: app.config.get('songratings','star9')
+            BoxButton:
+                on_press: app.root.rating_set('10',root)
+                BBLabel1:
+                    text: u"\uf005\uf005\uf005\uf005\uf005"
+                BBLabel2:
+                    text: app.config.get('songratings','star10')
+            

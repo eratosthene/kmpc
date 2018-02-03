@@ -6,6 +6,7 @@ import kivy
 kivy.require('1.10.0')
 
 # import all the other kivy stuff
+from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.slider import Slider
@@ -21,6 +22,7 @@ from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.textinput import TextInput
 from kivy.properties import BooleanProperty
+from kivy.config import Config
 
 normalfont = resource_filename(__name__,os.path.join('resources/fonts','DejaVuSans.ttf'))
 boldfont = resource_filename(__name__,os.path.join('resources/fonts','DejaVuSans-Bold.ttf'))
@@ -119,4 +121,3 @@ class ArtistRow(RecycleDataViewBehavior,BoxLayout):
 class UneditTextInput(TextInput):
     def insert_text(self, substring, from_undo=False):
         pass
-
