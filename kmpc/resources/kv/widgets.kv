@@ -6,6 +6,10 @@
 #:import normalfont kmpc.widgets.normalfont
 #:import boldfont kmpc.widgets.boldfont
 #:import fontawesomefont kmpc.widgets.fontawesomefont
+#:import buttonnormal kmpc.widgets.buttonnormal
+#:import buttondown kmpc.widgets.buttondown
+#:import clearimage kmpc.widgets.clearimage
+#:import backdrop kmpc.widgets.backdrop
 
 <OutlineLabel>:
     font_name: boldfont
@@ -16,22 +20,22 @@
 
 <OutlineButton>:
     border: (4,4,4,4)
-    background_normal: app.buttonnormal
-    background_down: app.buttondown
+    background_normal: buttonnormal
+    background_down: buttondown
     font_name: normalfont
     font_size: '20sp'
 
 <Button>:
     border: (4,4,4,4)
-    background_normal: app.buttonnormal
-    background_down: app.buttondown
+    background_normal: buttonnormal
+    background_down: buttondown
     font_name: normalfont
     font_size: '20sp'
 
 <ClearButton>:
     border: (1,1,1,1)
-    background_normal: app.clear
-    background_down: app.clear
+    background_normal: clearimage
+    background_down: clearimage
 
 <TrackSlider@Slider>:
     OutlineLabel:
@@ -43,7 +47,7 @@
 <BackdropBoxLayout@BoxLayout>:
     canvas.before:
         Rectangle:
-            source: app.backdrop
+            source: backdrop
             size: self.size
             pos: self.pos
 
@@ -57,8 +61,8 @@
     font_name: fontawesomefont
     font_size: '24sp'
     border: (1,1,1,1)
-    background_normal: app.clear
-    background_down: app.clear
+    background_normal: clearimage
+    background_down: clearimage
     canvas.before:
         Clear
         PushMatrix
@@ -85,8 +89,8 @@
     font_name: fontawesomefont
     font_size: '24sp'
     border: (1,1,1,1)
-    background_normal: app.clear
-    background_down: app.clear
+    background_normal: clearimage
+    background_down: clearimage
 
 <InfoLargeLabel>:
     font_size: '40sp'

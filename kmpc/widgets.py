@@ -25,6 +25,13 @@ from kivy.properties import BooleanProperty
 normalfont = resource_filename(__name__,os.path.join('resources/fonts','DejaVuSans.ttf'))
 boldfont = resource_filename(__name__,os.path.join('resources/fonts','DejaVuSans-Bold.ttf'))
 fontawesomefont = resource_filename(__name__,os.path.join('resources/fonts','FontAwesome.ttf'))
+buttonnormal = resource_filename(__name__,os.path.join('resources/images','button-normal.png'))
+buttondown = resource_filename(__name__,os.path.join('resources/images','button-down.png'))
+clearimage = resource_filename(__name__,os.path.join('resources/images','clear.png'))
+backdrop = resource_filename(__name__,os.path.join('resources/images','backdrop.png'))
+listbackdrop = resource_filename(__name__,os.path.join('resources/images','list-backdrop.png'))
+listbackdropselected = resource_filename(__name__,os.path.join('resources/images','list-backdrop-selected.png'))
+trackslidercursor = resource_filename(__name__,os.path.join('resources/images','track-slider-cursor.png'))
 
 class ExtraSlider(Slider):
     """Class that implements some extra stuff on top of a standard slider."""

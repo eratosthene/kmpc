@@ -4,6 +4,7 @@
 #:import LibraryTabbedPanelItem kmpc.librarypanel.LibraryTabbedPanelItem
 #:import ExtraSlider kmpc.widgets.ExtraSlider
 #:import OutlineTabbedPanelItem kmpc.widgets.OutlineTabbedPanelItem
+#:import trackslidercursor kmpc.widgets.trackslidercursor
 
 <AccessoryPopup@Popup>:
     auto_dismiss: False
@@ -73,7 +74,7 @@
                                 value_track: True
                                 valign: 'center'
                                 max: '1000'
-                                cursor_image: app.trackslidercursor
+                                cursor_image: trackslidercursor
                                 cursor_width: sp(80)
                                 cursor_height: sp(36)
                                 on_touch_down: if self.collide_point(*args[1].pos): root.current_track_slider_down()
