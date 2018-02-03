@@ -599,36 +599,17 @@ class KmpcInterface(TabbedPanel):
     def rating_popup(self,instance):
         """Popup for setting song rating."""
         Logger.debug('Application: rating_popup()')
-        # create a layout and add it to the popup
-        layout = GridLayout(cols=2,spacing=10)
-        popup = Popup(title='Rating',content=layout,size_hint=(0.8,1))
-        # loop from 0-10
-        for r in list(range(0,11)):
-            # make a button
-            btn=Button(font_name=fontawesomefont)
-            # look up the correct string for the rating
-            btn.text=Helpers.songratings(self.config)[str(r)]['stars']
-            # set some widget variables
-            btn.rating=str(r)
-            btn.popup=popup
-            # add the button to the layout
-            layout.add_widget(btn)
-            # bind the button press to set the rating
-            btn.bind(on_press=self.rating_set)
-            # add a label to explain the ratings, this is pretty subjective
-            lbl=OutlineLabel(text=Helpers.songratings(self.config)[str(r)]['meaning'],halign='left')
-            # add the label to the layout
-            layout.add_widget(lbl)
-        # pop it on up, if you press outside the popup it just goes away without setting the rating
+        popup=Factory.RatingPopup(rating_set=self.rating_set,song=self.currfile)
         popup.open()
 
-    def rating_set(self,instance):
+    def rating_set(self,song,rating,popup):
         """Method that sets a song's rating."""
-        Logger.debug('Application: rating_set('+instance.rating+')')
-        # close the rating popup
-        instance.popup.dismiss()
-        # tell mpd to set the rating sticker
-        mainmpdconnection.protocol.sticker_set('song',self.currfile,'rating',instance.rating)
+        Logger.debug('Application: rating_set('+rating+')')
+        popup.dismiss()
+        if rating:
+            mainmpdconnection.protocol.sticker_set('song',song,'rating',rating)
+        else:
+            mainmpdconnection.protocol.sticker_delete('song',song,'rating')
 
     def cover_popup(self,originalyear,year,album,instance):
         """Popup for showing a larger version of the album cover."""

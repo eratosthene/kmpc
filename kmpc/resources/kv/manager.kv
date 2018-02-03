@@ -1,17 +1,26 @@
 #:kivy 1.10.0
-#:import App kivy.app.App
 #:import ManagerLibraryTabbedPanelItem kmpc.managerlibrarypanel.ManagerLibraryTabbedPanelItem
 #:import normalfont kmpc.widgets.normalfont
 #:import fontawesomefont kmpc.widgets.fontawesomefont
 
-<Label>:
+<OLabel@Label>:
+    font_name: normalfont
+    font_size: '20sp'
+    outline_color: [0,0,0]
+    outline_width: '1sp'
+    color: [1,1,1,1]
+
+<OButton@Button+OLabel>:
+    border: (4,4,4,4)
+    background_normal: buttonnormal
+    background_down: buttondown
     font_name: normalfont
     font_size: '20sp'
 
-<SmallButton@Button>:
+<SmallButton@OButton>:
     font_size: '16sp'
 
-<StarLabel@Label>:
+<StarLabel@OLabel>:
     font_name: fontawesomefont
     markup: True
 
@@ -55,21 +64,21 @@
             text: root.artist_id
             padding_x: sp(10)
             background_color: (1,1,0,1) if root.selected else (1,1,1,1)
-        Label:
+        OLabel:
             size_hint_x: 0.05
             halign: 'left'
             valign: 'center'
             text_size: self.size
             text: 'Y' if root.has_artistbackground else 'N'
             padding_x: sp(10)
-        Label:
+        OLabel:
             size_hint_x: 0.05
             halign: 'left'
             valign: 'center'
             text_size: self.size
             text: 'Y' if root.has_logo else 'N'
             padding_x: sp(10)
-        Label:
+        OLabel:
             size_hint_x: 0.05
             halign: 'left'
             valign: 'center'
@@ -102,7 +111,7 @@
     songratings: app.root.songratings
     BoxLayout:
         orientation: 'horizontal'
-        Label:
+        OLabel:
             size_hint_x: 1
             halign: 'left'
             valign: 'center'
@@ -113,7 +122,7 @@
             size_hint_x: 0.2
             text: '[ref=rating]'+root.songratings[root.rating]['stars']+'[/ref]'
             on_ref_press: root.rating_popup(root)
-        Label:
+        OLabel:
             size_hint_x: 0.2
             text: root.copy_flag
 
@@ -129,7 +138,7 @@
         spacing: 0
         BoxLayout:
             size_hint_y: 0.05
-            Label:
+            OLabel:
                 id: status
                 text: ''
         BoxLayout:
@@ -143,7 +152,7 @@
                 text: 'Generate playlist'
                 id: generate_playlist_button
                 on_press: root.generate_list('playlist')
-            Label:
+            OLabel:
                 text: 'Minimum stars:'
             TextInput:
                 id: minimum_stars
@@ -167,7 +176,7 @@
                 text: 'Playlists'
                 id: playlists_button
                 on_press: root.change_view_type(self.text)
-        Label:
+        OLabel:
             id: current_header
             size_hint_y: 0.1
             size_hint_x: 1
@@ -199,19 +208,18 @@
             BoxLayout:
                 orientation: 'vertical'
                 size_hint_x: '0.05'
-                Button:
+                OButton:
                     text: '+'
                     on_press: root.set_copy_flag('Y')
-                Button:
+                OButton:
                     text: '-'
                     on_press: root.set_copy_flag('N')
-                Button:
+                OButton:
                     text: '/'
                     on_press: root.set_copy_flag('')
 
 <ManagerInterface>:
     do_default_tab: False
-#    tab_width: self.width / 4
     active_tab: None
     TabbedPanelItem:
         text: 'Artists'
@@ -222,7 +230,7 @@
             orientation: 'vertical'
             BoxLayout:
                 size_hint_y: 0.05
-                Label:
+                OLabel:
                     id: status
                     text: ''
             BoxLayout:

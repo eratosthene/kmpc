@@ -6,6 +6,7 @@ import kivy
 kivy.require('1.10.0')
 
 # import all the other kivy stuff
+from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.slider import Slider
@@ -14,13 +15,15 @@ from kivy.uix.tabbedpanel import TabbedPanelItem
 from kivy.graphics import Rectangle
 from kivy.uix.image import Image,AsyncImage
 from kivy.uix.behaviors import ButtonBehavior
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty,StringProperty,NumericProperty
 from kivy.uix.behaviors import ButtonBehavior, FocusBehavior
 from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.textinput import TextInput
+from kivy.uix.popup import Popup
 from kivy.properties import BooleanProperty
+from kivy.config import Config
 
 normalfont = resource_filename(__name__,os.path.join('resources/fonts','DejaVuSans.ttf'))
 boldfont = resource_filename(__name__,os.path.join('resources/fonts','DejaVuSans-Bold.ttf'))
@@ -120,3 +123,7 @@ class UneditTextInput(TextInput):
     def insert_text(self, substring, from_undo=False):
         pass
 
+class RatingPopup(Popup):
+    rating_set = ObjectProperty(None)
+    song = StringProperty(None)
+    index = NumericProperty(None)

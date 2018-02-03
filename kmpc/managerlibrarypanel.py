@@ -1,3 +1,7 @@
+from copy import deepcopy
+from functools import partial
+import os
+
 import kivy
 kivy.require('1.10.0')
 from kivy.app import App
@@ -15,9 +19,7 @@ from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.popup import Popup
-from copy import deepcopy
-from functools import partial
-import os
+from kivy.factory import Factory
 
 from kmpc.extra import KmpcHelpers
 from kmpc.widgets import fontawesomefont
@@ -222,10 +224,13 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
                 Logger.warning("Library: "+mtype+' copy_flag not implemented')
         self.rbl.clear_selection()
 
-    def rating_set(self,base,index,instance):
-        Logger.debug('Application: rating_set('+instance.rating+')')
-        instance.popup.dismiss()
-        kmpc.managerinterface.mainmpdconnection.protocol.sticker_set('song',base,'rating',instance.rating).addCallback(partial(self.handle_rating_set,index,instance.rating,True)).addErrback(partial(self.handle_rating_set,index,instance.rating,False))
+    def rating_set(self,index,rating,popup):
+        Logger.debug('Application: rating_set('+rating+')')
+        popup.dismiss()
+        if rating:
+            kmpc.managerinterface.mainmpdconnection.protocol.sticker_set('song',self.rv.data[index]['base'],'rating',rating).addCallback(partial(self.handle_rating_set,index,rating,True)).addErrback(partial(self.handle_rating_set,index,rating,False))
+        else:
+            kmpc.managerinterface.mainmpdconnection.protocol.sticker_delete('song',self.rv.data[index]['base'],'rating').addCallback(partial(self.handle_rating_set,index,rating,True)).addErrback(partial(self.handle_rating_set,index,rating,False))
 
     def handle_rating_set(self,index,rating,succ,result):
         if succ:
@@ -288,17 +293,7 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
 
     def rating_popup(self,instance):
         Logger.debug('Library: rating_popup()')
-        layout = GridLayout(cols=2,spacing=10)
-        popup = Popup(title='Rating',content=layout,size_hint=(0.8,1))
-        for r in list(range(0,11)):
-            btn=Button(font_name=fontawesomefont)
-            btn.text=self.app.songratings[str(r)]['stars']
-            btn.rating=str(r)
-            btn.popup=popup
-            layout.add_widget(btn)
-            btn.bind(on_press=partial(self.app.ids.library_tab.rating_set,instance.base,self.index))
-            lbl=Label(text=self.app.songratings[str(r)]['meaning'],halign='left')
-            layout.add_widget(lbl)
+        popup=Factory.RatingPopup(index=self.index,rating_set=self.app.ids.library_tab.rating_set)
         popup.open()
 
     def refresh_view_attrs(self, rv, index, data):

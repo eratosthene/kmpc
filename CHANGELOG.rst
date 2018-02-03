@@ -8,8 +8,11 @@ kmpc Change Log
 0.6.4 - 2018-02-??
 ******************
 
-Restructured code and resources to break everything into smaller, separate
-files. (`issue #93 <https://github.com/eratosthene/kmpc/issues/93>`_)
+- Ratings popup now has larger buttons, and a 'clear rating' button. Manager
+  app also uses the same code now. (`issue #91
+  <https://github.com/eratosthene/kmpc/issues/91>`_)
+- Restructured code and resources to break everything into smaller, separate
+  files. (`issue #93 <https://github.com/eratosthene/kmpc/issues/93>`_)
 
 ********************
 0.6.3.1 - 2018-02-02
