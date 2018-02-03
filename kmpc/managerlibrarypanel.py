@@ -21,6 +21,7 @@ import os
 from pkg_resources import resource_filename
 
 from kmpc.extra import KmpcHelpers
+from kmpc.widgets import fontawesomefont
 import kmpc.managerinterface
 
 Helpers=KmpcHelpers()
@@ -291,7 +292,7 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
         layout = GridLayout(cols=2,spacing=10)
         popup = Popup(title='Rating',content=layout,size_hint=(0.8,1))
         for r in list(range(0,11)):
-            btn=Button(font_name=resource_filename(__name__,os.path.join('resources/fonts','FontAwesome.ttf')))
+            btn=Button(font_name=fontawesomefont)
             btn.text=self.app.songratings[str(r)]['stars']
             btn.rating=str(r)
             btn.popup=popup

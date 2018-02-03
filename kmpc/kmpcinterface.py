@@ -33,7 +33,7 @@ from kivy.support import install_twisted_reactor
 from kmpc.extra import KmpcHelpers
 from kmpc.playlistpanel import PlaylistTabbedPanelItem
 from kmpc.mpdfactory import MpdConnection
-from kmpc.widgets import InfoLargeLabel,CoverButton,ImageButton,ExtraSlider,ClearButton,OutlineLabel,normalfont
+from kmpc.widgets import InfoLargeLabel,CoverButton,ImageButton,ExtraSlider,ClearButton,OutlineLabel,normalfont,fontawesomefont
 
 # set the maximum size for cover images, to prevent texture overloading
 max_cover_size=1000
@@ -523,7 +523,7 @@ class KmpcInterface(TabbedPanel):
         """Callback for song that has a rating in mpd."""
         Logger.debug('NowPlaying: update_mpd_sticker_rating')
         # make a clear button for the star rating
-        btn = ClearButton(padding_x='10sp',font_name=resource_filename(__name__,os.path.join('resources/fonts','FontAwesome.ttf')),halign='center',valign='middle',markup=True)
+        btn = ClearButton(padding_x='10sp',font_name=fontawesomefont,halign='center',valign='middle',markup=True)
         # look up the correct string for the rating
         btn.text = Helpers.songratings(self.config)[result]['stars']
         # bind the popup for setting rating
@@ -536,7 +536,7 @@ class KmpcInterface(TabbedPanel):
         """Callback for song that has no rating in mpd."""
         Logger.debug('NowPlaying: handle_mpd_no_sticker')
         # make a clear button for the star rating
-        btn = ClearButton(padding_x='10sp',font_name=resource_filename(__name__,os.path.join('resources/fonts','FontAwesome.ttf')),halign='center',valign='middle',markup=True)
+        btn = ClearButton(padding_x='10sp',font_name=fontawesomefont,halign='center',valign='middle',markup=True)
         # set the string to the circled question mark icon
         btn.text = u"\uf29c"
         # bind the popup for setting rating
@@ -606,7 +606,7 @@ class KmpcInterface(TabbedPanel):
         # loop from 0-10
         for r in list(range(0,11)):
             # make a button
-            btn=Button(font_name=resource_filename(__name__,os.path.join('resources/fonts','FontAwesome.ttf')))
+            btn=Button(font_name=fontawesomefont)
             # look up the correct string for the rating
             btn.text=Helpers.songratings(self.config)[str(r)]['stars']
             # set some widget variables
