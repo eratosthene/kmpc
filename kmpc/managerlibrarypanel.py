@@ -18,7 +18,6 @@ from kivy.uix.popup import Popup
 from copy import deepcopy
 from functools import partial
 import os
-from pkg_resources import resource_filename
 
 from kmpc.extra import KmpcHelpers
 from kmpc.widgets import fontawesomefont
