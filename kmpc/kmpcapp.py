@@ -22,6 +22,10 @@ from kmpc.kmpcinterface import KmpcInterface
 configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
 # load the interface.kv file
+Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','widgets.kv')))
+Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','library.kv')))
+Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','playlist.kv')))
+Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','system.kv')))
 Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','interface.kv')))
 
 class KmpcApp(App):

@@ -1,0 +1,107 @@
+#:kivy 1.10.0
+#:import OutlineLabel kmpc.widgets.OutlineLabel
+#:import OutlineButton kmpc.widgets.OutlineButton
+#:import ClearButton kmpc.widgets.ClearButton
+#:import InfoLargeLabel kmpc.widgets.InfoLargeLabel
+
+<OutlineLabel>:
+    font_name: app.boldfont
+    font_size: '20sp'
+    outline_color: [0,0,0]
+    outline_width: '1sp'
+    color: [1,1,1,1]
+
+<OutlineButton>:
+    border: (4,4,4,4)
+    background_normal: app.buttonnormal
+    background_down: app.buttondown
+    font_name: app.normalfont
+    font_size: '20sp'
+
+<Button>:
+    border: (4,4,4,4)
+    background_normal: app.buttonnormal
+    background_down: app.buttondown
+    font_name: app.normalfont
+    font_size: '20sp'
+
+<ClearButton>:
+    border: (1,1,1,1)
+    background_normal: app.clear
+    background_down: app.clear
+
+<TrackSlider@Slider>:
+    OutlineLabel:
+        pos: (root.value_pos[0] - sp(16), root.center_y - sp(27)) if root.orientation == 'horizontal' else (root.center_x - sp(27), root.value_pos[1] - sp(16))
+        size_hint: None, None
+        size: sp(32), sp(32)
+        text: "%02d:%02d" % (divmod(int(root.max)-int(root.value),60))
+
+<BackdropBoxLayout@BoxLayout>:
+    canvas.before:
+        Rectangle:
+            source: app.backdrop
+            size: self.size
+            pos: self.pos
+
+<OutlineToggleButton@ToggleButton+OutlineLabel>:
+
+<MediaButton@OutlineButton,MediaToggleButton@ToggleButton+OutlineLabel>:
+    font_name: app.fontawesomefont
+    font_size: '24sp'
+
+<BrightnessButton@Button+OutlineLabel>
+    font_name: app.fontawesomefont
+    font_size: '24sp'
+    border: (1,1,1,1)
+    background_normal: app.clear
+    background_down: app.clear
+    canvas.before:
+        Clear
+        PushMatrix
+        Rotate:
+            angle: 90
+            origin: self.center
+    canvas.after:
+        PopMatrix
+
+<SidewaysLabel@OutlineLabel>
+    valign: 'middle'
+    padding_x: '5sp'
+    font_size: '18sp'
+    canvas.before:
+        Clear
+        PushMatrix
+        Rotate:
+            angle: 90
+            origin: self.center
+    canvas.after:
+        PopMatrix
+
+<SettingsButton@Button+OutlineLabel>
+    font_name: app.fontawesomefont
+    font_size: '24sp'
+    border: (1,1,1,1)
+    background_normal: app.clear
+    background_down: app.clear
+
+<InfoLargeLabel>:
+    font_size: '40sp'
+    text_size: self.width, None
+    height: self.texture_size[1]
+    halign: 'center'
+    font_name: app.boldfont
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, 0.75
+        Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2.) + sp(2), int(self.center_y - self.texture_size[1] / 2.) - sp(2)
+            size: root.texture_size
+            texture: root.texture
+
+<InfoSmallLabel@OutlineLabel>:
+    font_size: '18sp'
+    text_size: self.width, None
+    height: self.texture_size[1]
+    halign: 'center'
+

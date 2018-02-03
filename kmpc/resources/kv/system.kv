@@ -1,0 +1,186 @@
+#:kivy 1.10.0
+#:import OutlineLabel kmpc.widgets.OutlineLabel
+#:import ExtraSlider kmpc.widgets.ExtraSlider
+#:import SystemTabbedPanelItem kmpc.systempanel.SystemTabbedPanelItem
+
+<SettingsPopup@Popup>:
+    auto_dismiss: True
+    title: 'Settings, kmpc version '+app.version_str
+    size_hint_x: 0.6
+    BoxLayout:
+        orientation: 'vertical'
+        OutlineLabel:
+            text: 'IP Address: 0.0.0.0'
+            id: ip_label
+        OutlineLabel:
+            text: 'Crossfade length in seconds'
+            text_size: self.size
+            halign: 'left'
+            valign: 'middle'
+            padding_x: sp(10)
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineLabel:
+                text: str(int(round(crossfade_slider.value)))
+                size_hint_x: 0.25
+                text_size: self.size
+                halign: 'right'
+                valign: 'middle'
+                padding_x: sp(10)
+            ExtraSlider:
+                id: crossfade_slider
+                min: 0
+                max: 10
+                value: 0
+                on_release: app.root.change_crossfade(int(round(crossfade_slider.value)))
+        OutlineLabel:
+            text: 'Mixramp threshold in DB'
+            text_size: self.size
+            halign: 'left'
+            valign: 'middle'
+            padding_x: sp(10)
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineLabel:
+                text: '-'+str(round(mixrampdb_slider.value,2))
+                size_hint_x: 0.25
+                text_size: self.size
+                halign: 'right'
+                valign: 'middle'
+                padding_x: sp(10)
+            ExtraSlider:
+                id: mixrampdb_slider
+                min: 0
+                max: 20
+                value: 0
+                on_release: app.root.change_mixrampdb(round(mixrampdb_slider.value,2))
+        OutlineLabel:
+            text: 'Mixramp delay in seconds'
+            text_size: self.size
+            halign: 'left'
+            valign: 'middle'
+            padding_x: sp(10)
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineLabel:
+                text: str(round(mixrampdelay_slider.value,2))
+                size_hint_x: 0.25
+                text_size: self.size
+                halign: 'right'
+                valign: 'middle'
+                padding_x: sp(10)
+            ExtraSlider:
+                id: mixrampdelay_slider
+                min: 0
+                max: 10
+                value: 0
+                on_release: app.root.change_mixrampdelay(round(mixrampdelay_slider.value,2))
+        OutlineLabel:
+            text: 'Text Color'
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineToggleButton:
+                text: 'Black'
+                group: 'text-color'
+                on_press: app.root.change_text_color(0)
+            OutlineToggleButton:
+                text: 'White'
+                state: 'down'
+                group: 'text-color'
+                on_press: app.root.change_text_color(1)
+        OutlineLabel:
+            text: 'Outline Color'
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineToggleButton:
+                text: 'Black'
+                state: 'down'
+                group: 'outline-color'
+                on_press: app.root.change_outline_color(0)
+            OutlineToggleButton:
+                text: 'White'
+                group: 'outline-color'
+                on_press: app.root.change_outline_color(.7)
+
+<SyncPopup@Popup>:
+    auto_dismiss: True
+    title: 'Sync'
+    size_hint_x: 0.6
+    size_hint_y: 0.8
+    BackdropBoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.33
+            Button:
+                text: 'Fanart'
+                on_press: app.root.ids.system_tab.sync_fanart()
+            Button:
+                text: 'Music'
+                on_press: app.root.ids.system_tab.sync_music()
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.33
+            Button:
+                text: 'Export Ratings'
+                on_press: app.root.ids.system_tab.sync_export_ratings()
+            Button:
+                text: 'Import Ratings'
+                on_press: app.root.ids.system_tab.sync_import_ratings()
+        Button:
+            size_hint_y: 0.33
+            text: 'All'
+            on_press: app.root.ids.system_tab.sync_all()
+
+<StdoutPopup@Popup>:
+    auto_dismiss: False
+    title: 'Sync Output'
+    ScrollView:
+        id: sv
+        GridLayout:
+            id: layout
+            cols: 1
+            spacing: 1
+            padding: 1
+            size_hint_y: None
+
+<SyncWarningPopup@Popup>:
+    title: "Warning"
+    size_hint_x: 0.6
+    size_hint_y: 0.3
+    size_hint_min_y: l.height
+    OutlineLabel:
+        id: l
+        text: "Your mpdhost and synchost config fields are identical, sync is disabled to prevent data corruption."
+        size_hint_y: None
+        text_size: self.width, None
+        height: self.texture_size[1]
+        valign: 'middle'
+
+<SystemTabbedPanelItem>:
+    config: app.config
+    text: 'System'
+    BackdropBoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.5
+            Button:
+                text: 'Update'
+                on_press: root.update()
+            Button:
+                text: 'Sync'
+                on_press: root.sync_popup()
+            Button:
+                text: 'Exit'
+                on_press: app.stop()
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.5
+            Button:
+                text: 'Reboot'
+                on_press: root.do_reboot()
+            Button:
+                text: 'Poweroff'
+                on_press: root.do_poweroff()
+
