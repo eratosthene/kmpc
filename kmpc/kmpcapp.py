@@ -19,7 +19,7 @@ kivy.require('1.10.0')
 from kivy.config import Config,ConfigParser
 from kivy.app import App
 from kivy.logger import Logger
-from kivy.graphics import Color,Rectangle
+from kivy.graphics import Rectangle
 from kivy.core.image import Image as CoreImage
 from kivy.metrics import Metrics, sp
 from kivy.clock import Clock
@@ -30,22 +30,21 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.image import Image,AsyncImage
+from kivy.uix.image import Image
 from kivy.uix.popup import Popup
-from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.slider import Slider
 from kivy.uix.label import Label
 from kivy.factory import Factory
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty,StringProperty,BooleanProperty
 from kivy.support import install_twisted_reactor
 
 # import our local modules
-from kmpc.extra import KmpcHelpers,ExtraSlider,ClearButton,OutlineLabel,OutlineButton
+from kmpc.extra import KmpcHelpers,ExtraSlider,ClearButton,OutlineLabel
 from kmpc.playlistpanel import PlaylistTabbedPanelItem
 from kmpc.version import VERSION_STR
 from kmpc.mpdfactory import MpdConnection
 from kmpc.sync import Sync
+from kmpc.widgets import InfoLargeLabel,CoverButton,ImageButton
 
 # sets the location of the config folder
 configdir = os.path.join(os.path.expanduser('~'),".kmpc")
@@ -816,30 +815,6 @@ class KmpcApp(App):
             sys.exit(0)
         else:
             return KmpcInterface(self.config)
-
-class InfoLargeLabel(OutlineLabel):
-    """A label with large text."""
-    pass
-
-class InfoSmallLabel(OutlineLabel):
-    """A label with small text."""
-    pass
-
-class ImageButton(ButtonBehavior, AsyncImage):
-    """An image that you can press."""
-    pass
-
-class CoverButton(OutlineButton):
-    img = ObjectProperty(None)
-    layout = ObjectProperty(None)
-
-    def __init__(self,**kwargs):
-        super(self.__class__,self).__init__(**kwargs)
-        self.background_normal = resource_filename(__name__,os.path.join('resources','clear.png'))
-        self.background_down = resource_filename(__name__,os.path.join('resources','clear.png'))
-        self.font_name = resource_filename(__name__,os.path.join('resources','DejaVuSans-Bold.ttf'))
-        with self.canvas.before:
-            Rectangle(texture=self.img.texture,pos=self.layout.pos,size=self.layout.size)
 
 if __name__ == '__main__':
     # run the app!

@@ -10,6 +10,7 @@
 #:import OutlineLabel kmpc.extra.OutlineLabel
 #:import OutlineButton kmpc.extra.OutlineButton
 #:import OutlineTabbedPanelItem kmpc.extra.OutlineTabbedPanelItem
+#:import InfoLargeLabel kmpc.widgets.InfoLargeLabel
 
 <OutlineLabel>:
     font_name: app.boldfont
@@ -270,7 +271,7 @@
     size_hint: (1,1)
     do_scroll_x: False
 
-<InfoLargeLabel@OutlineLabel>:
+<InfoLargeLabel>:
     font_size: '40sp'
     text_size: self.width, None
     height: self.texture_size[1]
