@@ -15,12 +15,13 @@ from kivy.uix.tabbedpanel import TabbedPanelItem
 from kivy.graphics import Rectangle
 from kivy.uix.image import Image,AsyncImage
 from kivy.uix.behaviors import ButtonBehavior
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty,StringProperty,NumericProperty
 from kivy.uix.behaviors import ButtonBehavior, FocusBehavior
 from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.textinput import TextInput
+from kivy.uix.popup import Popup
 from kivy.properties import BooleanProperty
 from kivy.config import Config
 
@@ -121,3 +122,8 @@ class ArtistRow(RecycleDataViewBehavior,BoxLayout):
 class UneditTextInput(TextInput):
     def insert_text(self, substring, from_undo=False):
         pass
+
+class RatingPopup(Popup):
+    rating_set = ObjectProperty(None)
+    song = StringProperty(None)
+    index = NumericProperty(None)

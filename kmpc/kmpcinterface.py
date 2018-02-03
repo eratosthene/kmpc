@@ -599,17 +599,17 @@ class KmpcInterface(TabbedPanel):
     def rating_popup(self,instance):
         """Popup for setting song rating."""
         Logger.debug('Application: rating_popup()')
-        popup=Factory.RatingPopup()
+        popup=Factory.RatingPopup(rating_set=self.rating_set,song=self.currfile)
         popup.open()
 
-    def rating_set(self,rating,popup):
+    def rating_set(self,song,rating,popup):
         """Method that sets a song's rating."""
         Logger.debug('Application: rating_set('+rating+')')
         popup.dismiss()
         if rating:
-            mainmpdconnection.protocol.sticker_set('song',self.currfile,'rating',rating)
+            mainmpdconnection.protocol.sticker_set('song',song,'rating',rating)
         else:
-            mainmpdconnection.protocol.sticker_delete('song',self.currfile,'rating')
+            mainmpdconnection.protocol.sticker_delete('song',song,'rating')
 
     def cover_popup(self,originalyear,year,album,instance):
         """Popup for showing a larger version of the album cover."""
