@@ -19,7 +19,7 @@ from kivy.clock import Clock
 from functools import partial
 
 from kmpc.widgets import OutlineTabbedPanelItem
-import kmpc.kmpcapp
+import kmpc.kmpcinterface
 
 class PlaylistTabbedPanelItem(OutlineTabbedPanelItem):
     """The Playlist tab, shows the current playlist and allows interacting with it."""
@@ -32,7 +32,7 @@ class PlaylistTabbedPanelItem(OutlineTabbedPanelItem):
     def playlist_clear_pressed(self):
         """Callback for playlist clear button."""
         Logger.info("Playlist: clear")
-        kmpc.kmpcapp.mainmpdconnection.protocol.clear()
+        kmpc.kmpcinterface.mainmpdconnection.protocol.clear()
 
     def playlist_delete_pressed(self):
         """Callback for playlist delete button."""
@@ -41,7 +41,7 @@ class PlaylistTabbedPanelItem(OutlineTabbedPanelItem):
         for pos in self.playlist_selection:
             songid=str(self.rv.data[pos]['songid'])
             Logger.debug("Playlist: deleting songid "+songid)
-            kmpc.kmpcapp.mainmpdconnection.protocol.deleteid(songid)
+            kmpc.kmpcinterface.mainmpdconnection.protocol.deleteid(songid)
         self.rbl.clear_selection()
 
     def playlist_move_pressed(self):
@@ -56,7 +56,7 @@ class PlaylistTabbedPanelItem(OutlineTabbedPanelItem):
         Logger.info("Playlist: shuffle")
         # shuffle the playlist. note that this is different from toggling random playback, as it
         # actually reorders the playlist randomly rather than just playing in random order
-        kmpc.kmpcapp.mainmpdconnection.protocol.shuffle()
+        kmpc.kmpcinterface.mainmpdconnection.protocol.shuffle()
         self.rbl.clear_selection()
 
     def playlist_swap_pressed(self):
@@ -68,7 +68,7 @@ class PlaylistTabbedPanelItem(OutlineTabbedPanelItem):
         else:
             s1 = self.playlist_selection.keys()[0]
             s2 = self.playlist_selection.keys()[1]
-            kmpc.kmpcapp.mainmpdconnection.protocol.swap(str(s1),str(s2)).addErrback(self.handle_mpd_error)
+            kmpc.kmpcinterface.mainmpdconnection.protocol.swap(str(s1),str(s2)).addErrback(self.handle_mpd_error)
         self.rbl.clear_selection()
 
     def playlist_save_pressed(self):
@@ -98,7 +98,7 @@ class PlaylistTabbedPanelItem(OutlineTabbedPanelItem):
     def save_playlist(self,ti,popup,instance):
         """Tell mpd to save the current playlist with the name that was input."""
         Logger.info("Playlist: save_playlist("+ti.text+")")
-        kmpc.kmpcapp.mainmpdconnection.protocol.save(ti.text).addErrback(self.handle_mpd_error)
+        kmpc.kmpcinterface.mainmpdconnection.protocol.save(ti.text).addErrback(self.handle_mpd_error)
         popup.dismiss()
 
     def populate_playlist(self,result):
@@ -111,7 +111,7 @@ class PlaylistTabbedPanelItem(OutlineTabbedPanelItem):
             r = {'plpos':row['pos'],'rownum':str(int(row['pos'])+1),'artist':format(row['artist']),'title':format(row['title']),'songid':format(row['id'])}
             self.rv.data.append(r)
         # when playlist is populated, also ask mpd for current status to highlight current track
-        kmpc.kmpcapp.mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
+        kmpc.kmpcinterface.mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
 
     def update_mpd_status(self,result):
         """Callback for mpd status about current track."""
@@ -154,7 +154,7 @@ class PlaylistRow(RecycleDataViewBehavior,BoxLayout):
     def playfrom(self, touch, index, *args):
         """Handle long-press on a playlist row."""
         Logger.debug("Playlist: long-touch playfrom "+str(index))
-        kmpc.kmpcapp.mainmpdconnection.protocol.play(str(index))
+        kmpc.kmpcinterface.mainmpdconnection.protocol.play(str(index))
         self.app.ids.playlist_tab.rbl.clear_selection()
 
     def refresh_view_attrs(self, rv, index, data):
