@@ -71,9 +71,9 @@ class CoverButton(OutlineButton):
 
     def __init__(self,**kwargs):
         super(self.__class__,self).__init__(**kwargs)
-        self.background_normal = resource_filename(__name__,os.path.join('resources','clear.png'))
-        self.background_down = resource_filename(__name__,os.path.join('resources','clear.png'))
-        self.font_name = resource_filename(__name__,os.path.join('resources','DejaVuSans-Bold.ttf'))
+        self.background_normal = resource_filename(__name__,os.path.join('resources/images','clear.png'))
+        self.background_down = resource_filename(__name__,os.path.join('resources/images','clear.png'))
+        self.font_name = resource_filename(__name__,os.path.join('resources/fonts','DejaVuSans-Bold.ttf'))
         with self.canvas.before:
             Rectangle(texture=self.img.texture,pos=self.layout.pos,size=self.layout.size)
 

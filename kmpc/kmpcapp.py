@@ -22,7 +22,7 @@ from kmpc.kmpcinterface import KmpcInterface
 configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
 # load the interface.kv file
-Builder.load_file(resource_filename(__name__,os.path.join('resources','interface.kv')))
+Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','interface.kv')))
 
 class KmpcApp(App):
     """The overall app class, builds the main interface widget."""
@@ -80,11 +80,11 @@ class KmpcApp(App):
         return super(self.__class__,self).get_application_config(configdir+'/config.ini')
 
     def build_settings(self,settings):
-        settings.add_json_panel('mpd settings',self.config,resource_filename(__name__,os.path.join('resources','config_mpd.json')))
-        settings.add_json_panel('path settings',self.config,resource_filename(__name__,os.path.join('resources','config_paths.json')))
-        settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources','config_sync.json')))
-        settings.add_json_panel('system settings',self.config,resource_filename(__name__,os.path.join('resources','config_system.json')))
-        settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources','config_star.json')))
+        settings.add_json_panel('mpd settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_mpd.json')))
+        settings.add_json_panel('path settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_paths.json')))
+        settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_sync.json')))
+        settings.add_json_panel('system settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_system.json')))
+        settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources/json','config_star.json')))
 
     def on_config_change(self, config, section, key, value):
         if config is self.config:
@@ -95,16 +95,16 @@ class KmpcApp(App):
         """Instantiates KmpcInterface."""
         # setup some variables that interface.kv will use
         # this is necessary to support packaging the app
-        self.normalfont = resource_filename(__name__,os.path.join('resources','DejaVuSans.ttf'))
-        self.boldfont = resource_filename(__name__,os.path.join('resources','DejaVuSans-Bold.ttf'))
-        self.fontawesomefont = resource_filename(__name__,os.path.join('resources','FontAwesome.ttf'))
-        self.buttonnormal = resource_filename(__name__,os.path.join('resources','button-normal.png'))
-        self.buttondown = resource_filename(__name__,os.path.join('resources','button-down.png'))
-        self.clear = resource_filename(__name__,os.path.join('resources','clear.png'))
-        self.backdrop = resource_filename(__name__,os.path.join('resources','backdrop.png'))
-        self.listbackdrop = resource_filename(__name__,os.path.join('resources','list-backdrop.png'))
-        self.listbackdropselected = resource_filename(__name__,os.path.join('resources','list-backdrop-selected.png'))
-        self.trackslidercursor = resource_filename(__name__,os.path.join('resources','track-slider-cursor.png'))
+        self.normalfont = resource_filename(__name__,os.path.join('resources/fonts','DejaVuSans.ttf'))
+        self.boldfont = resource_filename(__name__,os.path.join('resources/fonts','DejaVuSans-Bold.ttf'))
+        self.fontawesomefont = resource_filename(__name__,os.path.join('resources/fonts','FontAwesome.ttf'))
+        self.buttonnormal = resource_filename(__name__,os.path.join('resources/images','button-normal.png'))
+        self.buttondown = resource_filename(__name__,os.path.join('resources/images','button-down.png'))
+        self.clear = resource_filename(__name__,os.path.join('resources/images','clear.png'))
+        self.backdrop = resource_filename(__name__,os.path.join('resources/images','backdrop.png'))
+        self.listbackdrop = resource_filename(__name__,os.path.join('resources/images','list-backdrop.png'))
+        self.listbackdropselected = resource_filename(__name__,os.path.join('resources/images','list-backdrop-selected.png'))
+        self.trackslidercursor = resource_filename(__name__,os.path.join('resources/images','track-slider-cursor.png'))
         self.version_str=VERSION_STR
         if not os.path.isdir(configdir):
             os.mkdir(configdir)

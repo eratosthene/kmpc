@@ -20,7 +20,7 @@ from kmpc.managerinterface import ManagerInterface
 configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
 # load the manager.kv file
-Builder.load_file(resource_filename(__name__,os.path.join('resources','manager.kv')))
+Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','manager.kv')))
 
 class ManagerApp(App):
 
@@ -64,10 +64,10 @@ class ManagerApp(App):
         return super(self.__class__,self).get_application_config(configdir+'/config.ini')
 
     def build_settings(self,settings):
-        settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources','config_manager_sync.json')))
-        settings.add_json_panel('log settings',self.config,resource_filename(__name__,os.path.join('resources','config_manager_logs.json')))
-        settings.add_json_panel('fanart settings',self.config,resource_filename(__name__,os.path.join('resources','config_fanart.json')))
-        settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources','config_star.json')))
+        settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_manager_sync.json')))
+        settings.add_json_panel('log settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_manager_logs.json')))
+        settings.add_json_panel('fanart settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_fanart.json')))
+        settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources/json','config_star.json')))
 
     def build(self):
         if not os.path.isdir(configdir):
@@ -78,8 +78,8 @@ class ManagerApp(App):
         self.config.write()
         # setup some variables that interface.kv will use
         # this is necessary to support packaging the app
-        self.normalfont = resource_filename(__name__,os.path.join('resources','DejaVuSans.ttf'))
-        self.fontawesomefont = resource_filename(__name__,os.path.join('resources','FontAwesome.ttf'))
+        self.normalfont = resource_filename(__name__,os.path.join('resources/fonts','DejaVuSans.ttf'))
+        self.fontawesomefont = resource_filename(__name__,os.path.join('resources/fonts','FontAwesome.ttf'))
         if self.args.newconfig:
             sys.exit(0)
         else:
