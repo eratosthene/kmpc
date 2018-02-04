@@ -8,6 +8,8 @@ kmpc Change Log
 0.6.4 - 2018-02-??
 ******************
 
+- Changed commandline 'convert' usage in kmpcmanager to use pillow instead.
+  (`issue 94 <https://github.com/eratosthene/kmpc/issues/94>`_)
 - Ratings popup now has larger buttons, and a 'clear rating' button. Manager
   app also uses the same code now. (`issue #91
   <https://github.com/eratosthene/kmpc/issues/91>`_)
