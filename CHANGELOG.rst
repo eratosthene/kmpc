@@ -8,6 +8,8 @@ kmpc Change Log
 0.6.5 - 2018-02-??
 ******************
 
+- Fixed Update command to use proper PATH environment variable. (`issue 92
+  <https://github.com/eratosthene/kmpc/issues/92>`_)
 - Changed background textures to greyscale, and added new [colors] section to
   config file for tinting them. (`issue 96
   <https://github.com/eratosthene/kmpc/issues/96>`_)

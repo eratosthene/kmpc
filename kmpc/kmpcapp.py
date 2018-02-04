@@ -62,7 +62,7 @@ class KmpcApp(App):
             'rpienable': '0',
             'originalyear': '1',
             'advancedtitles': '0',
-            'updatecommand': 'sudo pip install -U kmpc',
+            'updatecommand': 'sudo pip install -U kmpc --no-deps',
             'rebootcommand': 'sudo reboot',
             'poweroffcommand': 'sudo poweroff',
             'exportfirst': '1',
