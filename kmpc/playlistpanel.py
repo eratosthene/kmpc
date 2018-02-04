@@ -72,34 +72,13 @@ class PlaylistTabbedPanelItem(OutlineTabbedPanelItem):
             kmpc.kmpcinterface.mainmpdconnection.protocol.swap(str(s1),str(s2)).addErrback(self.handle_mpd_error)
         self.rbl.clear_selection()
 
-    #TODO: move this to kv
     def playlist_save_pressed(self):
         """Callback for playlist save button."""
         Logger.info("Playlist: save")
         self.rbl.clear_selection()
         popup=Factory.PlaylistSavePopup()
         popup.open()
-        # build a popup for naming the playlist
-#        layout = BoxLayout(orientation='vertical')
-#        popup = Popup(title='Playlist Name',content=layout)
-#        l1 = BoxLayout(size_hint_y='0.1')
-#        ti = TextInput()
-#        l1.add_widget(ti)
-#        layout.add_widget(l1)
-#        l2 = BoxLayout(size_hint_y='0.1',orientation='horizontal')
-#        btnok = Button(text="OK")
-#        btncl = Button(text="Cancel")
-#        btncl.bind(on_press=popup.dismiss)
-#        btnok.bind(on_press=partial(self.save_playlist,ti,popup))
-#        l2.add_widget(btnok)
-#        l2.add_widget(btncl)
-#        layout.add_widget(l2)
-#        l3 = BoxLayout()
-#        layout.add_widget(l3)
-#        popup.open()
-#        ti.show_keyboard()
 
-#    def save_playlist(self,ti,popup,instance):
     def save_playlist(self,t,popup):
         """Tell mpd to save the current playlist with the name that was input."""
         Logger.info("Playlist: save_playlist("+t+")")
