@@ -45,13 +45,6 @@
         size: sp(32), sp(32)
         text: "%02d:%02d" % (divmod(int(root.max)-int(root.value),60))
 
-<BackdropBoxLayout@BoxLayout>:
-    canvas.before:
-        Rectangle:
-            source: backdrop
-            size: self.size
-            pos: self.pos
-
 <OutlineToggleButton@ToggleButton+OutlineLabel>:
 
 <MediaButton@OutlineButton,MediaToggleButton@ToggleButton+OutlineLabel>:

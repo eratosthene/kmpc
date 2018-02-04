@@ -214,7 +214,7 @@ class KmpcInterface(TabbedPanel):
         self.ids.trackinfo.clear_widgets()
         lbl = OutlineLabel(text="Playback Stopped")
         self.ids.trackinfo.add_widget(lbl)
-        self.ids.player.canvas.before.add(Rectangle(source=backdrop,size=self.ids.player.size,pos=self.ids.player.pos))
+        #self.ids.player.canvas.before.add(Rectangle(source=backdrop,size=self.ids.player.size,pos=self.ids.player.pos))
 
     def update_mpd_status(self,result):
         """Callback when mpd status changes."""
@@ -367,7 +367,8 @@ class KmpcInterface(TabbedPanel):
                     self.ids.player.canvas.before.add(Rectangle(source=os.path.join(ab_path,img_path),size=self.ids.player.size,pos=self.ids.player.pos))
                 except:
                     # update the player background with the default backdrop
-                    self.ids.player.canvas.before.add(Rectangle(source=backdrop,size=self.ids.player.size,pos=self.ids.player.pos))
+                    #self.ids.player.canvas.before.add(Rectangle(source=backdrop,size=self.ids.player.size,pos=self.ids.player.pos))
+                    pass
                 if os.path.isfile(p):
                     Logger.debug('update_mpd_currentsong: found good file at path '+p)
                     # load up the file to read the tags

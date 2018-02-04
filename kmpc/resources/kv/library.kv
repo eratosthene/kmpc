@@ -4,11 +4,11 @@
 #:import listbackdrop kmpc.widgets.listbackdrop
 
 <LibraryBoxLayout@BoxLayout>:
-    canvas.before:
-        Rectangle:
-            source: listbackdrop
-            size: self.size
-            pos: self.pos
+#    canvas.before:
+#        Rectangle:
+#            source: listbackdrop
+#            size: self.size
+#            pos: self.pos
 
 <LibraryScrollView@ScrollView>:
     size_hint: (1,1)
@@ -84,7 +84,7 @@
     rv: rv
     rbl: rbl
     current_header: current_header
-    BackdropBoxLayout:
+    BoxLayout:
         orientation: 'vertical'
         padding: 0
         spacing: 0
