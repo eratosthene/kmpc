@@ -8,6 +8,8 @@ kmpc Change Log
 0.6.5 - 2018-02-??
 ******************
 
+- Moved all presentation code to .kv files. (`issue 97
+  <https://github.com/eratosthene/kmpc/issues/97>`_)
 - Fixed bug in advanced titles. (`issue 106
   <https://github.com/eratosthene/kmpc/issues/106>`_)
 - Unified theming between app and manager.

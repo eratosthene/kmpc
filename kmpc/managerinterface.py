@@ -17,21 +17,17 @@ from kivy.clock import Clock
 
 # import our local modules
 from kmpc.version import VERSION, VERSION_STR
-from kmpc.extra import KmpcHelpers
 from kmpc.mpdfactory import MpdConnection
 from kmpc.widgets import ArtistRecycleBoxLayout,ArtistRow,UneditTextInput
 
 # sets the location of the config folder
 configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
-Helpers=KmpcHelpers()
-
 class ManagerInterface(TabbedPanel):
 
     def __init__(self,config):
         super(self.__class__,self).__init__()
         self.config=config
-        self.songratings=Helpers.songratings(config)
         self.artist_id_hash={}
         self.artist_name_hash={}
         self.media_hash={}
