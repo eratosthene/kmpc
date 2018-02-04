@@ -20,14 +20,11 @@
     color: [1,1,1,1]
 
 <OutlineButton>:
-    border: (4,4,4,4)
-    background_normal: buttonnormal
-    background_down: buttondown
     font_name: boldfont
-    font_size: '20sp'
 
 <Button>:
     border: (4,4,4,4)
+    background_color: app.get_color('button')
     background_normal: buttonnormal
     background_down: buttondown
     font_name: normalfont
@@ -44,13 +41,6 @@
         size_hint: None, None
         size: sp(32), sp(32)
         text: "%02d:%02d" % (divmod(int(root.max)-int(root.value),60))
-
-<BackdropBoxLayout@BoxLayout>:
-    canvas.before:
-        Rectangle:
-            source: backdrop
-            size: self.size
-            pos: self.pos
 
 <OutlineToggleButton@ToggleButton+OutlineLabel>:
 

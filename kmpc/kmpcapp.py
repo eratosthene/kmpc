@@ -12,6 +12,7 @@ from kivy.config import Config,ConfigParser
 from kivy.app import App
 from kivy.logger import Logger
 from kivy.lang import Builder
+from kivy.utils import get_color_from_hex
 
 # import our local modules
 from kmpc.version import VERSION_STR
@@ -79,6 +80,25 @@ class KmpcApp(App):
             'star9': 'Best songs by an artist',
             'star10': 'Favorite songs of all time'
         })
+        config.setdefaults('colors', {
+            'button': '#00B361',
+            'backdrop': '#4096FF',
+            'listitem': '#4080FF',
+            'listitemselected': '#FFFF00',
+            'listitemcurrent': '#521C4F'
+        })
+
+    def get_color(self,c):
+        cc=self.config.get('colors',c)
+        try:
+            # if backdrop or button, alpha channel=1, else 0.5
+            if c in ['backdrop','button']: cc=cc+'FF'
+            else: cc=cc+'80'
+            t=get_color_from_hex(cc)
+        except:
+            Logger.error("Application: color "+cc+" for "+c+" is invalid")
+            t=(1,1,1,1)
+        return t
 
     def get_application_config(self):
         return super(self.__class__,self).get_application_config(configdir+'/config.ini')
@@ -89,6 +109,7 @@ class KmpcApp(App):
         settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_sync.json')))
         settings.add_json_panel('system settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_system.json')))
         settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources/json','config_star.json')))
+        settings.add_json_panel('colors',self.config,resource_filename(__name__,os.path.join('resources/json','config_colors.json')))
 
     def on_config_change(self, config, section, key, value):
         if config is self.config:

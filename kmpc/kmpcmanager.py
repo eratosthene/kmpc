@@ -12,6 +12,7 @@ kivy.require('1.10.0')
 from kivy.config import Config
 from kivy.app import App
 from kivy.lang import Builder
+from kivy.utils import get_color_from_hex
 
 from kmpc.mpdfactory import MpdConnection
 from kmpc.managerinterface import ManagerInterface
@@ -60,6 +61,25 @@ class ManagerApp(App):
             'star10': 'Favorite songs of all time'
         })
         config.setdefaults('artblacklist', {})
+        config.setdefaults('colors', {
+            'button': '#00B361',
+            'backdrop': '#4096FF',
+            'listitem': '#4080FF',
+            'listitemselected': '#FFFF00',
+            'listitemcurrent': '#521C4F'
+        })
+
+    def get_color(self,c):
+        cc=self.config.get('colors',c)
+        try:
+            # if backdrop or button, alpha channel=1, else 0.5
+            if c in ['backdrop','button']: cc=cc+'FF'
+            else: cc=cc+'80'
+            t=get_color_from_hex(cc)
+        except:
+            Logger.error("Application: color "+cc+" for "+c+" is invalid")
+            t=(1,1,1,1)
+        return t
 
     def get_application_config(self):
         return super(self.__class__,self).get_application_config(configdir+'/config.ini')
@@ -69,6 +89,7 @@ class ManagerApp(App):
         settings.add_json_panel('log settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_manager_logs.json')))
         settings.add_json_panel('fanart settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_fanart.json')))
         settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources/json','config_star.json')))
+        settings.add_json_panel('colors',self.config,resource_filename(__name__,os.path.join('resources/json','config_colors.json')))
 
     def build(self):
         if not os.path.isdir(configdir):

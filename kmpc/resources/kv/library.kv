@@ -3,13 +3,6 @@
 #:import LibraryTabbedPanelItem kmpc.librarypanel.LibraryTabbedPanelItem
 #:import listbackdrop kmpc.widgets.listbackdrop
 
-<LibraryBoxLayout@BoxLayout>:
-    canvas.before:
-        Rectangle:
-            source: listbackdrop
-            size: self.size
-            pos: self.pos
-
 <LibraryScrollView@ScrollView>:
     size_hint: (1,1)
     do_scroll_x: False
@@ -49,13 +42,10 @@
 
 <LibraryRow>:
     canvas.before:
+        Color:
+            rgba: app.get_color('listitemselected') if self.selected else app.get_color('listitem')
         Rectangle:
             source: listbackdrop
-            size: self.size
-            pos: self.pos
-        Color:
-            rgba: (1,1,0,0.5) if self.selected else (0,0,0,0)
-        Rectangle:
             size: self.size
             pos: self.pos
         Color:
@@ -84,7 +74,7 @@
     rv: rv
     rbl: rbl
     current_header: current_header
-    BackdropBoxLayout:
+    BoxLayout:
         orientation: 'vertical'
         padding: 0
         spacing: 0

@@ -129,6 +129,20 @@ Customize the meaning of 0-10 stars. The defaults are probably good enough, but
 feel free to change them to whatever you want. These are the strings that are
 shown in the rating popup.
 
+[colors] section
+----------------
+
+backdrop
+  The main backdrop used on all panels.
+button
+  All buttons used in the app.
+listitem
+  Rows in the playlist or library.
+listitemselected
+  A selected row in the playlist or library.
+listitemcurrent
+  The current song in the playlist.
+
 [artblacklist] section
 ----------------------
 

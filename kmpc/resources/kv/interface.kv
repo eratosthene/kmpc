@@ -6,6 +6,7 @@
 #:import OutlineTabbedPanelItem kmpc.widgets.OutlineTabbedPanelItem
 #:import trackslidercursor kmpc.widgets.trackslidercursor
 #:import OutlineLabel kmpc.widgets.OutlineLabel
+#:import backdrop kmpc.widgets.backdrop
 
 <SettingsPopup@Popup>:
     auto_dismiss: True
@@ -152,9 +153,11 @@
     active_tab: None
     backlight_min: 11
     backlight_max: 255
+    background_color: app.get_color('backdrop')
+    background_image: backdrop
     OutlineTabbedPanelItem:
         text: 'Now Playing'
-        BackdropBoxLayout:
+        BoxLayout:
             id: player
             orientation: 'vertical'
             BoxLayout:
