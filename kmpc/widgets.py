@@ -139,3 +139,8 @@ class RatingPopup(Popup):
     rating_set = ObjectProperty(None)
     song = StringProperty(None)
     index = NumericProperty(None)
+
+class StarBoxButton(BoxLayout,OutlineButton):
+    rating = StringProperty(None)
+    popup = ObjectProperty(None)
+
