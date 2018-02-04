@@ -367,13 +367,11 @@ class KmpcInterface(TabbedPanel):
                     # pick one at random
                     img_path=random.choice(os.listdir(ab_path))
                     # update the player background with the image
-                    #self.ids.player.canvas.before.add(Rectangle(source=os.path.join(ab_path,img_path),size=self.ids.player.size,pos=self.ids.player.pos))
                     with self.ids.player.canvas.before:
                         Color(1,1,1)
                         Rectangle(source=os.path.join(ab_path,img_path),size=self.ids.player.size,pos=self.ids.player.pos)
                 except:
-                    # update the player background with the default backdrop
-                    #self.ids.player.canvas.before.add(Rectangle(source=backdrop,size=self.ids.player.size,pos=self.ids.player.pos))
+                    # if we can't get an artistbackground image, just do nothing
                     pass
                 if os.path.isfile(p):
                     Logger.debug('update_mpd_currentsong: found good file at path '+p)
