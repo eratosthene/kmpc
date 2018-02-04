@@ -617,7 +617,6 @@ class KmpcInterface(TabbedPanel):
         else:
             mainmpdconnection.protocol.sticker_delete('song',song,'rating')
 
-    #TODO: move this to kv
     def cover_popup(self,originalyear,year,album,instance):
         """Popup for showing a larger version of the album cover."""
         Logger.debug('Application: cover_popup()')
@@ -626,13 +625,7 @@ class KmpcInterface(TabbedPanel):
             title=title+' released '+originalyear+' (remastered '+year+')'
         elif year:
             title=title+' released '+year
-        layout = BoxLayout()
-        popup = Popup(title=title,content=layout,size_hint=(0.6,1))
-        # pull the already loaded image texture
-        img = Image(texture=instance.img.texture,allow_stretch=True)
-        # add it to the layout
-        layout.add_widget(img)
-        # pop pop pop
+        popup=Factory.CoverPopup(image_texture=instance.img.texture)
         popup.open()
 
     def change_backlight(self,value):

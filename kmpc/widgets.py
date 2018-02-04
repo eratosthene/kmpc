@@ -144,3 +144,5 @@ class StarBoxButton(BoxLayout,OutlineButton):
     rating = StringProperty(None)
     popup = ObjectProperty(None)
 
+class CoverPopup(Popup):
+    image_texture = ObjectProperty(None)

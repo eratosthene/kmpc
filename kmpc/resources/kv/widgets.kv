@@ -5,6 +5,7 @@
 #:import StarBoxButton kmpc.widgets.StarBoxButton
 #:import InfoLargeLabel kmpc.widgets.InfoLargeLabel
 #:import RatingPopup kmpc.widgets.RatingPopup
+#:import CoverPopup kmpc.widgets.CoverPopup
 #:import normalfont kmpc.widgets.normalfont
 #:import boldfont kmpc.widgets.boldfont
 #:import fontawesomefont kmpc.widgets.fontawesomefont
@@ -179,4 +180,11 @@
             StarBoxButton:
                 rating: '10'
                 popup: root
-            
+           
+<CoverPopup>:
+    size_hint: (0.6,1)
+    BoxLayout:
+        Image:
+            texture:root.image_texture
+            allow_stretch: True
+
