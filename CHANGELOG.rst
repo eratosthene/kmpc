@@ -8,6 +8,8 @@ kmpc Change Log
 0.6.4 - 2018-02-??
 ******************
 
+- Added playlist generation based on star ratings to the Library tab. (`issue
+  #84 <https://github.com/eratosthene/kmpc/issues/84>`_)
 - Added replaygain toggle in settings popup. (`issue 89
   <https://github.com/eratosthene/kmpc/issues/89>`_)
 - Changed commandline 'convert' usage in kmpcmanager to use pillow instead.
