@@ -1,9 +1,9 @@
 import os
 import pickle
 from functools import partial
-import subprocess
-import shutil
 import musicbrainzngs
+from PIL import Image as PImage
+from ConfigParser import NoSectionError,NoOptionError
 
 # make sure we are on an updated version of kivy
 import kivy
@@ -141,13 +141,13 @@ class ManagerInterface(TabbedPanel):
         self.write_artists_to_cache()
 
     def trim_image(self,filename,request,result):
-        tdir=tempfile.mkdtemp()
-        tf1=os.path.join(tdir,'tf1.png')
         Logger.debug("trim_image: fixing "+filename)
-        Logger.debug("trim_image: using tfile "+tf1)
-        subprocess.call(['convert',filename,'-bordercolor','none','-border','10x10',tf1])
-        subprocess.call(['convert',tf1,'-trim','+repage',filename])
-        shutil.rmtree(tdir)
+        image = PImage.open(filename)
+        # convert to RGBa before getting bounding box to account for transparent pixels
+        bbox = image.convert("RGBa").getbbox()
+        # crop it and save
+        image = image.crop(bbox)
+        image.save(filename)
 
     def pull_art(self,index,*largs):
         Logger.info('Manager: pulling art for '+self.ids.artist_tab.rv.data[index]['artist_id'])
@@ -172,9 +172,9 @@ class ManagerInterface(TabbedPanel):
         bl=[]
         try:
             bl=self.config.get('artblacklist',aid).split(',')
-        except ConfigParser.NoSectionError:
+        except NoSectionError:
             Logger.debug('pull_art2: no artblacklist section found')
-        except ConfigParser.NoOptionError:
+        except NoOptionError:
             Logger.debug('pull_art2: no blacklist entries found for '+aid)
         except Exception as e:
             Logger.exception('pull_art2: '+format(e))
