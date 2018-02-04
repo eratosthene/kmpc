@@ -71,6 +71,7 @@ class PlaylistTabbedPanelItem(OutlineTabbedPanelItem):
             kmpc.kmpcinterface.mainmpdconnection.protocol.swap(str(s1),str(s2)).addErrback(self.handle_mpd_error)
         self.rbl.clear_selection()
 
+    #TODO: move this to kv
     def playlist_save_pressed(self):
         """Callback for playlist save button."""
         Logger.info("Playlist: save")
