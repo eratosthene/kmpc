@@ -5,6 +5,14 @@ kmpc Change Log
 ###############
 
 ******************
+0.6.5 - 2018-02-??
+******************
+
+- Changed background textures to greyscale, and added new [colors] section to
+  config file for tinting them. (`issue 96
+  <https://github.com/eratosthene/kmpc/issues/96>`_)
+
+******************
 0.6.4 - 2018-02-03
 ******************
 
