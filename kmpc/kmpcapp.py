@@ -83,7 +83,8 @@ class KmpcApp(App):
             'backdrop': '0.25,0.59,1,1',
             'listitem': '0.25,0.5,1,0.5',
             'listitemselected': '1,1,0,0.5',
-            'listitemcurrent': '0.32,0.11,0.31,0.5'
+            'listitemcurrent': '0.32,0.11,0.31,0.5',
+            'button': '0,0.70,0.38,1'
         })
 
     def get_color(self,c):

@@ -18,5 +18,10 @@
     "title": "listitemcurrent",
     "desc": "color to tint current item in playlist",
     "section": "colors",
-    "key": "listitemcurrent" }
+    "key": "listitemcurrent" },
+  { "type": "string",
+    "title": "button",
+    "desc": "color to tint buttons",
+    "section": "colors",
+    "key": "button" }
 ]

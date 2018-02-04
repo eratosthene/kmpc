@@ -33,7 +33,6 @@ buttondown = resource_filename(__name__,os.path.join('resources/images','button-
 clearimage = resource_filename(__name__,os.path.join('resources/images','clear.png'))
 backdrop = resource_filename(__name__,os.path.join('resources/images','backdrop.png'))
 listbackdrop = resource_filename(__name__,os.path.join('resources/images','list-backdrop.png'))
-listbackdropselected = resource_filename(__name__,os.path.join('resources/images','list-backdrop-selected.png'))
 trackslidercursor = resource_filename(__name__,os.path.join('resources/images','track-slider-cursor.png'))
 
 class ExtraSlider(Slider):
