@@ -60,6 +60,27 @@ class ManagerApp(App):
             'star10': 'Favorite songs of all time'
         })
         config.setdefaults('artblacklist', {})
+        config.setdefaults('colors', {
+            'button': '#00B361',
+            'backdrop': '#4096FF',
+            'listitem': '#4080FF',
+            'listitemselected': '#FFFF00',
+            'listitemcurrent': '#521C4F'
+        })
+
+    def get_color(self,c):
+        cc=self.config.get('colors',c).lstrip('#')
+        try:
+            # chop the string into 3 hex nums, convert them to decimal, then convert to float between 0 and 1
+            a=[round(int(cc[i:i+2],16)/255.0,2) for i in range(0,len(cc),2)]
+            # if backdrop or button, alpha channel=1, else 0.5
+            if c in ['backdrop','button']: a.append(1)
+            else: a.append(0.5)
+            t=tuple(a)
+        except:
+            Logger.error("Application: color "+cc+" for "+c+" is invalid")
+            t=(1,1,1,1)
+        return t
 
     def get_application_config(self):
         return super(self.__class__,self).get_application_config(configdir+'/config.ini')
@@ -69,6 +90,7 @@ class ManagerApp(App):
         settings.add_json_panel('log settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_manager_logs.json')))
         settings.add_json_panel('fanart settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_fanart.json')))
         settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources/json','config_star.json')))
+        settings.add_json_panel('colors',self.config,resource_filename(__name__,os.path.join('resources/json','config_colors.json')))
 
     def build(self):
         if not os.path.isdir(configdir):

@@ -80,25 +80,24 @@ class KmpcApp(App):
             'star10': 'Favorite songs of all time'
         })
         config.setdefaults('colors', {
-            'backdrop': '0.25,0.59,1,1',
-            'listitem': '0.25,0.5,1,0.5',
-            'listitemselected': '1,1,0,0.5',
-            'listitemcurrent': '0.32,0.11,0.31,0.5',
-            'button': '0,0.70,0.38,1'
+            'button': '#00B361',
+            'backdrop': '#4096FF',
+            'listitem': '#4080FF',
+            'listitemselected': '#FFFF00',
+            'listitemcurrent': '#521C4F'
         })
 
     def get_color(self,c):
-        a=self.config.get('colors',c).split(',')
+        cc=self.config.get('colors',c).lstrip('#')
         try:
+            # chop the string into 3 hex nums, convert them to decimal, then convert to float between 0 and 1
+            a=[round(int(cc[i:i+2],16)/255.0,2) for i in range(0,len(cc),2)]
+            # if backdrop or button, alpha channel=1, else 0.5
+            if c in ['backdrop','button']: a.append(1)
+            else: a.append(0.5)
             t=tuple(a)
-            # this will fail if each item in the list is not a float
-            for e in a:
-                float(e)
         except:
-            Logger.error('Config: Invalid color value '+self.config.get('colors',c)+' specified')
-            t=(1,1,1,1)
-        if len(a)!=4:
-            Logger.error('Config: Color value not a comma-delimited list of 4 floats: '+self.config.get('colors',c))
+            Logger.error("Application: color "+cc+" for "+c+" is invalid")
             t=(1,1,1,1)
         return t
 
