@@ -188,3 +188,22 @@
             texture:root.image_texture
             allow_stretch: True
 
+<PlaylistSavePopup@Popup>:
+    title: 'Playlist Name'
+    size_hint_y: 0.5
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            size_hint_y: 0.1
+            TextInput:
+                id: playlist_name
+                text: ''
+        BoxLayout:
+            size_hint_y: 0.1
+            orientation: 'horizontal'
+            Button:
+                text: 'OK'
+                on_press: app.root.ids.playlist_tab.save_playlist(root.ids.playlist_name.text,root)
+            Button:
+                text: 'Cancel'
+                on_press: root.dismiss()
