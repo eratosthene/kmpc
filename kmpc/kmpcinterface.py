@@ -16,7 +16,7 @@ kivy.require('1.10.0')
 # import all the other kivy stuff
 from kivy.app import App
 from kivy.logger import Logger
-from kivy.graphics import Rectangle
+from kivy.graphics import Rectangle,Color
 from kivy.core.image import Image as CoreImage
 from kivy.clock import Clock
 from kivy.uix.tabbedpanel import TabbedPanel
@@ -214,7 +214,10 @@ class KmpcInterface(TabbedPanel):
         self.ids.trackinfo.clear_widgets()
         lbl = OutlineLabel(text="Playback Stopped")
         self.ids.trackinfo.add_widget(lbl)
-        #self.ids.player.canvas.before.add(Rectangle(source=backdrop,size=self.ids.player.size,pos=self.ids.player.pos))
+        self.ids.player.canvas.before.clear()
+        self.ids.releasetypelabel.text=''
+        self.ids.yearlabel.text=''
+        self.ids.remasterlabel.text=''
 
     def update_mpd_status(self,result):
         """Callback when mpd status changes."""
@@ -364,7 +367,10 @@ class KmpcInterface(TabbedPanel):
                     # pick one at random
                     img_path=random.choice(os.listdir(ab_path))
                     # update the player background with the image
-                    self.ids.player.canvas.before.add(Rectangle(source=os.path.join(ab_path,img_path),size=self.ids.player.size,pos=self.ids.player.pos))
+                    #self.ids.player.canvas.before.add(Rectangle(source=os.path.join(ab_path,img_path),size=self.ids.player.size,pos=self.ids.player.pos))
+                    with self.ids.player.canvas.before:
+                        Color(1,1,1)
+                        Rectangle(source=os.path.join(ab_path,img_path),size=self.ids.player.size,pos=self.ids.player.pos)
                 except:
                     # update the player background with the default backdrop
                     #self.ids.player.canvas.before.add(Rectangle(source=backdrop,size=self.ids.player.size,pos=self.ids.player.pos))
