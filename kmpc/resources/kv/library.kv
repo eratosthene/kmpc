@@ -1,0 +1,160 @@
+#:kivy 1.10.0
+#:import OutlineLabel kmpc.widgets.OutlineLabel
+#:import LibraryTabbedPanelItem kmpc.librarypanel.LibraryTabbedPanelItem
+#:import listbackdrop kmpc.widgets.listbackdrop
+
+<LibraryBoxLayout@BoxLayout>:
+    canvas.before:
+        Rectangle:
+            source: listbackdrop
+            size: self.size
+            pos: self.pos
+
+<LibraryScrollView@ScrollView>:
+    size_hint: (1,1)
+    do_scroll_x: False
+
+<GeneratePopup@Popup>:
+    size_hint_x: 0.8
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineLabel:
+                text: 'Rating'
+            Spinner:
+                id: ratings_spinner
+                text_autoupdate: True
+                values: ['None','0','1','2','3','4','5','6','7','8','9','10']
+                on_text: app.root.ids.library_tab.update_generate_text(root)
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineLabel:
+                text: 'Operation'
+            Spinner:
+                id: operation_spinner
+                text_autoupdate: True
+                values: ['<','<=','=','>=','>']
+                on_text: app.root.ids.library_tab.update_generate_text(root)
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineLabel:
+                text: 'Playlist Name'
+            TextInput:
+                id: playlist_name
+                text: 'No Stars'
+        OutlineButton:
+            text: 'Generate'
+            on_press: app.root.ids.library_tab.generate_playlist(root)
+
+<LibraryRow>:
+    canvas.before:
+        Rectangle:
+            source: listbackdrop
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: (1,1,0,0.5) if self.selected else (0,0,0,0)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+        Color:
+            rgba: (1,1,1,0.3)
+        Rectangle:
+            size: (self.width,sp(1))
+            pos: self.pos
+        Rectangle:
+            size: (self.width,sp(1))
+            pos: (self.x,self.top)
+    value: ''
+    base: 'root'
+    level: 'root'
+    upto: None
+    info: {}
+    OutlineLabel:
+        size_hint_x: 1
+        halign: 'left'
+        valign: 'center'
+        text_size: self.size
+        text: root.value
+        padding_x: sp(10)
+
+<LibraryTabbedPanelItem>:
+    text: 'Library'
+    rv: rv
+    rbl: rbl
+    current_header: current_header
+    BackdropBoxLayout:
+        orientation: 'vertical'
+        padding: 0
+        spacing: 0
+        BoxLayout:
+            size_hint_y: 0.1
+            orientation: 'horizontal'
+            OutlineToggleButton:
+                text: 'Files'
+                id: files_button
+                on_press: root.change_view_type(self.text)
+            OutlineToggleButton:
+                text: 'Albums'
+                id: albums_button
+                on_press: root.change_view_type(self.text)
+            OutlineToggleButton:
+                text: 'Tracks'
+                id: tracks_button
+                on_press: root.change_view_type(self.text)
+            OutlineToggleButton:
+                text: 'Playlists'
+                id: playlists_button
+                on_press: root.change_view_type(self.text)
+            OutlineButton:
+                text: 'Generate'
+                id: generate_button
+                on_press: root.popup_generate()
+        OutlineLabel:
+            id: current_header
+            size_hint_y: 0.1
+            size_hint_x: 1
+            padding_x: sp(10)
+            text: ''
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+        BoxLayout:
+            orientation: 'horizontal'
+            RecycleView:
+                id: rv
+                size_hint_y: 1
+                size_hint_x: 1
+                rv_selection: {}
+                scroll_type: ['bars','content']
+                bar_width: sp(40)
+                viewclass: 'LibraryRow'
+                LibraryRecycleBoxLayout:
+                    id: rbl
+                    default_size: None, sp(56)
+                    default_size_hint: 1, None
+                    size_hint_y: None
+                    height: self.minimum_height
+                    orientation: 'vertical'
+                    spacing: sp(2)
+                    multiselect: True
+                    touch_multiselect: True
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: '0.05'
+                OutlineButton:
+                    text: '+'
+                    on_press: root.browser_add(False,False)
+                OutlineButton:
+                    text: '>'
+                    on_press: root.browser_add(False,True)
+                OutlineButton:
+                    text: '!'
+                    on_press: root.browser_add(True,False)
+                OutlineButton:
+                    id: delete_button
+                    text: 'X'
+                    on_press: root.browser_delete()
+                    disabled: True
+

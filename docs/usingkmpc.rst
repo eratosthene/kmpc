@@ -91,19 +91,26 @@ Toggle Consume Mode
 Runtime Settings
 ================
 
-.. image:: images/runtime.png
+.. image:: images/runtime1.png
 
 At the top left is a button to popup the runtime settings. This opens a menu
 for various ancillary controls.
+
+The first three sliders affect mpd's playback, and correspond to the
+'crossfade', 'mixrampdb', and 'mixrampdelay' mpd options. Please see mpd's
+documentation for explanation.
+
+The toggle button at the bottom allows selection of Replaygain functionality.
+Please see mpd's documentation for explanation.
+
+Swiping left on the popup will bring up the next set of controls.
+
+.. image:: images/runtime2.png
 
 First is the current IP address of the host. kmpc tries to guess this
 intelligently, returning either the local IP address or 127.0.0.1 if no network
 is connected. This can be useful in determining whether the Pi in your car can
 reach the wifi in your house.
-
-The next three sliders affect mpd's playback, and correspond to the
-'crossfade', 'mixrampdb', and 'mixrampdelay' mpd options. Please see mpd's
-documentation for explanation.
 
 The Text Color and Outline Color toggles let you change the color and outline
 of text displayed in kmpc between white and black.

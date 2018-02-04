@@ -4,6 +4,22 @@
 kmpc Change Log
 ###############
 
+******************
+0.6.4 - 2018-02-03
+******************
+
+- Added playlist generation based on star ratings to the Library tab. (`issue
+  #84 <https://github.com/eratosthene/kmpc/issues/84>`_)
+- Added replaygain toggle in settings popup. (`issue 89
+  <https://github.com/eratosthene/kmpc/issues/89>`_)
+- Changed commandline 'convert' usage in kmpcmanager to use pillow instead.
+  (`issue 94 <https://github.com/eratosthene/kmpc/issues/94>`_)
+- Ratings popup now has larger buttons, and a 'clear rating' button. Manager
+  app also uses the same code now. (`issue #91
+  <https://github.com/eratosthene/kmpc/issues/91>`_)
+- Restructured code and resources to break everything into smaller, separate
+  files. (`issue #93 <https://github.com/eratosthene/kmpc/issues/93>`_)
+
 ********************
 0.6.3.1 - 2018-02-02
 ********************
