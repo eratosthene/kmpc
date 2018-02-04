@@ -5,7 +5,7 @@ kmpc Change Log
 ###############
 
 ******************
-0.6.4 - 2018-02-??
+0.6.4 - 2018-02-03
 ******************
 
 - Added playlist generation based on star ratings to the Library tab. (`issue
