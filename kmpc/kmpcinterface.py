@@ -454,8 +454,13 @@ class KmpcInterface(TabbedPanel):
                 if self.config.getboolean('system','advancedtitles'):
                     # check to see if song title has any data deliminated by () or []
                     stitle=re.split('[\(\[\]\)]',result['title'])
+                    # if the first item is empty, the title starts with () or []
+                    if not stitle[0]:
+                        stitle.pop(0)
+                        stitle[0]='('+stitle[0]+')'
+                    ftitle=filter(None,stitle)
                     Logger.debug('TITLE: '+format(stitle))
-                    if len(stitle) > 1:
+                    if len(ftitle) > 1:
                         lyt2=BoxLayout(orientation='vertical',padding_y='2sp')
                         # split the title up and put the parentheses in smaller text below
                         lyt2.add_widget(InfoLargeLabel(text = stitle[0], font_size=Helpers.getfontsize(stitle[0])))
