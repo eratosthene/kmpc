@@ -43,7 +43,7 @@
 <LibraryRow>:
     canvas.before:
         Color:
-            rgba: (1,1,0,0.5) if self.selected else (0.25,0.5,1,0.5)
+            rgba: app.get_color('listitemselected') if self.selected else app.get_color('listitem')
         Rectangle:
             source: listbackdrop
             size: self.size

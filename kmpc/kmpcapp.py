@@ -79,6 +79,27 @@ class KmpcApp(App):
             'star9': 'Best songs by an artist',
             'star10': 'Favorite songs of all time'
         })
+        config.setdefaults('colors', {
+            'backdrop': '0.25,0.59,1,1',
+            'listitem': '0.25,0.5,1,0.5',
+            'listitemselected': '1,1,0,0.5',
+            'listitemcurrent': '0.32,0.11,0.31,0.5'
+        })
+
+    def get_color(self,c):
+        a=self.config.get('colors',c).split(',')
+        try:
+            t=tuple(a)
+            # this will fail if each item in the list is not a float
+            for e in a:
+                float(e)
+        except:
+            Logger.error('Config: Invalid color value '+self.config.get('colors',c)+' specified')
+            t=(1,1,1,1)
+        if len(a)!=4:
+            Logger.error('Config: Color value not a comma-delimited list of 4 floats: '+self.config.get('colors',c))
+            t=(1,1,1,1)
+        return t
 
     def get_application_config(self):
         return super(self.__class__,self).get_application_config(configdir+'/config.ini')
@@ -89,6 +110,7 @@ class KmpcApp(App):
         settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_sync.json')))
         settings.add_json_panel('system settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_system.json')))
         settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources/json','config_star.json')))
+        settings.add_json_panel('colors',self.config,resource_filename(__name__,os.path.join('resources/json','config_colors.json')))
 
     def on_config_change(self, config, section, key, value):
         if config is self.config:
