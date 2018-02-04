@@ -12,6 +12,7 @@ kivy.require('1.10.0')
 from kivy.config import Config
 from kivy.app import App
 from kivy.lang import Builder
+from kivy.utils import get_color_from_hex
 
 from kmpc.mpdfactory import MpdConnection
 from kmpc.managerinterface import ManagerInterface
