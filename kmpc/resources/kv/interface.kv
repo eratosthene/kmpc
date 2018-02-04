@@ -7,6 +7,8 @@
 #:import trackslidercursor kmpc.widgets.trackslidercursor
 #:import OutlineLabel kmpc.widgets.OutlineLabel
 #:import backdrop kmpc.widgets.backdrop
+#:import ClearButton kmpc.widgets.ClearButton
+#:import fontawesomefont kmpc.widgets.fontawesomefont
 
 <SettingsPopup@Popup>:
     auto_dismiss: True
@@ -240,7 +242,15 @@
                                     text: "%02d:%02d" % (divmod(int(current_track_slider.max),60))
                         BoxLayout:
                             size_hint_x: 0.2
-                            id: song_star_layout
+                            ClearButton:
+                                id: song_star_button
+                                padding_x: '10sp'
+                                font_name: fontawesomefont
+                                halign: 'center'
+                                valign: 'middle'
+                                markup: True
+                                text: ''
+                                on_press: app.root.rating_popup(self)
                 BoxLayout:
                     orientation: 'vertical'
                     size_hint_x: 0.05

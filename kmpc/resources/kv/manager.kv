@@ -3,6 +3,7 @@
 #:import normalfont kmpc.widgets.normalfont
 #:import fontawesomefont kmpc.widgets.fontawesomefont
 #:import listbackdrop kmpc.widgets.listbackdrop
+#:import ratingstars kmpc.widgets.ratingstars
 
 <OLabel@Label>:
     font_name: normalfont
@@ -110,7 +111,6 @@
     info: {}
     copy_flag: ''
     rating: ''
-    songratings: app.root.songratings
     BoxLayout:
         orientation: 'horizontal'
         OLabel:
@@ -122,7 +122,7 @@
             padding_x: sp(10)
         StarLabel:
             size_hint_x: 0.2
-            text: '[ref=rating]'+root.songratings[root.rating]['stars']+'[/ref]'
+            text: '[ref=rating]'+ratingstars[int(root.rating)]+'[/ref]' if root.rating else '[ref=rating]'+ratingstars[11]+'[/ref]'
             on_ref_press: root.rating_popup(root)
         OLabel:
             size_hint_x: 0.2

@@ -15,6 +15,7 @@ from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.uix.vkeyboard import VKeyboard
+from kivy.factory import Factory
 from kivy.clock import Clock
 from functools import partial
 
@@ -75,30 +76,13 @@ class PlaylistTabbedPanelItem(OutlineTabbedPanelItem):
         """Callback for playlist save button."""
         Logger.info("Playlist: save")
         self.rbl.clear_selection()
-        # build a popup for naming the playlist
-        layout = BoxLayout(orientation='vertical')
-        popup = Popup(title='Playlist Name',content=layout)
-        l1 = BoxLayout(size_hint_y='0.1')
-        ti = TextInput()
-        l1.add_widget(ti)
-        layout.add_widget(l1)
-        l2 = BoxLayout(size_hint_y='0.1',orientation='horizontal')
-        btnok = Button(text="OK")
-        btncl = Button(text="Cancel")
-        btncl.bind(on_press=popup.dismiss)
-        btnok.bind(on_press=partial(self.save_playlist,ti,popup))
-        l2.add_widget(btnok)
-        l2.add_widget(btncl)
-        layout.add_widget(l2)
-        l3 = BoxLayout()
-        layout.add_widget(l3)
+        popup=Factory.PlaylistSavePopup()
         popup.open()
-        ti.show_keyboard()
 
-    def save_playlist(self,ti,popup,instance):
+    def save_playlist(self,t,popup):
         """Tell mpd to save the current playlist with the name that was input."""
-        Logger.info("Playlist: save_playlist("+ti.text+")")
-        kmpc.kmpcinterface.mainmpdconnection.protocol.save(ti.text).addErrback(self.handle_mpd_error)
+        Logger.info("Playlist: save_playlist("+t+")")
+        kmpc.kmpcinterface.mainmpdconnection.protocol.save(t).addErrback(self.handle_mpd_error)
         popup.dismiss()
 
     def populate_playlist(self,result):
