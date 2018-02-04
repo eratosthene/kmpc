@@ -2,8 +2,10 @@
 #:import OutlineLabel kmpc.widgets.OutlineLabel
 #:import OutlineButton kmpc.widgets.OutlineButton
 #:import ClearButton kmpc.widgets.ClearButton
+#:import StarBoxButton kmpc.widgets.StarBoxButton
 #:import InfoLargeLabel kmpc.widgets.InfoLargeLabel
 #:import RatingPopup kmpc.widgets.RatingPopup
+#:import CoverPopup kmpc.widgets.CoverPopup
 #:import normalfont kmpc.widgets.normalfont
 #:import boldfont kmpc.widgets.boldfont
 #:import fontawesomefont kmpc.widgets.fontawesomefont
@@ -11,6 +13,7 @@
 #:import buttondown kmpc.widgets.buttondown
 #:import clearimage kmpc.widgets.clearimage
 #:import backdrop kmpc.widgets.backdrop
+#:import ratingstars kmpc.widgets.ratingstars
 
 <OutlineLabel>:
     font_name: boldfont
@@ -20,14 +23,11 @@
     color: [1,1,1,1]
 
 <OutlineButton>:
-    border: (4,4,4,4)
-    background_normal: buttonnormal
-    background_down: buttondown
     font_name: boldfont
-    font_size: '20sp'
 
 <Button>:
     border: (4,4,4,4)
+    background_color: app.get_color('button')
     background_normal: buttonnormal
     background_down: buttondown
     font_name: normalfont
@@ -37,6 +37,7 @@
     border: (1,1,1,1)
     background_normal: clearimage
     background_down: clearimage
+    background_disabled_normal: clearimage
 
 <TrackSlider@Slider>:
     OutlineLabel:
@@ -44,13 +45,6 @@
         size_hint: None, None
         size: sp(32), sp(32)
         text: "%02d:%02d" % (divmod(int(root.max)-int(root.value),60))
-
-<BackdropBoxLayout@BoxLayout>:
-    canvas.before:
-        Rectangle:
-            source: backdrop
-            size: self.size
-            pos: self.pos
 
 <OutlineToggleButton@ToggleButton+OutlineLabel>:
 
@@ -113,12 +107,6 @@
     height: self.texture_size[1]
     halign: 'center'
 
-<BoxButton@BoxLayout+OutlineButton>:
-    orientation: 'horizontal'
-    pos: self.parent.pos
-    size: self.parent.size
-    rating: ''
-
 <BBLabel1@OutlineLabel>:
     halign: 'left'
     valign: 'middle'
@@ -132,6 +120,19 @@
     padding_x: '5sp'
     text_size: self.size
 
+<StarBoxButton>:
+    orientation: 'horizontal'
+    pos: self.parent.pos
+    size: self.parent.size
+    on_press:
+        if self.popup.song: self.popup.rating_set(self.popup.song,self.rating,self.popup)
+        elif self.popup.index: self.popup.rating_set(self.popup.index,self.rating,self.popup)
+    BBLabel1:
+        font_name: fontawesomefont
+        text: ratingstars[int(root.rating)] if root.rating!=None else ''
+    BBLabel2:
+        text: app.config.get('songratings','star'+str(root.rating)) if root.rating!=None else ''
+
 <RatingPopup>:
     title: 'Rating'
     size_hint: (0.8,1)
@@ -143,106 +144,66 @@
                 elif root.index: root.rating_set(root.index,'',root)
             size_hint_x: 0.07
             font_name: fontawesomefont
-            text: u'\uf057'
+            text: ratingstars[11]
         BoxLayout:
             orientation: 'vertical'
-            BoxButton:
-                on_press:
-                    if root.song: root.rating_set(root.song,'0',root)
-                    elif root.index: root.rating_set(root.index,'0',root)
-                BBLabel1:
-                    font_name: fontawesomefont
-                    text: u"\uf006\uf006\uf006\uf006\uf006"
-                BBLabel2:
-                    text: app.config.get('songratings','star0')
-            BoxButton:
-                on_press:
-                    if root.song: root.rating_set(root.song,'1',root)
-                    elif root.index: root.rating_set(root.index,'1',root)
-                BBLabel1:
-                    font_name: fontawesomefont
-                    text: u"\uf123\uf006\uf006\uf006\uf006"
-                BBLabel2:
-                    text: app.config.get('songratings','star1')
-            BoxButton:
-                on_press:
-                    if root.song: root.rating_set(root.song,'2',root)
-                    elif root.index: root.rating_set(root.index,'2',root)
-                BBLabel1:
-                    font_name: fontawesomefont
-                    text: u"\uf005\uf006\uf006\uf006\uf006"
-                BBLabel2:
-                    text: app.config.get('songratings','star2')
-            BoxButton:
-                on_press:
-                    if root.song: root.rating_set(root.song,'3',root)
-                    elif root.index: root.rating_set(root.index,'3',root)
-                BBLabel1:
-                    font_name: fontawesomefont
-                    text: u"\uf005\uf123\uf006\uf006\uf006"
-                BBLabel2:
-                    text: app.config.get('songratings','star3')
-            BoxButton:
-                on_press:
-                    if root.song: root.rating_set(root.song,'4',root)
-                    elif root.index: root.rating_set(root.index,'4',root)
-                BBLabel1:
-                    font_name: fontawesomefont
-                    text: u"\uf005\uf005\uf006\uf006\uf006"
-                BBLabel2:
-                    text: app.config.get('songratings','star4')
-            BoxButton:
-                on_press:
-                    if root.song: root.rating_set(root.song,'5',root)
-                    elif root.index: root.rating_set(root.index,'5',root)
-                BBLabel1:
-                    font_name: fontawesomefont
-                    text: u"\uf005\uf005\uf123\uf006\uf006"
-                BBLabel2:
-                    text: app.config.get('songratings','star5')
-            BoxButton:
-                on_press:
-                    if root.song: root.rating_set(root.song,'6',root)
-                    elif root.index: root.rating_set(root.index,'6',root)
-                BBLabel1:
-                    font_name: fontawesomefont
-                    text: u"\uf005\uf005\uf005\uf006\uf006"
-                BBLabel2:
-                    text: app.config.get('songratings','star6')
-            BoxButton:
-                on_press:
-                    if root.song: root.rating_set(root.song,'7',root)
-                    elif root.index: root.rating_set(root.index,'7',root)
-                BBLabel1:
-                    font_name: fontawesomefont
-                    text: u"\uf005\uf005\uf005\uf123\uf006"
-                BBLabel2:
-                    text: app.config.get('songratings','star7')
-            BoxButton:
-                on_press:
-                    if root.song: root.rating_set(root.song,'8',root)
-                    elif root.index: root.rating_set(root.index,'8',root)
-                BBLabel1:
-                    font_name: fontawesomefont
-                    text: u"\uf005\uf005\uf005\uf005\uf006"
-                BBLabel2:
-                    text: app.config.get('songratings','star8')
-            BoxButton:
-                on_press:
-                    if root.song: root.rating_set(root.song,'9',root)
-                    elif root.index: root.rating_set(root.index,'9',root)
-                BBLabel1:
-                    font_name: fontawesomefont
-                    text: u"\uf005\uf005\uf005\uf005\uf123"
-                BBLabel2:
-                    text: app.config.get('songratings','star9')
-            BoxButton:
-                on_press:
-                    if root.song: root.rating_set(root.song,'10',root)
-                    elif root.index: root.rating_set(root.index,'10',root)
-                BBLabel1:
-                    font_name: fontawesomefont
-                    text: u"\uf005\uf005\uf005\uf005\uf005"
-                BBLabel2:
-                    text: app.config.get('songratings','star10')
-            
+            StarBoxButton:
+                rating: '0'
+                popup: root
+            StarBoxButton:
+                rating: '1'
+                popup: root
+            StarBoxButton:
+                rating: '2'
+                popup: root
+            StarBoxButton:
+                rating: '3'
+                popup: root
+            StarBoxButton:
+                rating: '4'
+                popup: root
+            StarBoxButton:
+                rating: '5'
+                popup: root
+            StarBoxButton:
+                rating: '6'
+                popup: root
+            StarBoxButton:
+                rating: '7'
+                popup: root
+            StarBoxButton:
+                rating: '8'
+                popup: root
+            StarBoxButton:
+                rating: '9'
+                popup: root
+            StarBoxButton:
+                rating: '10'
+                popup: root
+           
+<CoverPopup>:
+    size_hint: (0.6,1)
+    BoxLayout:
+        Image:
+            texture:root.image_texture
+            allow_stretch: True
+
+<PlaylistSavePopup@Popup>:
+    title: 'Playlist Name'
+    size_hint_y: 0.5
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            size_hint_y: 0.1
+            TextInput:
+                id: playlist_name
+                text: ''
+        BoxLayout:
+            size_hint_y: 0.1
+            orientation: 'horizontal'
+            Button:
+                text: 'OK'
+                on_press: app.root.ids.playlist_tab.save_playlist(root.ids.playlist_name.text,root)
+            Button:
+                text: 'Cancel'
+                on_press: root.dismiss()

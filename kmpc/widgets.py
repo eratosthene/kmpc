@@ -33,9 +33,21 @@ buttondown = resource_filename(__name__,os.path.join('resources/images','button-
 clearimage = resource_filename(__name__,os.path.join('resources/images','clear.png'))
 backdrop = resource_filename(__name__,os.path.join('resources/images','backdrop.png'))
 listbackdrop = resource_filename(__name__,os.path.join('resources/images','list-backdrop.png'))
-listbackdropselected = resource_filename(__name__,os.path.join('resources/images','list-backdrop-selected.png'))
 trackslidercursor = resource_filename(__name__,os.path.join('resources/images','track-slider-cursor.png'))
-
+ratingstars = [
+    u"\uf006\uf006\uf006\uf006\uf006",
+    u"\uf123\uf006\uf006\uf006\uf006",
+    u"\uf005\uf006\uf006\uf006\uf006",
+    u"\uf005\uf123\uf006\uf006\uf006",
+    u"\uf005\uf005\uf006\uf006\uf006",
+    u"\uf005\uf005\uf123\uf006\uf006",
+    u"\uf005\uf005\uf005\uf006\uf006",
+    u"\uf005\uf005\uf005\uf123\uf006",
+    u"\uf005\uf005\uf005\uf005\uf006",
+    u"\uf005\uf005\uf005\uf005\uf123",
+    u"\uf005\uf005\uf005\uf005\uf005",
+    u"\uf29c"
+]
 class ExtraSlider(Slider):
     """Class that implements some extra stuff on top of a standard slider."""
 
@@ -127,3 +139,10 @@ class RatingPopup(Popup):
     rating_set = ObjectProperty(None)
     song = StringProperty(None)
     index = NumericProperty(None)
+
+class StarBoxButton(BoxLayout,OutlineButton):
+    rating = StringProperty(None)
+    popup = ObjectProperty(None)
+
+class CoverPopup(Popup):
+    image_texture = ObjectProperty(None)

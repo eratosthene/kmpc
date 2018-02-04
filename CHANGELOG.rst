@@ -5,6 +5,21 @@ kmpc Change Log
 ###############
 
 ******************
+0.6.5 - 2018-02-04
+******************
+
+- Moved all presentation code to .kv files. (`issue 97
+  <https://github.com/eratosthene/kmpc/issues/97>`_)
+- Fixed bug in advanced titles. (`issue 106
+  <https://github.com/eratosthene/kmpc/issues/106>`_)
+- Unified theming between app and manager.
+- Fixed Update command to use proper PATH environment variable. (`issue 92
+  <https://github.com/eratosthene/kmpc/issues/92>`_)
+- Changed background textures to greyscale, and added new [colors] section to
+  config file for tinting them. (`issue 96
+  <https://github.com/eratosthene/kmpc/issues/96>`_)
+
+******************
 0.6.4 - 2018-02-03
 ******************
 

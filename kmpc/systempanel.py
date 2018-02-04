@@ -1,3 +1,4 @@
+import os
 from subprocess import call
 from functools import partial
 
@@ -131,7 +132,7 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
         pp=Subproc(partial(self.update_print_line,updatePopup))
         pp.deferred=Deferred()
         pp.deferred.addCallback(partial(self.closeit,updatePopup))
-        reactor.spawnProcess(pp,cmdline[0],cmdline,{})
+        reactor.spawnProcess(pp,cmdline[0],cmdline,{'PATH':os.environ['PATH']})
 
     def closeit(self,popup,r):
         popup.dismiss()

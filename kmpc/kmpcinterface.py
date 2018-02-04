@@ -16,7 +16,7 @@ kivy.require('1.10.0')
 # import all the other kivy stuff
 from kivy.app import App
 from kivy.logger import Logger
-from kivy.graphics import Rectangle
+from kivy.graphics import Rectangle,Color
 from kivy.core.image import Image as CoreImage
 from kivy.clock import Clock
 from kivy.uix.tabbedpanel import TabbedPanel
@@ -32,7 +32,7 @@ from kivy.support import install_twisted_reactor
 from kmpc.extra import KmpcHelpers
 from kmpc.playlistpanel import PlaylistTabbedPanelItem
 from kmpc.mpdfactory import MpdConnection
-from kmpc.widgets import InfoLargeLabel,CoverButton,ImageButton,ExtraSlider,ClearButton,OutlineLabel,normalfont,fontawesomefont,backdrop,clearimage
+from kmpc.widgets import InfoLargeLabel,CoverButton,ImageButton,ExtraSlider,ClearButton,OutlineLabel,normalfont,fontawesomefont,backdrop,clearimage,ratingstars
 
 # set the maximum size for cover images, to prevent texture overloading
 max_cover_size=1000
@@ -209,12 +209,16 @@ class KmpcInterface(TabbedPanel):
         self.currfile = None
         self.currsong = None
         self.nextsong = None
-        self.ids.song_star_layout.clear_widgets()
+        self.ids.song_star_button.text=''
+        self.ids.song_star_button.disabled=True
         self.ids.album_cover_layout.clear_widgets()
         self.ids.trackinfo.clear_widgets()
         lbl = OutlineLabel(text="Playback Stopped")
         self.ids.trackinfo.add_widget(lbl)
-        self.ids.player.canvas.before.add(Rectangle(source=backdrop,size=self.ids.player.size,pos=self.ids.player.pos))
+        self.ids.player.canvas.before.clear()
+        self.ids.releasetypelabel.text=''
+        self.ids.yearlabel.text=''
+        self.ids.remasterlabel.text=''
 
     def update_mpd_status(self,result):
         """Callback when mpd status changes."""
@@ -364,10 +368,12 @@ class KmpcInterface(TabbedPanel):
                     # pick one at random
                     img_path=random.choice(os.listdir(ab_path))
                     # update the player background with the image
-                    self.ids.player.canvas.before.add(Rectangle(source=os.path.join(ab_path,img_path),size=self.ids.player.size,pos=self.ids.player.pos))
+                    with self.ids.player.canvas.before:
+                        Color(1,1,1)
+                        Rectangle(source=os.path.join(ab_path,img_path),size=self.ids.player.size,pos=self.ids.player.pos)
                 except:
-                    # update the player background with the default backdrop
-                    self.ids.player.canvas.before.add(Rectangle(source=backdrop,size=self.ids.player.size,pos=self.ids.player.pos))
+                    # if we can't get an artistbackground image, just do nothing
+                    pass
                 if os.path.isfile(p):
                     Logger.debug('update_mpd_currentsong: found good file at path '+p)
                     # load up the file to read the tags
@@ -449,8 +455,13 @@ class KmpcInterface(TabbedPanel):
                 if self.config.getboolean('system','advancedtitles'):
                     # check to see if song title has any data deliminated by () or []
                     stitle=re.split('[\(\[\]\)]',result['title'])
+                    # if the first item is empty, the title starts with () or []
+                    if not stitle[0]:
+                        stitle.pop(0)
+                        stitle[0]='('+stitle[0]+')'
+                    ftitle=filter(None,stitle)
                     Logger.debug('TITLE: '+format(stitle))
-                    if len(stitle) > 1:
+                    if len(ftitle) > 1:
                         lyt2=BoxLayout(orientation='vertical',padding_y='2sp')
                         # split the title up and put the parentheses in smaller text below
                         lyt2.add_widget(InfoLargeLabel(text = stitle[0], font_size=Helpers.getfontsize(stitle[0])))
@@ -530,28 +541,14 @@ class KmpcInterface(TabbedPanel):
     def update_mpd_sticker_rating(self,result):
         """Callback for song that has a rating in mpd."""
         Logger.debug('NowPlaying: update_mpd_sticker_rating')
-        # make a clear button for the star rating
-        btn = ClearButton(padding_x='10sp',font_name=fontawesomefont,halign='center',valign='middle',markup=True)
-        # look up the correct string for the rating
-        btn.text = Helpers.songratings(self.config)[result]['stars']
-        # bind the popup for setting rating
-        btn.bind(on_press=self.rating_popup)
-        # clear the layout widget and add the new one
-        self.ids.song_star_layout.clear_widgets()
-        self.ids.song_star_layout.add_widget(btn)
+        self.ids.song_star_button.disabled=False
+        self.ids.song_star_button.text=ratingstars[int(result)]
 
     def handle_mpd_no_sticker(self,result):
         """Callback for song that has no rating in mpd."""
         Logger.debug('NowPlaying: handle_mpd_no_sticker')
-        # make a clear button for the star rating
-        btn = ClearButton(padding_x='10sp',font_name=fontawesomefont,halign='center',valign='middle',markup=True)
-        # set the string to the circled question mark icon
-        btn.text = u"\uf29c"
-        # bind the popup for setting rating
-        btn.bind(on_press=self.rating_popup)
-        # clear the layout widget and add the new one
-        self.ids.song_star_layout.clear_widgets()
-        self.ids.song_star_layout.add_widget(btn)
+        self.ids.song_star_button.disabled=False
+        self.ids.song_star_button.text=ratingstars[11]
 
     def update_mpd_nextsong(self,result):
         """Callback for next song data from mpd."""
@@ -628,13 +625,7 @@ class KmpcInterface(TabbedPanel):
             title=title+' released '+originalyear+' (remastered '+year+')'
         elif year:
             title=title+' released '+year
-        layout = BoxLayout()
-        popup = Popup(title=title,content=layout,size_hint=(0.6,1))
-        # pull the already loaded image texture
-        img = Image(texture=instance.img.texture,allow_stretch=True)
-        # add it to the layout
-        layout.add_widget(img)
-        # pop pop pop
+        popup=Factory.CoverPopup(image_texture=instance.img.texture)
         popup.open()
 
     def change_backlight(self,value):

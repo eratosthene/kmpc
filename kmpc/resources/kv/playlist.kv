@@ -4,7 +4,6 @@
 #:import PlaylistRecycleBoxLayout kmpc.playlistpanel.PlaylistRecycleBoxLayout
 #:import PlaylistTabbedPanelItem kmpc.playlistpanel.PlaylistTabbedPanelItem
 #:import listbackdrop kmpc.widgets.listbackdrop
-#:import listbackdropselected kmpc.widgets.listbackdropselected
 
 <PlaylistScrollView@ScrollView>:
     size_hint: (1,1)
@@ -12,13 +11,10 @@
 
 <PlaylistRow>:
     canvas.before:
-        Rectangle:
-            source: listbackdropselected if self.iscurrent else listbackdrop
-            size: self.size
-            pos: self.pos
         Color:
-            rgba: (1,1,0,0.5) if self.selected else (0,0,0,0)
+            rgba: app.get_color('listitemselected') if self.selected else (app.get_color('listitemcurrent') if self.iscurrent else app.get_color('listitem'))
         Rectangle:
+            source: listbackdrop
             size: self.size
             pos: self.pos
         Color:
@@ -48,7 +44,7 @@
     text: 'Playlist'
     rv: rv
     rbl: rbl
-    BackdropBoxLayout:
+    BoxLayout:
         orientation: 'vertical'
         BoxLayout:
             orientation: 'horizontal'
