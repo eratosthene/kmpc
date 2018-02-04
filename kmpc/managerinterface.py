@@ -135,7 +135,7 @@ class ManagerInterface(TabbedPanel):
             self.scan_for_media(self.selected_row)
         self.write_artists_to_cache()
 
-    def scan_all_for_media(self):
+    def scan_all_for_media(self,*args):
         for idx in range(0,len(self.ids.artist_tab.rv.data)):
             self.scan_for_media(idx)
         self.write_artists_to_cache()

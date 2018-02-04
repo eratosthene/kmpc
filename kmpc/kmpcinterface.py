@@ -71,6 +71,8 @@ class KmpcInterface(TabbedPanel):
         mainmpdconnection.protocol.status().addCallback(partial(self.update_mixers,self.settingsPopup)).addErrback(self.handle_mpd_error)
 
     def update_mixers(self,p,result):
+        print format(p.content)
+        print format(p.content.children)
         # set up the crossfade slider
         if 'xfade' in result:
             v = int(result['xfade'])
