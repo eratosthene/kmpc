@@ -82,17 +82,25 @@
             BoxLayout:
                 orientation: 'horizontal'
                 OutlineToggleButton:
+                    id: rg_off
                     text: 'off'
                     group: 'replaygain'
+                    on_press: app.root.change_replaygain(self.text)
                 OutlineToggleButton:
+                    id: rg_track
                     text: 'track'
                     group: 'replaygain'
+                    on_press: app.root.change_replaygain(self.text)
                 OutlineToggleButton:
+                    id: rg_album
                     text: 'album'
                     group: 'replaygain'
+                    on_press: app.root.change_replaygain(self.text)
                 OutlineToggleButton:
+                    id: rg_auto
                     text: 'auto'
                     group: 'replaygain'
+                    on_press: app.root.change_replaygain(self.text)
         BoxLayout:
             orientation: 'vertical'
             OutlineLabel:

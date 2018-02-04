@@ -8,6 +8,8 @@ kmpc Change Log
 0.6.4 - 2018-02-??
 ******************
 
+- Added replaygain toggle in settings popup. (`issue 89
+  <https://github.com/eratosthene/kmpc/issues/89>`_)
 - Changed commandline 'convert' usage in kmpcmanager to use pillow instead.
   (`issue 94 <https://github.com/eratosthene/kmpc/issues/94>`_)
 - Ratings popup now has larger buttons, and a 'clear rating' button. Manager

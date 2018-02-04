@@ -69,10 +69,13 @@ class KmpcInterface(TabbedPanel):
         # get the host's IP address and display it
         self.settingsPopup.ids.ip_label.text="IP Address: "+format(self.get_ip())
         mainmpdconnection.protocol.status().addCallback(partial(self.update_mixers,self.settingsPopup)).addErrback(self.handle_mpd_error)
+        mainmpdconnection.protocol.replay_gain_status().addCallback(partial(self.update_replaygain,self.settingsPopup)).addErrback(self.handle_mpd_error)
+
+    def update_replaygain(self,p,result):
+        rg=str(result)
+        p.ids['rg_'+rg].state='down'
 
     def update_mixers(self,p,result):
-        print format(p.content)
-        print format(p.content.children)
         # set up the crossfade slider
         if 'xfade' in result:
             v = int(result['xfade'])
@@ -91,6 +94,10 @@ class KmpcInterface(TabbedPanel):
         else:
             v = 0.0
         p.ids.mixrampdelay_slider.value=v
+
+    def change_replaygain(self,v):
+        Logger.debug("NowPlaying: change_replaygain to "+format(v))
+        mainmpdconnection.protocol.replay_gain_mode(str(v)).addErrback(self.handle_mpd_error)
 
     def change_text_color(self,color):
         Logger.debug("NowPlaying: change_text_color to "+format(color))
