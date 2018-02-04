@@ -8,6 +8,7 @@ kmpc Change Log
 0.6.5 - 2018-02-??
 ******************
 
+- Unified theming between app and manager.
 - Fixed Update command to use proper PATH environment variable. (`issue 92
   <https://github.com/eratosthene/kmpc/issues/92>`_)
 - Changed background textures to greyscale, and added new [colors] section to

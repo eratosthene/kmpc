@@ -139,6 +139,12 @@
         padding: 0
         spacing: 0
         BoxLayout:
+            canvas.before:
+                Color:
+                    rgba: (.25,.25,.25,1)
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
             size_hint_y: 0.05
             OLabel:
                 id: status
@@ -223,6 +229,8 @@
 <ManagerInterface>:
     do_default_tab: False
     active_tab: None
+    background_color: app.get_color('backdrop')
+    background_image: backdrop
     TabbedPanelItem:
         text: 'Artists'
         id: artist_tab
@@ -231,6 +239,12 @@
         BoxLayout:
             orientation: 'vertical'
             BoxLayout:
+                canvas.before:
+                    Color:
+                        rgba: (.25,.25,.25,1)
+                    Rectangle:
+                        size: self.size
+                        pos: self.pos
                 size_hint_y: 0.05
                 OLabel:
                     id: status
