@@ -12,6 +12,7 @@ from kivy.config import Config,ConfigParser
 from kivy.app import App
 from kivy.logger import Logger
 from kivy.lang import Builder
+from kivy.utils import get_color_from_hex
 
 # import our local modules
 from kmpc.version import VERSION_STR
@@ -88,14 +89,12 @@ class KmpcApp(App):
         })
 
     def get_color(self,c):
-        cc=self.config.get('colors',c).lstrip('#')
+        cc=self.config.get('colors',c)
         try:
-            # chop the string into 3 hex nums, convert them to decimal, then convert to float between 0 and 1
-            a=[round(int(cc[i:i+2],16)/255.0,2) for i in range(0,len(cc),2)]
             # if backdrop or button, alpha channel=1, else 0.5
-            if c in ['backdrop','button']: a.append(1)
-            else: a.append(0.5)
-            t=tuple(a)
+            if c in ['backdrop','button']: cc=cc+'FF'
+            else: cc=cc+'80'
+            t=get_color_from_hex(cc)
         except:
             Logger.error("Application: color "+cc+" for "+c+" is invalid")
             t=(1,1,1,1)
