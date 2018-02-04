@@ -12,13 +12,10 @@
 
 <PlaylistRow>:
     canvas.before:
-        Rectangle:
-            source: listbackdropselected if self.iscurrent else listbackdrop
-            size: self.size
-            pos: self.pos
         Color:
-            rgba: (1,1,0,0.5) if self.selected else (0,0,0,0)
+            rgba: (1,1,0,0.5) if self.selected else ((0.32,0.11,0.31,0.5)if self.iscurrent else (0.25,0.5,1,0.6))
         Rectangle:
+            source: listbackdrop
             size: self.size
             pos: self.pos
         Color:
