@@ -93,7 +93,7 @@ exportfirst
   Defaults to ``true``.
 updatecommand
   This is what runs when you press the Update button. Defaults to ``sudo pip
-  install -U kmpc``.
+  install -U kmpc --no-deps``.
 rebootcommand
   This is what runs when you press the Reboot button. Defaults to ``sudo
   reboot``.
