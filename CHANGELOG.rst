@@ -5,7 +5,7 @@ kmpc Change Log
 ###############
 
 ******************
-0.6.5 - 2018-02-??
+0.6.5 - 2018-02-04
 ******************
 
 - Moved all presentation code to .kv files. (`issue 97
