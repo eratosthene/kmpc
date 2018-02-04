@@ -1,3 +1,8 @@
+from copy import deepcopy
+from functools import partial
+import os
+from twisted.internet.defer import Deferred,DeferredList
+
 import kivy
 kivy.require('1.10.0')
 from kivy.app import App
@@ -14,9 +19,7 @@ from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
-from copy import deepcopy
-from functools import partial
-import os
+from kivy.factory import Factory
 
 from kmpc.extra import KmpcHelpers
 from kmpc.widgets import OutlineTabbedPanelItem
@@ -267,6 +270,58 @@ class LibraryTabbedPanelItem(OutlineTabbedPanelItem):
             self.current_view = {'value':'All Playlists','base':'All Playlists','info':{'type':'playlist'}}
             kmpc.kmpcinterface.mainmpdconnection.protocol.listplaylists().addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         self.rbl.clear_selection()
+
+    def popup_generate(self):
+        """Callback when user presses the Generate button."""
+        generatePopup=Factory.GeneratePopup()
+        generatePopup.open()
+
+    def update_generate_text(self,p):
+        """Callback when user changes the generate spinners."""
+        stars=p.ids.ratings_spinner.text
+        op=p.ids.operation_spinner.text
+        if stars=='None':
+            p.ids.playlist_name.text='No Stars'
+        elif op=='<':
+            p.ids.playlist_name.text='Less Than '+stars+'-Star'
+        elif op=='<=':
+            p.ids.playlist_name.text=stars+'-Star or Less'
+        elif op=='=':
+            p.ids.playlist_name.text=stars+'-Star'
+        elif op=='>=':
+            p.ids.playlist_name.text=stars+'-Star or More'
+        elif op=='>':
+            p.ids.playlist_name.text='More Than '+stars+'-Star'
+
+    def generate_playlist(self,p):
+        """Callback when user presses the final Generate button after choosing ratings and operation."""
+        Logger.info("Library: generating playlist "+p.ids.playlist_name.text)
+        # gets all songs with ratings
+        if p.ids.ratings_spinner.text!='None':
+            kmpc.kmpcinterface.mainmpdconnection.protocol.sticker_find('song','','rating').addCallback(partial(self.generate_playlist2,p))
+
+    def generate_playlist2(self,p,result):
+        """Callback to filter the list of all songs with ratings."""
+        Logger.debug("generate_playlist2: filtering result")
+        tlist={}
+        stars=p.ids.ratings_spinner.text
+        op=p.ids.operation_spinner.text
+        pname=p.ids.playlist_name.text
+        cb=[]
+        cb.append(kmpc.kmpcinterface.mainmpdconnection.protocol.playlistclear(pname))
+        for row in result:
+            rating=row['sticker'].split('=')[1]
+            uri=row['file']
+            if (op=='<' and int(rating)<int(stars)) or (op=='<=' and int(rating)<=int(stars)) or (op=='=' and int(rating)==int(stars)) or (op=='>=' and int(rating)>=int(stars)) or (op=='>' and int(rating)>int(stars)):
+                tlist[uri]=1
+        for k in sorted(tlist.keys()):
+            Logger.debug("gpl2: "+k)
+            cb.append(kmpc.kmpcinterface.mainmpdconnection.protocol.playlistadd(pname,k))
+        dl=DeferredList(cb,consumeErrors=True)
+        dl.addCallback(partial(self.dismiss_generate_popup,p))
+
+    def dismiss_generate_popup(self,p,result):
+        p.dismiss()
 
 class LibraryRecycleBoxLayout(LayoutSelectionBehavior,RecycleBoxLayout):
     """Adds selection and focus behaviour to a recyclebox."""

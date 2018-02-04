@@ -14,6 +14,39 @@
     size_hint: (1,1)
     do_scroll_x: False
 
+<GeneratePopup@Popup>:
+    size_hint_x: 0.8
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineLabel:
+                text: 'Rating'
+            Spinner:
+                id: ratings_spinner
+                text_autoupdate: True
+                values: ['None','0','1','2','3','4','5','6','7','8','9','10']
+                on_text: app.root.ids.library_tab.update_generate_text(root)
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineLabel:
+                text: 'Operation'
+            Spinner:
+                id: operation_spinner
+                text_autoupdate: True
+                values: ['<','<=','=','>=','>']
+                on_text: app.root.ids.library_tab.update_generate_text(root)
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineLabel:
+                text: 'Playlist Name'
+            TextInput:
+                id: playlist_name
+                text: 'No Stars'
+        OutlineButton:
+            text: 'Generate'
+            on_press: app.root.ids.library_tab.generate_playlist(root)
+
 <LibraryRow>:
     canvas.before:
         Rectangle:
@@ -74,6 +107,10 @@
                 text: 'Playlists'
                 id: playlists_button
                 on_press: root.change_view_type(self.text)
+            OutlineButton:
+                text: 'Generate'
+                id: generate_button
+                on_press: root.popup_generate()
         OutlineLabel:
             id: current_header
             size_hint_y: 0.1
