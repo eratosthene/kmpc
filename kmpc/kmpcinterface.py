@@ -445,7 +445,7 @@ class KmpcInterface(TabbedPanel):
                         img=CoverButton(img=CoreImage(clearimage),layout=self.ids.album_cover_layout,halign='center')
                     self.ids.album_cover_layout.add_widget(img)
                     # popup the cover large if you press it
-                    img.bind(on_press=partial(self.cover_popup,originalyear,year,result['album']))
+                    img.bind(on_press=partial(self.cover_popup,originalyear,year,result['album'],result['albumartist']))
                 else:
                     # this should _probably_ never happen
                     Logger.debug('NowPlaying: no file found at path '+p)
@@ -617,7 +617,7 @@ class KmpcInterface(TabbedPanel):
         else:
             mainmpdconnection.protocol.sticker_delete('song',song,'rating')
 
-    def cover_popup(self,originalyear,year,album,instance):
+    def cover_popup(self,originalyear,year,album,albumartist,instance):
         """Popup for showing a larger version of the album cover."""
         Logger.debug('Application: cover_popup()')
         title='"'+album+'"'
@@ -625,7 +625,8 @@ class KmpcInterface(TabbedPanel):
             title=title+' released '+originalyear+' (remastered '+year+')'
         elif year:
             title=title+' released '+year
-        popup=Factory.CoverPopup(image_texture=instance.img.texture)
+        title=title+' by '+albumartist
+        popup=Factory.CoverPopup(title=title,image_texture=instance.img.texture)
         popup.open()
 
     def change_backlight(self,value):

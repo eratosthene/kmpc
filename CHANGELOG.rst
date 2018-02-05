@@ -4,6 +4,12 @@
 kmpc Change Log
 ###############
 
+********************
+0.6.5.1 - 2018-02-04
+********************
+
+- Bugfix release. Cover popup was not displaying the album title.
+
 ******************
 0.6.5 - 2018-02-04
 ******************
