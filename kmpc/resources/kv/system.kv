@@ -57,6 +57,26 @@
         height: self.texture_size[1]
         valign: 'middle'
 
+<ChoosePluginPopup@Popup>:
+    title: 'Choose Plugin to Run'
+    size_hint_x: 0.8
+    BoxLayout:
+        orientation: 'vertical'
+        id: layout
+
+<PluginPopup@Popup>:
+    title: 'Plugin'
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            id: plugincontent
+        Button:
+            text: 'Close Plugin'
+            on_press: root.dismiss()
+            id: closebutton
+
+
+
 <SystemTabbedPanelItem>:
     config: app.config
     text: 'System'
@@ -77,6 +97,9 @@
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: 0.5
+            Button:
+                text: 'Plugins'
+                on_press: root.do_plugins()
             Button:
                 text: 'Reboot'
                 on_press: root.do_reboot()
