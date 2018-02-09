@@ -274,6 +274,9 @@ following section.
 
 Exit, Reboot, and Poweroff are pretty self-explanatory.
 
+The Plugins button launches plugins located in ``~/.kmpc/plugins``. For more
+information, see :ref:`the plugin documentation<plugins>`
+
 *************************
 Syncing with the synchost
 *************************

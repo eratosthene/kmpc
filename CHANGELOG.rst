@@ -4,6 +4,14 @@
 kmpc Change Log
 ###############
 
+******************
+0.6.5 - 2018-02-??
+******************
+
+- Plugins! You can now build your own plugins and place them in ~/.kmpc/plugins
+  for access via the System tab. Some examples at
+  `https://github.com/eratosthene/kmpc-plugins <https://github.com/eratosthene/kmpc-plugins>`_.
+
 ********************
 0.6.5.1 - 2018-02-04
 ********************
