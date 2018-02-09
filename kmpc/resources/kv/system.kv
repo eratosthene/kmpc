@@ -57,6 +57,34 @@
         height: self.texture_size[1]
         valign: 'middle'
 
+<ChoosePluginPopup@Popup>:
+    title: 'Choose Plugin to Run'
+    size_hint_x: 0.8
+    ScrollView:
+		do_scroll_x: False
+		scroll_type: ['bars','content']
+		bar_width: sp(40)
+		GridLayout:
+			cols: 1
+			spacing: '10sp'
+			row_default_height: '48sp'
+			size_hint_y: None
+			height: self.minimum_height
+            id: layout
+
+<PluginPopup@Popup>:
+    title: 'Plugin'
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            size_hint_y: 0.9
+            id: plugincontent
+        Button:
+            size_hint_y: 0.1
+            text: 'Close Plugin'
+            on_press: root.dismiss()
+            id: closebutton
+
 <SystemTabbedPanelItem>:
     config: app.config
     text: 'System'
@@ -77,6 +105,9 @@
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: 0.5
+            Button:
+                text: 'Plugins'
+                on_press: root.do_plugins()
             Button:
                 text: 'Reboot'
                 on_press: root.do_reboot()

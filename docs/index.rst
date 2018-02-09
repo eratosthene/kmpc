@@ -16,5 +16,6 @@ Welcome to kmpc's documentation!
    usingkmpc
    usingkmpcmanager
    kivypie
+   plugins
    changelog
 
