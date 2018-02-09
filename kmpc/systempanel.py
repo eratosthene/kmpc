@@ -144,15 +144,28 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
     def do_plugins(self):
         choosePluginPopup=Factory.ChoosePluginPopup()
         plugins=[]
+        scripts=[]
         for dirpath, dirnames, filenames in os.walk(os.path.join(configdir,'plugins')):
             if 'plugin.kv' in filenames and 'plugin.py' in filenames:
                 plugins.append(os.path.basename(dirpath))
+            if 'plugin.sh' in filenames:
+                scripts.append(os.path.basename(dirpath))
         for plugin in plugins:
             pbutton=Button(text=plugin)
             choosePluginPopup.ids.layout.add_widget(pbutton)
             pbutton.bind(on_press=choosePluginPopup.dismiss)
             pbutton.bind(on_press=partial(self.load_plugin,plugin))
+        for script in scripts:
+            pbutton=Button(text=script)
+            choosePluginPopup.ids.layout.add_widget(pbutton)
+            pbutton.bind(on_press=choosePluginPopup.dismiss)
+            pbutton.bind(on_press=self.run_script)
+            pbutton.script=os.path.join(configdir,'plugins',script,'plugin.sh')
         choosePluginPopup.open()
+
+    def run_script(self,instance):
+        Logger.debug("run_script: "+instance.script)
+        call(instance.script,shell=True)
 
     def load_plugin(self,plugin,instance):
         Logger.debug("load_plugin: "+plugin)
@@ -165,6 +178,10 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
         pluginPopup.ids.plugincontent.add_widget(pluginContent)
         pluginPopup.ids.closebutton.bind(on_press=partial(self.unload_plugin,plugin,pluginmodule))
         pluginPopup.open()
+        try:
+            if pluginContent.autoclose: pluginPopup.dismiss()
+        except NameError:
+            pass
 
     def unload_plugin(self,plugin,pluginmodule,instance):
         Logger.debug("unload_plugin: "+plugin)
