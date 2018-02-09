@@ -155,6 +155,7 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
         Logger.debug("load_plugin: "+plugin)
         sys.path.append(os.path.join(configdir,'plugins',plugin))
         pluginmodule=__import__('plugin')
+        reload(pluginmodule)
         Builder.load_file(os.path.join(configdir,'plugins',plugin,'plugin.kv'))
         pluginPopup=Factory.PluginPopup(title='Plugin: '+plugin)
         pluginContent=eval('Factory.'+plugin+'PluginContent()')
