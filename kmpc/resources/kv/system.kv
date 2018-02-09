@@ -60,9 +60,17 @@
 <ChoosePluginPopup@Popup>:
     title: 'Choose Plugin to Run'
     size_hint_x: 0.8
-    BoxLayout:
-        orientation: 'vertical'
-        id: layout
+    ScrollView:
+		do_scroll_x: False
+		scroll_type: ['bars','content']
+		bar_width: sp(40)
+		GridLayout:
+			cols: 1
+			spacing: '10sp'
+			row_default_height: '48sp'
+			size_hint_y: None
+			height: self.minimum_height
+            id: layout
 
 <PluginPopup@Popup>:
     title: 'Plugin'

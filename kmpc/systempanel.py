@@ -143,7 +143,10 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
 
     def do_plugins(self):
         choosePluginPopup=Factory.ChoosePluginPopup()
-        plugins=os.listdir(os.path.join(configdir,'plugins'))
+        plugins=[]
+        for dirpath, dirnames, filenames in os.walk(os.path.join(configdir,'plugins')):
+            if 'plugin.kv' in filenames and 'plugin.py' in filenames:
+                plugins.append(os.path.basename(dirpath))
         for plugin in plugins:
             pbutton=Button(text=plugin)
             choosePluginPopup.ids.layout.add_widget(pbutton)
