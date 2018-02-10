@@ -21,6 +21,8 @@
 
 <SmallButton@OButton>:
     font_size: '16sp'
+    size_hint_min_y: '48sp'
+    size_hint_y: None
 
 <StarLabel@OLabel>:
     font_name: fontawesomefont
@@ -50,7 +52,7 @@
         orientation: 'horizontal'
         UneditTextInput:
             multiline: False
-            size_hint_x: 1
+            #size_hint_x: 1
             halign: 'left'
             valign: 'center'
             text_size: self.size
@@ -59,7 +61,7 @@
             background_color: (1,1,0,1) if root.selected else (1,1,1,1)
         UneditTextInput:
             multiline: False
-            size_hint_x: 1
+            #size_hint_x: 1
             halign: 'left'
             valign: 'center'
             text_size: self.size
@@ -67,21 +69,21 @@
             padding_x: sp(10)
             background_color: (1,1,0,1) if root.selected else (1,1,1,1)
         OLabel:
-            size_hint_x: 0.05
+            size_hint_x: 0.08
             halign: 'left'
             valign: 'center'
             text_size: self.size
             text: 'Y' if root.has_artistbackground else 'N'
             padding_x: sp(10)
         OLabel:
-            size_hint_x: 0.05
+            size_hint_x: 0.08
             halign: 'left'
             valign: 'center'
             text_size: self.size
             text: 'Y' if root.has_logo else 'N'
             padding_x: sp(10)
         OLabel:
-            size_hint_x: 0.05
+            size_hint_x: 0.08
             halign: 'left'
             valign: 'center'
             text_size: self.size
@@ -114,7 +116,7 @@
     BoxLayout:
         orientation: 'horizontal'
         OLabel:
-            size_hint_x: 1
+            #size_hint_x: 1
             halign: 'left'
             valign: 'center'
             text_size: self.size
@@ -147,6 +149,9 @@
                     pos: self.pos
             size_hint_y: 0.05
             OLabel:
+                halign: 'center'
+                valign: 'middle'
+                text_size: self.size
                 id: status
                 text: ''
         BoxLayout:
@@ -245,13 +250,15 @@
                     Rectangle:
                         size: self.size
                         pos: self.pos
-                size_hint_y: 0.05
+                size_hint_y: 0.1
+                size_hint_min_y: '30sp'
                 OLabel:
                     id: status
                     text: ''
             BoxLayout:
                 orientation: 'horizontal'
-                size_hint_y: 0.05
+                size_hint_y: 0.1
+                size_hint_min_y: '48sp'
                 SmallButton:
                     text: 'Refresh from mpd and internet'
                     on_press: root.refresh_artists()
@@ -261,15 +268,16 @@
                 SmallButton:
                     text: 'Write to cache'
                     on_press: root.write_artists_to_cache()
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.1
+                size_hint_min_y: '48sp'
                 SmallButton:
                     text: 'Scan row'
                     on_press: root.scan_row_for_media()
                 SmallButton:
                     text: 'Scan all'
                     on_press: root.scan_all_for_media()
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint_y: 0.05
                 SmallButton:
                     text: 'Pull art for row'
                     on_press: root.pull_art_for_row()
@@ -278,9 +286,10 @@
                     on_press: root.pull_art_for_all()
             RecycleView:
                 id: rv
-                size_hint_y: 1
-                size_hint_x: 1
+#                size_hint_y: 1
+#                size_hint_x: 1
                 rv_selection: {}
+                do_scroll_x: False
                 scroll_type: ['bars','content']
                 bar_width: sp(40)
                 viewclass: 'ArtistRow'
@@ -288,6 +297,7 @@
                     id: rbl
                     default_size: None, sp(24)
                     default_size_hint: 1, None
+#                    row_default_height: '24sp'
                     size_hint_y: None
                     height: self.minimum_height
                     orientation: 'vertical'
