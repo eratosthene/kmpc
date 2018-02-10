@@ -1,6 +1,7 @@
 #:kivy 1.10.0
 #:import ManagerLibraryTabbedPanelItem kmpc.managerlibrarypanel.ManagerLibraryTabbedPanelItem
 #:import ManagerLibraryRow kmpc.managerlibrarypanel.ManagerLibraryRow
+#:import ManagerGeneratePopup kmpc.managerlibrarypanel.ManagerGeneratePopup
 #:import LibraryRecycleBoxLayout kmpc.librarypanel.LibraryRecycleBoxLayout
 #:import normalfont kmpc.widgets.normalfont
 #:import fontawesomefont kmpc.widgets.fontawesomefont
@@ -30,7 +31,7 @@
     font_name: fontawesomefont
     markup: True
 
-<ManagerGeneratePopup@Popup>:
+<ManagerGeneratePopup>:
     title: 'Generate Playlists'
     size_hint_x: 0.8
     BoxLayout:
@@ -43,10 +44,10 @@
                 id: ratings_spinner
                 text_autoupdate: True
                 values: ['None','0','1','2','3','4','5','6','7','8','9','10']
-                on_text: app.root.ids.library_tab.update_generate_text(root)
+                on_text: root.library_tab.update_generate_text(root)
         OutlineButton:
             text: 'Generate Synclist'
-            on_press: app.root.ids.library_tab.generate_list('synclist',root.ids.ratings_spinner.text)
+            on_press: root.library_tab.generate_list('synclist',root.ids.ratings_spinner.text)
         BoxLayout:
             orientation: 'horizontal'
             OutlineLabel:
@@ -55,7 +56,7 @@
                 id: operation_spinner
                 text_autoupdate: True
                 values: ['<','<=','=','>=','>']
-                on_text: app.root.ids.library_tab.update_generate_text(root)
+                on_text: root.library_tab.update_generate_text(root)
         BoxLayout:
             orientation: 'horizontal'
             OutlineLabel:
@@ -65,7 +66,7 @@
                 text: 'No Stars'
         OutlineButton:
             text: 'Generate Playlist'
-            on_press: app.root.ids.library_tab.generate_list('playlist',root.ids.ratings_spinner.text,root.ids.operation_spinner.text,root.ids.playlist_name.text)
+            on_press: root.library_tab.generate_list('playlist',root.ids.ratings_spinner.text,root.ids.operation_spinner.text,root.ids.playlist_name.text)
 
 <ArtistRow>:
     canvas.before:
@@ -166,7 +167,6 @@
     text: 'Library'
     rv: rv
     rbl: rbl
-    config: app.config
     current_header: current_header
     BoxLayout:
         orientation: 'vertical'

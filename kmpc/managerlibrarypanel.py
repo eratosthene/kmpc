@@ -13,7 +13,7 @@ from kivy.uix.checkbox import CheckBox
 from kivy.logger import Logger
 from twisted.internet.defer import inlineCallbacks
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
-from kivy.properties import BooleanProperty
+from kivy.properties import BooleanProperty,ObjectProperty
 from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.recycleview.layout import LayoutSelectionBehavior
@@ -264,8 +264,11 @@ class ManagerLibraryTabbedPanelItem(LibraryTabbedPanelItem):
 
     def popup_generate(self):
         """Callback when user presses the Generate button."""
-        generatePopup=Factory.ManagerGeneratePopup()
+        generatePopup=Factory.ManagerGeneratePopup(library_tab=self)
         generatePopup.open()
+
+class ManagerGeneratePopup(Popup):
+    library_tab=ObjectProperty(None)
 
 class ManagerLibraryRow(LibraryRow):
     ''' Add selection support to the Label '''
