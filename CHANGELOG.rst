@@ -5,11 +5,18 @@ kmpc Change Log
 ###############
 
 ******************
-0.6.5 - 2018-02-09
+0.6.7 - 2018-02-10
+******************
+
+- Significantly revamped kmpcmanager code. This now allows it to be run as a
+  plugin in case you want to manager things directly from your car, amongst
+  other things.
+
+******************
+0.6.6 - 2018-02-09
 ******************
 
 - Added Config and Exit buttons to a System tab in kmpcmanager.
-
 - Plugins! You can now build your own plugins and place them in ~/.kmpc/plugins
   for access via the System tab. Some examples at
   `https://github.com/eratosthene/kmpc-plugins <https://github.com/eratosthene/kmpc-plugins>`_.
