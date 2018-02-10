@@ -331,17 +331,16 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
         """Callback when user long-presses on a row."""
         Logger.debug("Library: long-touch on "+str(index))
         App.get_running_app().root.ids.library_tab.rbl.clear_selection()
-        App.get_running_app().root.ids.library_tab.handle_long_touch(App.get_running_app().ids.library_tab.rv.data[index],index)
+        App.get_running_app().root.ids.library_tab.handle_long_touch(App.get_running_app().root.ids.library_tab.rv.data[index],index)
 
     def refresh_view_attrs(self, rv, index, data):
         """Catch and handle the view changes."""
         self.index = index
-        return super(self.__class__, self).refresh_view_attrs(
-            rv, index, data)
+        return RecycleDataViewBehavior.refresh_view_attrs(self,rv, index, data)
 
     def on_touch_down(self, touch):
         """Adds selection, long-press handling on touch down."""
-        if super(self.__class__, self).on_touch_down(touch):
+        if BoxLayout.on_touch_down(self,touch):
             return True
         if self.collide_point(*touch.pos) and self.selectable:
             # these lines start a 1 second clock to detect long-presses
@@ -352,7 +351,7 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
 
     def on_touch_up(self, touch):
         """Clean up long-press handling on touch up."""
-        if super(self.__class__, self).on_touch_up(touch):
+        if BoxLayout.on_touch_up(self,touch):
             return True
         # if i don't check for this, the app crashes when things scroll off screen
         if 'event' in touch.ud:

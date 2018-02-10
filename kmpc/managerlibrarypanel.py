@@ -20,56 +20,15 @@ from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.popup import Popup
 from kivy.factory import Factory
+from kivy.clock import Clock
 
 from kmpc.extra import KmpcHelpers
 from kmpc.widgets import fontawesomefont
-#import kmpc.managerinterface
-from kmpc.librarypanel import LibraryTabbedPanelItem
+from kmpc.librarypanel import LibraryTabbedPanelItem,LibraryRow
 
 Helpers=KmpcHelpers()
 
-#class ManagerLibraryTabbedPanelItem(LibraryTabbedPanelItem):
-#
-#    def __init__(self,**kwargs):
-#        LibraryTabbedPanelItem.__init__(self,**kwargs)
-
-class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
-    current_view = {'value': 'root', 'base':'/','info':{'type':'uri'}}
-    library_selection = {}
-    #rsync_data={}
-    #rsync_file=None
-
-    def change_view_type(self,value):
-        Logger.info("Library: View changed to "+value)
-        self.rbl.clear_selection()
-        if value == 'Files':
-            self.current_view = {'value': 'root','base':'/','info':{'type':'uri'}}
-            App.get_running_app().root.mpdconnection.protocol.lsinfo(self.current_view['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
-            self.ids.files_button.state='down'
-            self.ids.albums_button.state='normal'
-            self.ids.tracks_button.state='normal'
-            self.ids.playlists_button.state='normal'
-        elif value == 'Albums':
-            self.current_view = {'value': 'All Album Artists','base':'All Album Artists','info':{'type':'rootalbums'}}
-            App.get_running_app().root.mpdconnection.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
-            self.ids.files_button.state='normal'
-            self.ids.albums_button.state='down'
-            self.ids.tracks_button.state='normal'
-            self.ids.playlists_button.state='normal'
-        elif value == 'Tracks':
-            self.current_view = {'value': 'All Track Artists','base':'All Track Artists','info':{'type':'roottracks'}}
-            App.get_running_app().root.mpdconnection.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
-            self.ids.files_button.state='normal'
-            self.ids.albums_button.state='normal'
-            self.ids.tracks_button.state='down'
-            self.ids.playlists_button.state='normal'
-        elif value == 'Playlists':
-            self.current_view = {'value':'All Playlists','base':'All Playlists','info':{'type':'playlist'}}
-            App.get_running_app().root.mpdconnection.protocol.listplaylists().addCallback(self.reload_view).addErrback(self.handle_mpd_error)
-            self.ids.files_button.state='normal'
-            self.ids.albums_button.state='normal'
-            self.ids.tracks_button.state='normal'
-            self.ids.playlists_button.state='down'
+class ManagerLibraryTabbedPanelItem(LibraryTabbedPanelItem):
 
     def render_row(self,r,has_sticker,result):
         rr=deepcopy(r)
@@ -175,9 +134,6 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
         else:
             Logger.warn("Library: double click for ["+format(row)+"] not implemented")
 
-    def handle_mpd_error(self,result):
-        Logger.error('Library: MPDIdleHandler Callback error: {}'.format(result))
-
     def reload_row_after_sticker(self,copy_flag,index,result):
         self.rv.data[index]['copy_flag']=copy_flag
         self.rv.refresh_from_data()
@@ -246,24 +202,24 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
         else:
             Logger.info("Library: could not set song rating for "+self.rv.data[index]['base'])
 
-    def generate_list(self,ltype):
-        Logger.info('generate_list: generating with minimum stars '+self.ids.minimum_stars.text)
+    def generate_list(self,ltype,minstars,op='>=',pname='playlist'):
+        Logger.info('generate_list: generating with minimum stars '+str(minstars))
         self.tlist={}
-        App.get_running_app().root.mpdconnection.protocol.sticker_find('song','','rating').addCallback(partial(self.generate_play_list,ltype)).addErrback(self.handle_mpd_error)
+        App.get_running_app().root.mpdconnection.protocol.sticker_find('song','','rating').addCallback(partial(self.generate_play_list,ltype,minstars,op,pname)).addErrback(self.handle_mpd_error)
 
-    def generate_play_list(self,ltype,result):
+    def generate_play_list(self,ltype,minstars,op,pname,result):
         Logger.debug("generate_play_list: "+ltype)
         for row in result:
             rating=row['sticker'].split('=')[1]
             uri=row['file']
-            if int(rating) >= int(self.ids.minimum_stars.text):
+            if (op=='<' and int(rating)<int(minstars)) or (op=='<=' and int(rating)<=int(minstars)) or (op=='=' and int(rating)==int(minstars)) or (op=='>=' and int(rating)>=int(minstars)) or (op=='>' and int(rating)>int(minstars)):
                 Logger.debug("generate_play_list: rating ["+rating+"] file ["+uri+"]")
                 self.tlist[uri]=1
         if ltype=='playlist':
-            Logger.info("generate_play_list: writing to playlist ["+self.ids.minimum_stars.text+" star or more]")
-            App.get_running_app().root.mpdconnection.protocol.playlistclear(self.ids.minimum_stars.text+" star or more").addErrback(self.handle_mpd_error)
+            Logger.info("generate_play_list: writing to playlist ["+pname+"]")
+            App.get_running_app().root.mpdconnection.protocol.playlistclear(pname).addErrback(self.handle_mpd_error)
             for k in sorted(self.tlist.keys()):
-                App.get_running_app().root.mpdconnection.protocol.playlistadd(self.ids.minimum_stars.text+" star or more",k).addErrback(self.handle_mpd_error)
+                App.get_running_app().root.mpdconnection.protocol.playlistadd(pname,k).addErrback(self.handle_mpd_error)
         elif ltype=='synclist':
             App.get_running_app().root.mpdconnection.protocol.sticker_find('song','','copy_flag').addCallback(self.generate_sync_list).addErrback(self.handle_mpd_error)
 
@@ -284,46 +240,59 @@ class ManagerLibraryTabbedPanelItem(TabbedPanelItem):
         for k in sorted(self.tlist.keys()):
             App.get_running_app().root.mpdconnection.protocol.playlistadd(self.config.get('sync','syncplaylist'),k).addErrback(self.handle_mpd_error)
 
-class LibraryRecycleBoxLayout(FocusBehavior,LayoutSelectionBehavior,RecycleBoxLayout):
-    ''' Adds selection and focus behaviour to the view. '''
+    def change_view_type(self,value):
+        Logger.info("Library: View changed to "+value)
+        self.rbl.clear_selection()
+        if value == 'Files':
+            self.current_view = {'value': 'root','base':'/','info':{'type':'uri'}}
+            App.get_running_app().root.mpdconnection.protocol.lsinfo(self.current_view['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            self.ids.files_button.state='down'
+            self.ids.albums_button.state='normal'
+            self.ids.tracks_button.state='normal'
+        elif value == 'Albums':
+            self.current_view = {'value': 'All Album Artists','base':'All Album Artists','info':{'type':'rootalbums'}}
+            App.get_running_app().root.mpdconnection.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            self.ids.files_button.state='normal'
+            self.ids.albums_button.state='down'
+            self.ids.tracks_button.state='normal'
+        elif value == 'Tracks':
+            self.current_view = {'value': 'All Track Artists','base':'All Track Artists','info':{'type':'roottracks'}}
+            App.get_running_app().root.mpdconnection.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            self.ids.files_button.state='normal'
+            self.ids.albums_button.state='normal'
+            self.ids.tracks_button.state='down'
 
-class LibraryRow(RecycleDataViewBehavior,BoxLayout):
+    def popup_generate(self):
+        """Callback when user presses the Generate button."""
+        generatePopup=Factory.ManagerGeneratePopup()
+        generatePopup.open()
+
+class ManagerLibraryRow(LibraryRow):
     ''' Add selection support to the Label '''
-    index = None
-    selected = BooleanProperty(False)
-    selectable = BooleanProperty(True)
 
     def rating_popup(self,instance):
         Logger.debug('Library: rating_popup()')
         popup=Factory.RatingPopup(index=self.index,rating_set=App.get_running_app().root.ids.library_tab.rating_set)
         popup.open()
 
-    def refresh_view_attrs(self, rv, index, data):
-        ''' Catch and handle the view changes '''
-        self.index = index
-        return super(LibraryRow, self).refresh_view_attrs(
-            rv, index, data)
+    def long_touch(self, touch, index, *args):
+        """Callback when user long-presses on a row."""
+        Logger.debug("Library: long-touch on "+str(index))
+        App.get_running_app().root.ids.library_tab.rbl.clear_selection()
+        App.get_running_app().root.ids.library_tab.handle_double_click(App.get_running_app().root.ids.library_tab.rv.data[index],index)
 
     def on_touch_down(self, touch):
-        ''' Add selection on touch down '''
-        if super(LibraryRow, self).on_touch_down(touch):
+        """Adds selection, long-press handling on touch down."""
+        if BoxLayout.on_touch_down(self,touch):
             return True
         if self.collide_point(*touch.pos) and self.selectable:
-            # if we have a double-click, play from that location instead of selecting
+            # these lines start a 1 second clock to detect long-presses
+            callback = partial(self.long_touch, touch, self.index)
+            Clock.schedule_once(callback, 1)
+            touch.ud['event'] = callback
             if touch.is_double_tap:
                 Logger.debug("Library: double-click on "+str(self.index))
                 App.get_running_app().root.ids.library_tab.rbl.clear_selection()
                 App.get_running_app().root.ids.library_tab.handle_double_click(App.get_running_app().root.ids.library_tab.rv.data[self.index],self.index)
             else:
                 return self.parent.select_with_touch(self.index, touch)
-
-    def apply_selection(self, rv, index, is_selected):
-        ''' Respond to the selection of items in the view. '''
-        self.selected = is_selected
-        lt=App.get_running_app().root.ids.library_tab
-        if is_selected:
-            lt.library_selection[index] = True
-        else:
-            if index in lt.library_selection:
-                del lt.library_selection[index]
-
