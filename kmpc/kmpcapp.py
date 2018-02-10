@@ -34,9 +34,6 @@ class KmpcApp(App):
 
     def __init__(self,args):
         """Override kivy config values with necessary ones"""
-        Config.set('kivy','keyboard_mode','systemanddock')
-        Config.set('graphics','width',800)
-        Config.set('graphics','height',480)
         self.args=args
         super(self.__class__,self).__init__()
 

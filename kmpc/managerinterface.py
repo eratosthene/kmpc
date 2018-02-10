@@ -9,6 +9,7 @@ from ConfigParser import NoSectionError,NoOptionError
 import kivy
 kivy.require('1.10.0')
 
+from kivy.app import App
 from kivy.support import install_twisted_reactor
 from kivy.logger import Logger
 from kivy.network.urlrequest import UrlRequest
@@ -25,8 +26,8 @@ configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
 class ManagerInterface(TabbedPanel):
 
-    def __init__(self,config):
-        super(self.__class__,self).__init__()
+    def __init__(self,config,**kwargs):
+        TabbedPanel.__init__(self,**kwargs)
         self.config=config
         self.artist_id_hash={}
         self.artist_name_hash={}
@@ -37,16 +38,23 @@ class ManagerInterface(TabbedPanel):
         musicbrainzngs.set_useragent("kmpcmanager",VERSION_STR,'https://github.com/eratosthene/kmpc')
         self.fanarturl="http://webservice.fanart.tv/v3/music/"
         self.api_key="406b2a5af85c14b819c1c6332354b313"
-        #install twisted reactor to interface with mpd
+        # install twisted reactor to interface with mpd
         install_twisted_reactor()
-        global mainmpdconnection
-        mainmpdconnection=MpdConnection(self.config,self.config.get('sync','synchost'),self.config.get('sync','syncmpdport'),None,[self.init_mpd])
+        # open mpd connection
+        self.syncmpdconnection=MpdConnection(self.config,self.config.get('sync','synchost'),self.config.get('sync','syncmpdport'),None,[self.init_mpd])
+        if not App.get_running_app().root:
+            # root isn't defined yet, it must be us
+            Logger.debug("ManagerInterface: running as full app")
+        else:
+            # root is something else
+            Logger.debug("ManagerInterface: running as class")
+            App.get_running_app().root.syncmpdconnection=self.syncmpdconnection
 
     def init_mpd(self,instance):
         self.refresh_artists_from_cache()
 
     def refresh_artists(self):
-        mainmpdconnection.protocol.list('musicbrainz_artistid').addCallback(self.populate_artists).addErrback(mainmpdconnection.handle_mpd_error)
+        self.syncmpdconnection.protocol.list('musicbrainz_artistid').addCallback(self.populate_artists).addErrback(self.syncmpdconnection.handle_mpd_error)
 
     def populate_artists(self,result):
         Logger.info("Manager: populate_artists")

@@ -1,30 +1,60 @@
 #:kivy 1.10.0
 #:import ManagerLibraryTabbedPanelItem kmpc.managerlibrarypanel.ManagerLibraryTabbedPanelItem
+#:import ManagerLibraryRow kmpc.managerlibrarypanel.ManagerLibraryRow
+#:import ManagerGeneratePopup kmpc.managerlibrarypanel.ManagerGeneratePopup
+#:import LibraryRecycleBoxLayout kmpc.librarypanel.LibraryRecycleBoxLayout
 #:import normalfont kmpc.widgets.normalfont
 #:import fontawesomefont kmpc.widgets.fontawesomefont
 #:import listbackdrop kmpc.widgets.listbackdrop
 #:import ratingstars kmpc.widgets.ratingstars
+#:import OutlineLabel kmpc.widgets.OutlineLabel
+#:import OutlineButton kmpc.widgets.OutlineButton
 
-<OLabel@Label>:
-    font_name: normalfont
-    font_size: '20sp'
-    outline_color: [0,0,0]
-    outline_width: '1sp'
-    color: [1,1,1,1]
-
-<OButton@Button+OLabel>:
-    border: (4,4,4,4)
-    background_normal: buttonnormal
-    background_down: buttondown
-    font_name: normalfont
-    font_size: '20sp'
-
-<SmallButton@OButton>:
+<SmallButton@OutlineButton>:
     font_size: '16sp'
+    size_hint_min_y: '48sp'
+    size_hint_y: None
 
-<StarLabel@OLabel>:
+<StarLabel@OutlineLabel>:
     font_name: fontawesomefont
     markup: True
+
+<ManagerGeneratePopup>:
+    title: 'Generate Playlists'
+    size_hint_x: 0.8
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineLabel:
+                text: 'Rating'
+            Spinner:
+                id: ratings_spinner
+                text_autoupdate: True
+                values: ['None','0','1','2','3','4','5','6','7','8','9','10']
+                on_text: root.library_tab.update_generate_text(root)
+        OutlineButton:
+            text: 'Generate Synclist'
+            on_press: root.library_tab.generate_list('synclist',root.ids.ratings_spinner.text)
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineLabel:
+                text: 'Operation'
+            Spinner:
+                id: operation_spinner
+                text_autoupdate: True
+                values: ['<','<=','=','>=','>']
+                on_text: root.library_tab.update_generate_text(root)
+        BoxLayout:
+            orientation: 'horizontal'
+            OutlineLabel:
+                text: 'Playlist Name'
+            TextInput:
+                id: playlist_name
+                text: 'No Stars'
+        OutlineButton:
+            text: 'Generate Playlist'
+            on_press: root.library_tab.generate_list('playlist',root.ids.ratings_spinner.text,root.ids.operation_spinner.text,root.ids.playlist_name.text)
 
 <ArtistRow>:
     canvas.before:
@@ -50,7 +80,6 @@
         orientation: 'horizontal'
         UneditTextInput:
             multiline: False
-            size_hint_x: 1
             halign: 'left'
             valign: 'center'
             text_size: self.size
@@ -59,36 +88,35 @@
             background_color: (1,1,0,1) if root.selected else (1,1,1,1)
         UneditTextInput:
             multiline: False
-            size_hint_x: 1
             halign: 'left'
             valign: 'center'
             text_size: self.size
             text: root.artist_id
             padding_x: sp(10)
             background_color: (1,1,0,1) if root.selected else (1,1,1,1)
-        OLabel:
-            size_hint_x: 0.05
+        OutlineLabel:
+            size_hint_x: 0.08
             halign: 'left'
             valign: 'center'
             text_size: self.size
             text: 'Y' if root.has_artistbackground else 'N'
             padding_x: sp(10)
-        OLabel:
-            size_hint_x: 0.05
+        OutlineLabel:
+            size_hint_x: 0.08
             halign: 'left'
             valign: 'center'
             text_size: self.size
             text: 'Y' if root.has_logo else 'N'
             padding_x: sp(10)
-        OLabel:
-            size_hint_x: 0.05
+        OutlineLabel:
+            size_hint_x: 0.08
             halign: 'left'
             valign: 'center'
             text_size: self.size
             text: 'Y' if root.has_badge else 'N'
             padding_x: sp(10)
 
-<LibraryRow>:
+<ManagerLibraryRow>:
     canvas.before:
         Color:
             rgba: app.get_color('listitemselected') if self.selected else app.get_color('listitem')
@@ -113,81 +141,47 @@
     rating: ''
     BoxLayout:
         orientation: 'horizontal'
-        OLabel:
-            size_hint_x: 1
-            halign: 'left'
-            valign: 'center'
-            text_size: self.size
-            text: root.value
-            padding_x: sp(10)
+        size_hint_x: 0.15
+        spacing: '10sp'
         StarLabel:
-            size_hint_x: 0.2
+            size_hint_x: None
             text: '[ref=rating]'+ratingstars[int(root.rating)]+'[/ref]' if root.rating else '[ref=rating]'+ratingstars[11]+'[/ref]'
             on_ref_press: root.rating_popup(root)
-        OLabel:
-            size_hint_x: 0.2
+        OutlineLabel:
+            size_hint_x: None
             text: root.copy_flag
 
 <ManagerLibraryTabbedPanelItem>:
     text: 'Library'
     rv: rv
     rbl: rbl
-    config: app.config
     current_header: current_header
     BoxLayout:
         orientation: 'vertical'
-        padding: 0
-        spacing: 0
         BoxLayout:
-            canvas.before:
-                Color:
-                    rgba: (.25,.25,.25,1)
-                Rectangle:
-                    size: self.size
-                    pos: self.pos
-            size_hint_y: 0.05
-            OLabel:
-                id: status
-                text: ''
-        BoxLayout:
+            size_hint_y: None
+            size_hint_min_y: '48sp'
             orientation: 'horizontal'
-            size_hint_y: 0.05
-            SmallButton:
-                text: 'Generate synclist'
-                id: generate_button
-                on_press: root.generate_list('synclist')
-            SmallButton:
-                text: 'Generate playlist'
-                id: generate_playlist_button
-                on_press: root.generate_list('playlist')
-            OLabel:
-                text: 'Minimum stars:'
-            TextInput:
-                id: minimum_stars
-                text: '5'
-        BoxLayout:
-            size_hint_y: 0.05
-            orientation: 'horizontal'
-            ToggleButton:
+            OutlineButton:
                 text: 'Files'
                 id: files_button
                 on_press: root.change_view_type(self.text)
-            ToggleButton:
+            OutlineButton:
                 text: 'Albums'
                 id: albums_button
                 on_press: root.change_view_type(self.text)
-            ToggleButton:
+            OutlineButton:
                 text: 'Tracks'
                 id: tracks_button
                 on_press: root.change_view_type(self.text)
-            ToggleButton:
-                text: 'Playlists'
-                id: playlists_button
-                on_press: root.change_view_type(self.text)
-        OLabel:
+            OutlineButton:
+                text: 'Generate'
+                id: generate_button
+                on_press: root.popup_generate()
+        OutlineLabel:
             id: current_header
-            size_hint_y: 0.1
-            size_hint_x: 1
+            size_hint_y: None
+            size_hint_min_y: '24sp'
             padding_x: sp(10)
             text: ''
             text_size: self.size
@@ -195,19 +189,19 @@
             valign: 'middle'
         BoxLayout:
             orientation: 'horizontal'
+            size_hint_y: 0.6
             RecycleView:
                 id: rv
-                size_hint_y: 1
-                size_hint_x: 1
                 rv_selection: {}
                 scroll_type: ['bars','content']
                 bar_width: sp(40)
-                viewclass: 'LibraryRow'
+                do_scroll_x: False
+                viewclass: 'ManagerLibraryRow'
                 LibraryRecycleBoxLayout:
                     id: rbl
-                    default_size: None, sp(24)
                     default_size_hint: 1, None
                     size_hint_y: None
+                    size_hint_min_y: '48sp'
                     height: self.minimum_height
                     orientation: 'vertical'
                     spacing: sp(2)
@@ -216,13 +210,13 @@
             BoxLayout:
                 orientation: 'vertical'
                 size_hint_x: '0.05'
-                OButton:
+                OutlineButton:
                     text: '+'
                     on_press: root.set_copy_flag('Y')
-                OButton:
+                OutlineButton:
                     text: '-'
                     on_press: root.set_copy_flag('N')
-                OButton:
+                OutlineButton:
                     text: '/'
                     on_press: root.set_copy_flag('')
 
@@ -245,13 +239,18 @@
                     Rectangle:
                         size: self.size
                         pos: self.pos
-                size_hint_y: 0.05
-                OLabel:
+                size_hint_min_y: '24sp'
+                size_hint_y: None
+                OutlineLabel:
+                    halign: 'center'
+                    valign: 'middle'
+                    size_hint_y: None
                     id: status
                     text: ''
             BoxLayout:
                 orientation: 'horizontal'
-                size_hint_y: 0.05
+                size_hint_y: None
+                size_hint_min_y: '48sp'
                 SmallButton:
                     text: 'Refresh from mpd and internet'
                     on_press: root.refresh_artists()
@@ -261,15 +260,16 @@
                 SmallButton:
                     text: 'Write to cache'
                     on_press: root.write_artists_to_cache()
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                size_hint_min_y: '48sp'
                 SmallButton:
                     text: 'Scan row'
                     on_press: root.scan_row_for_media()
                 SmallButton:
                     text: 'Scan all'
                     on_press: root.scan_all_for_media()
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint_y: 0.05
                 SmallButton:
                     text: 'Pull art for row'
                     on_press: root.pull_art_for_row()
@@ -278,9 +278,8 @@
                     on_press: root.pull_art_for_all()
             RecycleView:
                 id: rv
-                size_hint_y: 1
-                size_hint_x: 1
                 rv_selection: {}
+                do_scroll_x: False
                 scroll_type: ['bars','content']
                 bar_width: sp(40)
                 viewclass: 'ArtistRow'

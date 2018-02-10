@@ -178,10 +178,6 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
         pluginPopup.ids.plugincontent.add_widget(pluginContent)
         pluginPopup.ids.closebutton.bind(on_press=partial(self.unload_plugin,plugin,pluginmodule))
         pluginPopup.open()
-        try:
-            if pluginContent.autoclose: pluginPopup.dismiss()
-        except NameError:
-            pass
 
     def unload_plugin(self,plugin,pluginmodule,instance):
         Logger.debug("unload_plugin: "+plugin)

@@ -22,14 +22,12 @@ configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
 # load the interface kv files
 Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','widgets.kv')))
+Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','library.kv')))
 Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','manager.kv')))
 
 class ManagerApp(App):
 
     def __init__(self,args):
-        Config.set('graphics','width',1280)
-        Config.set('graphics','height',720)
-        Config.set('kivy','keyboard_mode','system')
         self.args=args
         super(self.__class__,self).__init__()
 
