@@ -52,7 +52,6 @@
         orientation: 'horizontal'
         UneditTextInput:
             multiline: False
-            #size_hint_x: 1
             halign: 'left'
             valign: 'center'
             text_size: self.size
@@ -61,7 +60,6 @@
             background_color: (1,1,0,1) if root.selected else (1,1,1,1)
         UneditTextInput:
             multiline: False
-            #size_hint_x: 1
             halign: 'left'
             valign: 'center'
             text_size: self.size
@@ -116,7 +114,6 @@
     BoxLayout:
         orientation: 'horizontal'
         OLabel:
-            #size_hint_x: 1
             halign: 'left'
             valign: 'center'
             text_size: self.size
@@ -138,8 +135,6 @@
     current_header: current_header
     BoxLayout:
         orientation: 'vertical'
-        padding: 0
-        spacing: 0
         BoxLayout:
             canvas.before:
                 Color:
@@ -147,8 +142,10 @@
                 Rectangle:
                     size: self.size
                     pos: self.pos
-            size_hint_y: 0.05
+            size_hint_min_y: '24sp'
+            size_hint_y: None
             OLabel:
+                size_hint_y: None
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
@@ -156,7 +153,8 @@
                 text: ''
         BoxLayout:
             orientation: 'horizontal'
-            size_hint_y: 0.05
+            size_hint_y: None
+            size_hint_min_y: '48sp'
             SmallButton:
                 text: 'Generate synclist'
                 id: generate_button
@@ -170,8 +168,10 @@
             TextInput:
                 id: minimum_stars
                 text: '5'
+                font_size: '16sp'
         BoxLayout:
-            size_hint_y: 0.05
+            size_hint_y: None
+            size_hint_min_y: '48sp'
             orientation: 'horizontal'
             ToggleButton:
                 text: 'Files'
@@ -191,8 +191,8 @@
                 on_press: root.change_view_type(self.text)
         OLabel:
             id: current_header
-            size_hint_y: 0.1
-            size_hint_x: 1
+            size_hint_y: None
+            size_hint_min_y: '24sp'
             padding_x: sp(10)
             text: ''
             text_size: self.size
@@ -200,13 +200,13 @@
             valign: 'middle'
         BoxLayout:
             orientation: 'horizontal'
+            size_hint_y: 0.6
             RecycleView:
                 id: rv
-                size_hint_y: 1
-                size_hint_x: 1
                 rv_selection: {}
                 scroll_type: ['bars','content']
                 bar_width: sp(40)
+                do_scroll_x: False
                 viewclass: 'LibraryRow'
                 LibraryRecycleBoxLayout:
                     id: rbl
@@ -250,14 +250,17 @@
                     Rectangle:
                         size: self.size
                         pos: self.pos
-                size_hint_y: 0.1
-                size_hint_min_y: '30sp'
+                size_hint_min_y: '24sp'
+                size_hint_y: None
                 OLabel:
+                    halign: 'center'
+                    valign: 'middle'
+                    size_hint_y: None
                     id: status
                     text: ''
             BoxLayout:
                 orientation: 'horizontal'
-                size_hint_y: 0.1
+                size_hint_y: None
                 size_hint_min_y: '48sp'
                 SmallButton:
                     text: 'Refresh from mpd and internet'
@@ -270,7 +273,7 @@
                     on_press: root.write_artists_to_cache()
             BoxLayout:
                 orientation: 'horizontal'
-                size_hint_y: 0.1
+                size_hint_y: None
                 size_hint_min_y: '48sp'
                 SmallButton:
                     text: 'Scan row'
@@ -286,8 +289,6 @@
                     on_press: root.pull_art_for_all()
             RecycleView:
                 id: rv
-#                size_hint_y: 1
-#                size_hint_x: 1
                 rv_selection: {}
                 do_scroll_x: False
                 scroll_type: ['bars','content']
@@ -297,7 +298,6 @@
                     id: rbl
                     default_size: None, sp(24)
                     default_size_hint: 1, None
-#                    row_default_height: '24sp'
                     size_hint_y: None
                     height: self.minimum_height
                     orientation: 'vertical'
