@@ -72,6 +72,8 @@ synclocalfanartpath
   The path to the fanart folder on whatever machine ``kmpcmanager`` is running
   on.
 
+.. _configsystemsection:
+
 [system] section
 ----------------
 

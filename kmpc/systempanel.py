@@ -1,4 +1,5 @@
 import os
+import sys
 from subprocess import call
 from functools import partial
 
@@ -9,12 +10,15 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.progressbar import ProgressBar
+from kivy.uix.button import Button
 from kivy.logger import Logger
 from kivy.app import App
 from kivy.factory import Factory
+from kivy.lang.builder import Builder
 
 from kmpc.widgets import OutlineTabbedPanelItem,OutlineLabel
 from kmpc.sync import Sync,Subproc
+from kmpc.kmpcapp import configdir
 
 from twisted.internet.defer import Deferred,DeferredList
 
@@ -136,6 +140,53 @@ class SystemTabbedPanelItem(OutlineTabbedPanelItem):
 
     def closeit(self,popup,r):
         popup.dismiss()
+
+    def do_plugins(self):
+        choosePluginPopup=Factory.ChoosePluginPopup()
+        plugins=[]
+        scripts=[]
+        for dirpath, dirnames, filenames in os.walk(os.path.join(configdir,'plugins')):
+            if 'plugin.kv' in filenames and 'plugin.py' in filenames:
+                plugins.append(os.path.basename(dirpath))
+            if 'plugin.sh' in filenames:
+                scripts.append(os.path.basename(dirpath))
+        for plugin in plugins:
+            pbutton=Button(text=plugin)
+            choosePluginPopup.ids.layout.add_widget(pbutton)
+            pbutton.bind(on_press=choosePluginPopup.dismiss)
+            pbutton.bind(on_press=partial(self.load_plugin,plugin))
+        for script in scripts:
+            pbutton=Button(text=script)
+            choosePluginPopup.ids.layout.add_widget(pbutton)
+            pbutton.bind(on_press=choosePluginPopup.dismiss)
+            pbutton.bind(on_press=self.run_script)
+            pbutton.script=os.path.join(configdir,'plugins',script,'plugin.sh')
+        choosePluginPopup.open()
+
+    def run_script(self,instance):
+        Logger.debug("run_script: "+instance.script)
+        call(instance.script,shell=True)
+
+    def load_plugin(self,plugin,instance):
+        Logger.debug("load_plugin: "+plugin)
+        sys.path.append(os.path.join(configdir,'plugins',plugin))
+        pluginmodule=__import__('plugin')
+        reload(pluginmodule)
+        Builder.load_file(os.path.join(configdir,'plugins',plugin,'plugin.kv'))
+        pluginPopup=Factory.PluginPopup(title='Plugin: '+plugin)
+        pluginContent=eval('Factory.'+plugin+'PluginContent()')
+        pluginPopup.ids.plugincontent.add_widget(pluginContent)
+        pluginPopup.ids.closebutton.bind(on_press=partial(self.unload_plugin,plugin,pluginmodule))
+        pluginPopup.open()
+        try:
+            if pluginContent.autoclose: pluginPopup.dismiss()
+        except NameError:
+            pass
+
+    def unload_plugin(self,plugin,pluginmodule,instance):
+        Logger.debug("unload_plugin: "+plugin)
+        del pluginmodule
+        Builder.unload_file(os.path.join(configdir,'plugins',plugin,'plugin.kv'))
 
     def do_reboot(self):
         """Method that reboots the host."""

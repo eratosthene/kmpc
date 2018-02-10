@@ -296,3 +296,14 @@
                     touch_multiselect: False
     ManagerLibraryTabbedPanelItem:
         id: library_tab
+    TabbedPanelItem:
+        text: 'System'
+        BoxLayout:
+            orientation: 'vertical'
+            Button:
+                text: 'Config'
+                on_press: app.open_settings()
+            Button:
+                text: 'Exit'
+                on_press: app.stop()
+

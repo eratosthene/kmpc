@@ -77,6 +77,40 @@ The following data is shown from left to right:
 
 Artist name and id are selectable for easy copy/pasting.
 
+Directory structure for fanart
+==============================
+
+The directory structure for fanart is as follows, with *\<fanartpath\>* as the
+root folder::
+
+  fanartpath
+  ├── 078a9376-3c04-4280-b7d7-b20e158f345d    # musicbrainz artistid
+  │   ├── __Artist Name__                     # empty file, optional
+  │   ├── artistbackground                    # player background images
+  │   │   ├── 132224.jpg                      # you can have as many
+  │   │   ├── 39392.jpg                       # as you want
+  │   │   ├── 4679.jpg                        # or none at all
+  │   │   ├── 4680.jpg                        # format is 1280x720 JPG
+  │   │   └── 7578.jpg
+  │   ├── logo                                # artist logo images
+  │   │   ├── 130819.png                      # you can have as many
+  │   │   ├── 45979.png                       # as you want
+  │   │   ├── 15469.png                       # or none at all
+  │   │   ├── 47981.png                       # format is transparent PNG
+  │   │   ├── 39562.png                       # maximum 800x310
+  │   │   └── 5624.png
+  │   └── badge                               # artist badge images
+  │       ├── 130819.png                      # you can have as many
+  │       ├── 45979.png                       # as you want
+  │       ├── 15469.png                       # or none at all
+  │       ├── 47981.png                       # format is transparent PNG
+  │       ├── 39562.png                       # squarish aspect ratio
+  │       └── 5624.png
+  └── 391c9402-6688-4c3d-8f3d-d320d31b4de9    # and so on
+      ├── __Another Artist__
+      └── logo
+          └── 154355.png
+
 Badges
 ------
 
@@ -106,11 +140,10 @@ different functions. Long-presses have been replaced by double-clicks to make
 it easier to use on the desktop. The functions of the top row of buttons are as
 follows:
 
-Generate rsync merge
-  Create a rsync file based on a combination of the 'Minimum stars' field, the
-  song ratings in mpd, and the copy_flag stickers in mpd.
-Write rsync merge
-  Finalizes the rsync file to disk and closes it.
+Generate synclist
+  Create a sync playlist based on a combination of the 'Minimum stars' field,
+  the song ratings in mpd, and the copy_flag stickers in mpd. Uses the config
+  file variable 'syncplaylist' as the name of the generated playlist.
 Generate playlist
   Generates a playlist based on the 'Minimum stars' field and saves it to the
   synchost's mpd.
@@ -128,6 +161,14 @@ To the right are three buttons, which toggle the copy_flag. '+' will set it to
 true, '-' to false, '/' will clear it. These buttons function at the directory,
 file, artist, album, and track level.
 
+**********
+System Tab
+**********
+
+.. image:: images/manager3.png
+
+This tab has two functions. Config lets you edit the config file. Exit exits.
+
 ********
 Workflow
 ********
@@ -139,13 +180,15 @@ albums so that multiple copies of the same track aren't taking up extra space.
 I'll set only unique tracks on those albums to true or clear and everything
 that exists on some other album to false.
 
-Then I generate the rsync merge based on a minimum 7-star rating. This makes
-sure that only songs I actually want to listen to end up on my car Pi, and no
-disk space is wasted with duplicate tracks. However, my home music collection
-can be complete and much more extensive.
+Then I generate the synclist based on a minimum 7-star rating. This makes sure
+that only songs I actually want to listen to end up on my car Pi, and no disk
+space is wasted with duplicate tracks. However, my home music collection can be
+complete and much more extensive.
 
-Finally, I copy the rsync merge file (it is saved in ``~/.kmpc/rsync.inc``) to
-the home folder of the ssh user on the synchost. The ``~/.ssh/config`` file is
-set up correctly on the car Pi to connect using this user. When I want to sync
-the song filesystem, fanart media, and/or song ratings, I just have to press
-the 'Sync' button in kmpc on the car Pi and everything works.
+The ``~/.ssh/config`` file is set up correctly on the car Pi to connect to the
+synchost, and it is running on the same network the car Pi connects to when I
+am at home. When I want to sync music, fanart media, and/or song ratings, I
+just have to press the 'Sync' button in kmpc on the car Pi and everything
+works. I also sometimes ssh into the car Pi and run the commandline sync
+commands instead if I know it's going to take awhile and I don't want to sit in
+the car staring at the screen.

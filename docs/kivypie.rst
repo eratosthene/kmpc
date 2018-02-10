@@ -86,10 +86,6 @@ Step 2: Install kmpc
      sudo umount -l /tmp
      sudo mount --bind /tmp /root/tmp
 
-#. Install some dependencies::
-
-     sudo apt-get -y install sqlite3
-
 #. As of this writing, the version of pip/setuptools on KivyPie is old. Run the
    following to update::
    
@@ -105,11 +101,24 @@ Step 2: Install kmpc
 
    This will generate the default config file.
 
-#. Optional: if you want a mouse cursor to show up on the screen (in case you
-   are running with a keyboard and mouse), add the following to the *[modules]*
-   section in the file ``~/.kivy/config.ini``::
+#. Optional configuration tasks in ``~/.kivy/config.ini``:
 
-     cursor =
+   - If you want a mouse cursor to show up on the screen (in case you are
+     running with a keyboard and mouse), add the following to the *[modules]*
+     section::
+
+       cursor =
+
+   - If you don't want a little circle to show up on the screen anywhere you
+     touch, comment out this line in the *[modules]* section::
+
+       touchring = scale=0.3,alpha=0.7,show_cursor=1
+
+   - If you are getting duplicate clicks and/or keypresses with a physical
+     mouse or keyboard, comment out the following line in the *[input]*
+     section::
+
+       %(name)s = probesysfs,provider=hidinput
 
 ******************
 Step 3: Set up mpd
@@ -273,7 +282,8 @@ Once you've added some art, do the following
 #. Run::
 
      sudo chown -R $USER:audio <fanartpath>
-     sudo chmod g+w <fanartpath>
+     sudo chmod -R g+w <fanartpath>
+     sudo find <fanartpath> -type d -exec chmod g+s '{}' \;
      systemctl --user restart kmpc
 
 You should now see logos and background images for the artists that have images

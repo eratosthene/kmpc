@@ -24,6 +24,9 @@ default Kivy options::
     -n, --newconfig  write out default config file if it doesn't exist yet
     -V, --version    print version number and exit
     --helpkivy       Print Kivy's built-in argument list
+    --sync {all,music,fanart,exportratings,importratings}
+                     run the 'sync' function with the chosen module
+                     and exit
 
 ***********
 kmpcmanager
