@@ -26,8 +26,8 @@ configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
 class ManagerInterface(TabbedPanel):
 
-    def __init__(self,config):
-        super(self.__class__,self).__init__()
+    def __init__(self,config,**kwargs):
+        TabbedPanel.__init__(self,**kwargs)
         self.config=config
         self.artist_id_hash={}
         self.artist_name_hash={}
