@@ -5,7 +5,7 @@ kmpc Change Log
 ###############
 
 ******************
-0.6.5 - 2018-02-??
+0.6.5 - 2018-02-09
 ******************
 
 - Added Config and Exit buttons to a System tab in kmpcmanager.

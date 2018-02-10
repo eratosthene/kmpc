@@ -33,11 +33,25 @@ First is the artist name section, which is pulled from the track artist tag.
 This will either be rendered in normal text, or a logo image pulled from the
 fanart folder. If there is more than one artist, all artists will be shown.
 
-After that is the track name, then the album name, with the release year in
-brackets afterwards. This is pulled from the original year tag if it exists,
-and pulled from mpd otherwise. 
+After that is the track name, then the album name. 
 
 Under this is a smaller line detailing the upcoming artist and track.
+
+To the left in sideways text the release year is shown in []. If originalyear
+is turned on, then this value will be pulled from an mp3's 'originalyear' tag,
+and mpd's 'year' tag will be shown in {} next to it if it is different. This is
+to represent the original release year for an album versus the year it was
+remastered. If originalyear is off, only mpd's 'year' tag will be shown. See
+:ref:`configsystemsection` for details about originalyear.
+
+If advancedtitles is on, kmpc will attempt to parse the album and track names
+to make them a bit prettier. If the album name doesn't have 'EP' or '(single)'
+in it, the word 'album' will be shown in sideways text to the left of the album
+cover. Likewise, 'EP' will be shown if it is an EP and 'single' will be shown
+if it is a single. Strings in () or [] will be shown in a smaller font under
+the main title. Albums with ' / ' in them (split EPs usually) will be formatted
+with the above modifiers and split correctly. See :ref:`configsystemsection`
+for details about advancedtitles.
 
 Bottom Section
 ==============
@@ -63,7 +77,8 @@ Backlight Controls
 On the far right of the screen, there are four buttons to control the
 brightness of the Raspberry Pi touchscreen. These do nothing if the rpienable
 flag is not set to true in the config file. They change the brightness from
-brightest at the top to dimmest at the bottom.
+brightest at the top to dimmest at the bottom. See :ref:`configsystemsection`
+for details about rpienable.
 
 Playback Controls
 =================
@@ -259,6 +274,15 @@ This lists all named playlists that mpd knows about. Long-pressing on a
 playlist will replace the current playlist. You can also select one or more and
 use the buttons to the right. '+' will append them, '>' will insert them, '!'
 will clear the playlist then append them, and 'X' will delete them.
+
+Generate
+========
+
+.. image:: images/library12.png
+
+Pressing this button allows you to generate playlists based on song ratings.
+Choose the number of stars, the operation, and a name for the playlist, then
+click Generate. 
 
 ******
 System
