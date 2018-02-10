@@ -136,36 +136,36 @@ Library Tab
 .. image:: images/manager2.png
 
 This functions similarly to the library browser in ``kmpc``, with a few
-different functions. Long-presses have been replaced by double-clicks to make
-it easier to use on the desktop. The functions of the top row of buttons are as
-follows:
+different functions. You can double-click as well as long-press on items so
+it is easier to use on the desktop.
 
-Generate synclist
-  Create a sync playlist based on a combination of the 'Minimum stars' field,
-  the song ratings in mpd, and the copy_flag stickers in mpd. Uses the config
-  file variable 'syncplaylist' as the name of the generated playlist.
-Generate playlist
-  Generates a playlist based on the 'Minimum stars' field and saves it to the
-  synchost's mpd.
-Minimum stars
-  The minimum song rating to be considered for rsync or playlist.
-
-Under these you will find the familiar library browsing modes. Additional data
-is displayed in the scrollview rows. First is the song rating in stars. If no
-rating exists, a '?' will be displayed. Since mpd only supports per-file
-rating, anything that is not a track will display a '?' initially. After that
-is the copy_flag field. This will display a 'Y' if copy_flag is set to true, a
-'N' if set to false, and nothing if it is not set.
+Additional data is displayed in the scrollview rows. First is the song rating
+in stars. If no rating exists, a '?' will be displayed. Since mpd only supports
+per-file rating, anything that is not a track will display a '?' initially.
+After that is the copy_flag field. This will display a 'Y' if copy_flag is set
+to true, a 'N' if set to false, and nothing if it is not set.
 
 To the right are three buttons, which toggle the copy_flag. '+' will set it to
 true, '-' to false, '/' will clear it. These buttons function at the directory,
 file, artist, album, and track level.
 
+Pressing the 'Generate' button brings up this popup:
+
+.. image:: images/manager3.png
+
+If you want to generate a synclist, choose a Rating and hit 'Generate
+Synclist'. This will use the specified rating and the copy_flag sticker to
+generate a playlist named whatever you have in your config file for
+'syncplaylist'.
+
+If you want to generate a playlist, choose a Rating, an Operation, and a
+Playlist Name (or use the auto-generated name) and hit 'Generate Playlist'.
+
 **********
 System Tab
 **********
 
-.. image:: images/manager3.png
+.. image:: images/manager4.png
 
 This tab has two functions. Config lets you edit the config file. Exit exits.
 
