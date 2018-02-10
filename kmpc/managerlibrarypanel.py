@@ -36,7 +36,7 @@ class ManagerLibraryTabbedPanelItem(LibraryTabbedPanelItem):
             rr['copy_flag']=str(result)
         else:
             rr['copy_flag']=''
-        App.get_running_app().root.mpdconnection.protocol.sticker_get('song',rr['base'],'rating').addCallback(partial(self.render_row2,rr,True)).addErrback(partial(self.render_row2,rr,False))
+        App.get_running_app().root.syncmpdconnection.protocol.sticker_get('song',rr['base'],'rating').addCallback(partial(self.render_row2,rr,True)).addErrback(partial(self.render_row2,rr,False))
 
     def render_row2(self,r,has_sticker,result):
         rr=deepcopy(r)
@@ -91,7 +91,7 @@ class ManagerLibraryTabbedPanelItem(LibraryTabbedPanelItem):
             elif 'file' in row:
                 Logger.debug("FileBrowser: file found: ["+row['file']+"]")
                 r={'value':Helpers.formatsong(row),'base':row['file'],'info':{'type':'file'}}
-                App.get_running_app().root.mpdconnection.protocol.sticker_get('song',row['file'],'copy_flag').addCallback(partial(self.render_row,r,True)).addErrback(partial(self.render_row,r,False))
+                App.get_running_app().root.syncmpdconnection.protocol.sticker_get('song',row['file'],'copy_flag').addCallback(partial(self.render_row,r,True)).addErrback(partial(self.render_row,r,False))
             else:
                 if self.current_view['info']['type'] == 'rootalbums':
                     Logger.debug("Library: album artist found: ["+row+"]")
@@ -116,17 +116,17 @@ class ManagerLibraryTabbedPanelItem(LibraryTabbedPanelItem):
         Logger.debug("Library: handle_double_click("+format(row)+")")
         self.current_view = deepcopy(row)
         if row['info']['type'] == 'uri':
-            App.get_running_app().root.mpdconnection.protocol.lsinfo(row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.syncmpdconnection.protocol.lsinfo(row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'rootalbums':
-            App.get_running_app().root.mpdconnection.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.syncmpdconnection.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'albumartistsort':
-            App.get_running_app().root.mpdconnection.protocol.list('album','albumartistsort',row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.syncmpdconnection.protocol.list('album','albumartistsort',row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'album':
-            App.get_running_app().root.mpdconnection.protocol.find('album',row['base'],'albumartistsort',row['info']['albumartistsort']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.syncmpdconnection.protocol.find('album',row['base'],'albumartistsort',row['info']['albumartistsort']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'roottracks':
-            App.get_running_app().root.mpdconnection.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.syncmpdconnection.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'artistsort':
-            App.get_running_app().root.mpdconnection.protocol.list('title','artistsort',row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.syncmpdconnection.protocol.list('title','artistsort',row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'playlist':
             pass
         elif row['info']['type'] == 'file':
@@ -142,19 +142,19 @@ class ManagerLibraryTabbedPanelItem(LibraryTabbedPanelItem):
         for rrow in result:
             if copy_flag:
                 Logger.debug("set_copy_flag_find: setting copy_flag to "+copy_flag+" for file "+rrow['file'])
-                App.get_running_app().root.mpdconnection.protocol.sticker_set('song',rrow['file'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
+                App.get_running_app().root.syncmpdconnection.protocol.sticker_set('song',rrow['file'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
             else:
                 Logger.debug("set_copy_flag_find: clearing copy_flag for file "+rrow['file'])
-                App.get_running_app().root.mpdconnection.protocol.sticker_delete('song',rrow['file'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
+                App.get_running_app().root.syncmpdconnection.protocol.sticker_delete('song',rrow['file'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
 
     def set_copy_flag_find_one(self,copy_flag,index,result):
         for rrow in result:
             if copy_flag:
                 Logger.debug("set_copy_flag_find_one: setting copy_flag to "+copy_flag+" for file "+rrow['file'])
-                App.get_running_app().root.mpdconnection.protocol.sticker_set('song',rrow['file'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
+                App.get_running_app().root.syncmpdconnection.protocol.sticker_set('song',rrow['file'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
             else:
                 Logger.debug("set_copy_flag_find_one: clearing copy_flag for file "+rrow['file'])
-                App.get_running_app().root.mpdconnection.protocol.sticker_delete('song',rrow['file'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
+                App.get_running_app().root.syncmpdconnection.protocol.sticker_delete('song',rrow['file'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
             break
 
     def set_copy_flag(self,copy_flag):
@@ -167,21 +167,21 @@ class ManagerLibraryTabbedPanelItem(LibraryTabbedPanelItem):
                 Logger.debug("set_copy_flag: adding uri or file")
                 if copy_flag:
                     Logger.debug("set_copy_flag: setting copy_flag to "+copy_flag+" for file "+row['base'])
-                    App.get_running_app().root.mpdconnection.protocol.sticker_set('song',row['base'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
+                    App.get_running_app().root.syncmpdconnection.protocol.sticker_set('song',row['base'],'copy_flag',copy_flag).addCallback(partial(self.reload_row_after_sticker,copy_flag,index)).addErrback(self.handle_mpd_error)
                 else:
                     Logger.debug("set_copy_flag: clearing copy_flag for file "+row['base'])
-                    App.get_running_app().root.mpdconnection.protocol.sticker_delete('song',row['base'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
+                    App.get_running_app().root.syncmpdconnection.protocol.sticker_delete('song',row['base'],'copy_flag').addCallback(partial(self.reload_row_after_sticker,'',index)).addErrback(self.handle_mpd_error)
             elif mtype == 'albumartistsort':
-                App.get_running_app().root.mpdconnection.protocol.find(mtype,row['base']).addCallback(partial(self.set_copy_flag_find,copy_flag,index)).addErrback(self.handle_mpd_error)
+                App.get_running_app().root.syncmpdconnection.protocol.find(mtype,row['base']).addCallback(partial(self.set_copy_flag_find,copy_flag,index)).addErrback(self.handle_mpd_error)
             elif mtype == 'album':
-                App.get_running_app().root.mpdconnection.protocol.find(mtype,row['base'],'albumartistsort',row['info']['albumartistsort']).addCallback(partial(self.set_copy_flag_find,copy_flag,index)).addErrback(self.handle_mpd_error)
+                App.get_running_app().root.syncmpdconnection.protocol.find(mtype,row['base'],'albumartistsort',row['info']['albumartistsort']).addCallback(partial(self.set_copy_flag_find,copy_flag,index)).addErrback(self.handle_mpd_error)
             elif mtype == 'artistsort':
-                App.get_running_app().root.mpdconnection.protocol.find(mtype,row['base']).addCallback(partial(self.set_copy_flag_find,copy_flag,index)).addErrback(self.handle_mpd_error)
+                App.get_running_app().root.syncmpdconnection.protocol.find(mtype,row['base']).addCallback(partial(self.set_copy_flag_find,copy_flag,index)).addErrback(self.handle_mpd_error)
             elif mtype == 'track':
-                App.get_running_app().root.mpdconnection.protocol.find('artistsort',row['info']['artistsort'],'title',row['base']).addCallback(partial(self.set_copy_flag_find_one,copy_flag,index)).addErrback(self.handle_mpd_error)
+                App.get_running_app().root.syncmpdconnection.protocol.find('artistsort',row['info']['artistsort'],'title',row['base']).addCallback(partial(self.set_copy_flag_find_one,copy_flag,index)).addErrback(self.handle_mpd_error)
             elif mtype == 'playlist' or mtype == 'uri':
                 Logger.info("Library: "+mtype+" copy_flag not implemented")
-                #App.get_running_app().root.mpdconnection.protocol.load(row['base'])
+                #App.get_running_app().root.syncmpdconnection.protocol.load(row['base'])
             else:
                 Logger.warning("Library: "+mtype+' copy_flag not implemented')
         self.rbl.clear_selection()
@@ -190,9 +190,9 @@ class ManagerLibraryTabbedPanelItem(LibraryTabbedPanelItem):
         Logger.debug('Application: rating_set('+rating+')')
         popup.dismiss()
         if rating:
-            App.get_running_app().root.mpdconnection.protocol.sticker_set('song',self.rv.data[index]['base'],'rating',rating).addCallback(partial(self.handle_rating_set,index,rating,True)).addErrback(partial(self.handle_rating_set,index,rating,False))
+            App.get_running_app().root.syncmpdconnection.protocol.sticker_set('song',self.rv.data[index]['base'],'rating',rating).addCallback(partial(self.handle_rating_set,index,rating,True)).addErrback(partial(self.handle_rating_set,index,rating,False))
         else:
-            App.get_running_app().root.mpdconnection.protocol.sticker_delete('song',self.rv.data[index]['base'],'rating').addCallback(partial(self.handle_rating_set,index,rating,True)).addErrback(partial(self.handle_rating_set,index,rating,False))
+            App.get_running_app().root.syncmpdconnection.protocol.sticker_delete('song',self.rv.data[index]['base'],'rating').addCallback(partial(self.handle_rating_set,index,rating,True)).addErrback(partial(self.handle_rating_set,index,rating,False))
 
     def handle_rating_set(self,index,rating,succ,result):
         if succ:
@@ -205,7 +205,7 @@ class ManagerLibraryTabbedPanelItem(LibraryTabbedPanelItem):
     def generate_list(self,ltype,minstars,op='>=',pname='playlist'):
         Logger.info('generate_list: generating with minimum stars '+str(minstars))
         self.tlist={}
-        App.get_running_app().root.mpdconnection.protocol.sticker_find('song','','rating').addCallback(partial(self.generate_play_list,ltype,minstars,op,pname)).addErrback(self.handle_mpd_error)
+        App.get_running_app().root.syncmpdconnection.protocol.sticker_find('song','','rating').addCallback(partial(self.generate_play_list,ltype,minstars,op,pname)).addErrback(self.handle_mpd_error)
 
     def generate_play_list(self,ltype,minstars,op,pname,result):
         Logger.debug("generate_play_list: "+ltype)
@@ -217,11 +217,11 @@ class ManagerLibraryTabbedPanelItem(LibraryTabbedPanelItem):
                 self.tlist[uri]=1
         if ltype=='playlist':
             Logger.info("generate_play_list: writing to playlist ["+pname+"]")
-            App.get_running_app().root.mpdconnection.protocol.playlistclear(pname).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.syncmpdconnection.protocol.playlistclear(pname).addErrback(self.handle_mpd_error)
             for k in sorted(self.tlist.keys()):
-                App.get_running_app().root.mpdconnection.protocol.playlistadd(pname,k).addErrback(self.handle_mpd_error)
+                App.get_running_app().root.syncmpdconnection.protocol.playlistadd(pname,k).addErrback(self.handle_mpd_error)
         elif ltype=='synclist':
-            App.get_running_app().root.mpdconnection.protocol.sticker_find('song','','copy_flag').addCallback(self.generate_sync_list).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.syncmpdconnection.protocol.sticker_find('song','','copy_flag').addCallback(self.generate_sync_list).addErrback(self.handle_mpd_error)
 
     def generate_sync_list(self,result):
         for row in result:
@@ -236,28 +236,28 @@ class ManagerLibraryTabbedPanelItem(LibraryTabbedPanelItem):
                 except KeyError:
                     pass
         Logger.info("generate_sync_list: writing to playlist ["+self.config.get('sync','syncplaylist')+"]")
-        App.get_running_app().root.mpdconnection.protocol.playlistclear(self.config.get('sync','syncplaylist')).addErrback(self.handle_mpd_error)
+        App.get_running_app().root.syncmpdconnection.protocol.playlistclear(self.config.get('sync','syncplaylist')).addErrback(self.handle_mpd_error)
         for k in sorted(self.tlist.keys()):
-            App.get_running_app().root.mpdconnection.protocol.playlistadd(self.config.get('sync','syncplaylist'),k).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.syncmpdconnection.protocol.playlistadd(self.config.get('sync','syncplaylist'),k).addErrback(self.handle_mpd_error)
 
     def change_view_type(self,value):
         Logger.info("Library: View changed to "+value)
         self.rbl.clear_selection()
         if value == 'Files':
             self.current_view = {'value': 'root','base':'/','info':{'type':'uri'}}
-            App.get_running_app().root.mpdconnection.protocol.lsinfo(self.current_view['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.syncmpdconnection.protocol.lsinfo(self.current_view['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
             self.ids.files_button.state='down'
             self.ids.albums_button.state='normal'
             self.ids.tracks_button.state='normal'
         elif value == 'Albums':
             self.current_view = {'value': 'All Album Artists','base':'All Album Artists','info':{'type':'rootalbums'}}
-            App.get_running_app().root.mpdconnection.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.syncmpdconnection.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
             self.ids.files_button.state='normal'
             self.ids.albums_button.state='down'
             self.ids.tracks_button.state='normal'
         elif value == 'Tracks':
             self.current_view = {'value': 'All Track Artists','base':'All Track Artists','info':{'type':'roottracks'}}
-            App.get_running_app().root.mpdconnection.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.syncmpdconnection.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
             self.ids.files_button.state='normal'
             self.ids.albums_button.state='normal'
             self.ids.tracks_button.state='down'

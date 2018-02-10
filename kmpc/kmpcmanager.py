@@ -28,9 +28,6 @@ Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','manage
 class ManagerApp(App):
 
     def __init__(self,args):
-#        Config.set('graphics','width',1280)
-#        Config.set('graphics','height',720)
-#        Config.set('kivy','keyboard_mode','system')
         self.args=args
         super(self.__class__,self).__init__()
 

@@ -9,6 +9,7 @@ from ConfigParser import NoSectionError,NoOptionError
 import kivy
 kivy.require('1.10.0')
 
+from kivy.app import App
 from kivy.support import install_twisted_reactor
 from kivy.logger import Logger
 from kivy.network.urlrequest import UrlRequest
@@ -40,13 +41,20 @@ class ManagerInterface(TabbedPanel):
         # install twisted reactor to interface with mpd
         install_twisted_reactor()
         # open mpd connection
-        self.mpdconnection=MpdConnection(self.config,self.config.get('sync','synchost'),self.config.get('sync','syncmpdport'),None,[self.init_mpd])
+        self.syncmpdconnection=MpdConnection(self.config,self.config.get('sync','synchost'),self.config.get('sync','syncmpdport'),None,[self.init_mpd])
+        if not App.get_running_app().root:
+            # root isn't defined yet, it must be us
+            Logger.debug("ManagerInterface: running as full app")
+        else:
+            # root is something else
+            Logger.debug("ManagerInterface: running as class")
+            App.get_running_app().root.syncmpdconnection=self.syncmpdconnection
 
     def init_mpd(self,instance):
         self.refresh_artists_from_cache()
 
     def refresh_artists(self):
-        self.mpdconnection.protocol.list('musicbrainz_artistid').addCallback(self.populate_artists).addErrback(self.mpdconnection.handle_mpd_error)
+        self.syncmpdconnection.protocol.list('musicbrainz_artistid').addCallback(self.populate_artists).addErrback(self.syncmpdconnection.handle_mpd_error)
 
     def populate_artists(self,result):
         Logger.info("Manager: populate_artists")

@@ -43,6 +43,7 @@ Helpers=KmpcHelpers()
 class KmpcInterface(TabbedPanel):
     """The main class that ties it all together."""
     mpdconnection=ObjectProperty(None)
+    syncmpdconnection=ObjectProperty(None)
 
     def __init__(self,config,**kwargs):
         """Zero out variables, pull in config file, connect to mpd."""
