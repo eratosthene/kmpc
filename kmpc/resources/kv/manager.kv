@@ -171,22 +171,6 @@
     BoxLayout:
         orientation: 'vertical'
         BoxLayout:
-            canvas.before:
-                Color:
-                    rgba: (.25,.25,.25,1)
-                Rectangle:
-                    size: self.size
-                    pos: self.pos
-            size_hint_min_y: '24sp'
-            size_hint_y: None
-            OLabel:
-                size_hint_y: None
-                halign: 'center'
-                valign: 'middle'
-                text_size: self.size
-                id: status
-                text: ''
-        BoxLayout:
             size_hint_y: None
             size_hint_min_y: '48sp'
             orientation: 'horizontal'
