@@ -27,6 +27,7 @@ from kivy.uix.image import Image
 from kivy.uix.popup import Popup
 from kivy.factory import Factory
 from kivy.support import install_twisted_reactor
+from kivy.properties import ObjectProperty
 
 # import our local modules
 from kmpc.extra import KmpcHelpers
@@ -41,6 +42,7 @@ Helpers=KmpcHelpers()
 
 class KmpcInterface(TabbedPanel):
     """The main class that ties it all together."""
+    mpdconnection=ObjectProperty(None)
 
     def __init__(self,config,**kwargs):
         """Zero out variables, pull in config file, connect to mpd."""
@@ -58,18 +60,17 @@ class KmpcInterface(TabbedPanel):
         self.settingsPopup=Factory.SettingsPopup()
         self.config=config
         self.do_idle_handler=True
-        #install twisted reactor to interface with mpd
+        # install twisted reactor to interface with mpd
         install_twisted_reactor()
-        # global for mpd connection, change this to something else later since globals seem dirty
-        global mainmpdconnection
-        mainmpdconnection=MpdConnection(self.config,self.config.get('mpd','mpdhost'),self.config.get('mpd','mpdport'),self.mpd_idle_handler,[self.init_mpd])
+        # open mpd connection
+        self.mpdconnection=MpdConnection(self.config,self.config.get('mpd','mpdhost'),self.config.get('mpd','mpdport'),self.mpd_idle_handler,[self.init_mpd])
 
     def settings_popup(self):
         self.settingsPopup.open()
         # get the host's IP address and display it
         self.settingsPopup.ids.ip_label.text="IP Address: "+format(self.get_ip())
-        mainmpdconnection.protocol.status().addCallback(partial(self.update_mixers,self.settingsPopup)).addErrback(self.handle_mpd_error)
-        mainmpdconnection.protocol.replay_gain_status().addCallback(partial(self.update_replaygain,self.settingsPopup)).addErrback(self.handle_mpd_error)
+        self.mpdconnection.protocol.status().addCallback(partial(self.update_mixers,self.settingsPopup)).addErrback(self.handle_mpd_error)
+        self.mpdconnection.protocol.replay_gain_status().addCallback(partial(self.update_replaygain,self.settingsPopup)).addErrback(self.handle_mpd_error)
 
     def update_replaygain(self,p,result):
         rg=str(result)
@@ -97,7 +98,7 @@ class KmpcInterface(TabbedPanel):
 
     def change_replaygain(self,v):
         Logger.debug("NowPlaying: change_replaygain to "+format(v))
-        mainmpdconnection.protocol.replay_gain_mode(str(v)).addErrback(self.handle_mpd_error)
+        self.mpdconnection.protocol.replay_gain_mode(str(v)).addErrback(self.handle_mpd_error)
 
     def change_text_color(self,color):
         Logger.debug("NowPlaying: change_text_color to "+format(color))
@@ -124,17 +125,17 @@ class KmpcInterface(TabbedPanel):
     def change_crossfade(self,v):
         """Callback when user changes crossfade slider."""
         Logger.info('Settings: change_crossfade')
-        mainmpdconnection.protocol.crossfade(str(v)).addErrback(self.handle_mpd_error)
+        self.mpdconnection.protocol.crossfade(str(v)).addErrback(self.handle_mpd_error)
 
     def change_mixrampdb(self,v):
         """Callback when user changes mixrampdb slider."""
         Logger.info('Settings: change_mixrampdb')
-        mainmpdconnection.protocol.mixrampdb(str(0.0-v)).addErrback(self.handle_mpd_error)
+        self.mpdconnection.protocol.mixrampdb(str(0.0-v)).addErrback(self.handle_mpd_error)
 
     def change_mixrampdelay(self,v):
         """Callback when user changes mixrampdelay slider."""
         Logger.info('Settings: change_mixrampdelay')
-        mainmpdconnection.protocol.mixrampdelay(str(v)).addErrback(self.handle_mpd_error)
+        self.mpdconnection.protocol.mixrampdelay(str(v)).addErrback(self.handle_mpd_error)
 
     def get_ip(self):
         """Method that tries to get the local IP address, and returns localhost if there isn't one."""
@@ -158,14 +159,14 @@ class KmpcInterface(TabbedPanel):
             self.track_slider_task.cancel()
         else:
             # update current track status
-            mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(mainmpdconnection.handle_mpd_error)
+            self.mpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.mpdconnection.handle_mpd_error)
         if self.active_tab == 'Playlist':
             # switching to the playlist tab repopulates it if it is empty
             if len(self.ids.playlist_tab.rv.data) == 0:
-                mainmpdconnection.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
+                self.mpdconnection.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
 
     def handle_mpd_error(self,result):
-        mainmpdconnection.handle_mpd_error(result)
+        self.mpdconnection.handle_mpd_error(result)
 
     def handle_mpd_message(self,result):
         """Callback for mpd 'kmpc' messages."""
@@ -186,7 +187,7 @@ class KmpcInterface(TabbedPanel):
         curpos = int(self.ids.current_track_slider.value)
         Logger.debug("Application: touch up on track slider at "+str(curpos))
         # seek to that position in the track
-        mainmpdconnection.protocol.seekcur(str(curpos)).addErrback(self.handle_mpd_error)
+        self.mpdconnection.protocol.seekcur(str(curpos)).addErrback(self.handle_mpd_error)
 
     def current_track_slider_down(self):
         """Callback when track slider is pressed."""
@@ -237,12 +238,12 @@ class KmpcInterface(TabbedPanel):
             # save current song, this is a 0-based index into the playlist
             self.currsong=result['song']
             # ask mpd for current song data
-            mainmpdconnection.protocol.currentsong().addCallback(partial(self.update_mpd_currentsong,False)).addErrback(self.handle_mpd_error)
+            self.mpdconnection.protocol.currentsong().addCallback(partial(self.update_mpd_currentsong,False)).addErrback(self.handle_mpd_error)
             # save next song, this is a 0-based index into the playlist
             if 'nextsong' in result:
                 self.nextsong=result['nextsong']
                 # ask mpd for next song data
-                mainmpdconnection.protocol.playlistinfo(self.nextsong).addCallback(self.update_mpd_nextsong).addErrback(self.handle_mpd_error)
+                self.mpdconnection.protocol.playlistinfo(self.nextsong).addCallback(self.update_mpd_nextsong).addErrback(self.handle_mpd_error)
             else:
                 self.nextsong=None
         stflags=['normal','down']
@@ -313,7 +314,7 @@ class KmpcInterface(TabbedPanel):
                 # clear the album cover
                 self.ids.album_cover_layout.clear_widgets()
                 # get the stored star rating
-                mainmpdconnection.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
+                self.mpdconnection.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
                 # figure out the full path of the file
                 bp=self.config.get('paths','musicpath')
                 # p is the absolute path
@@ -561,46 +562,46 @@ class KmpcInterface(TabbedPanel):
     def prev_pressed(self):
         """Callback for prev button pressed."""
         Logger.debug('Application: prev_pressed()')
-        mainmpdconnection.protocol.previous()
+        self.mpdconnection.protocol.previous()
 
     def play_pressed(self):
         """Callback for play/pause button pressed."""
         Logger.debug('Application: play_pressed()')
         if self.mpd_status['state'] == 'play':
             # pause if playing
-            mainmpdconnection.protocol.pause()
+            self.mpdconnection.protocol.pause()
         else:
             # play if paused or stopped
-            mainmpdconnection.protocol.play()
+            self.mpdconnection.protocol.play()
 
     def next_pressed(self):
         """Callback for next button pressed."""
         Logger.debug('Application: next_pressed()')
-        mainmpdconnection.protocol.next()
+        self.mpdconnection.protocol.next()
 
     def repeat_pressed(self):
         """Callback for repeat button pressed."""
         Logger.debug('Application: repeat_pressed()')
         # toggle on/off
-        mainmpdconnection.protocol.repeat(str(1-int(self.mpd_status['repeat'])))
+        self.mpdconnection.protocol.repeat(str(1-int(self.mpd_status['repeat'])))
 
     def single_pressed(self):
         """Callback for single button pressed."""
         Logger.debug('Application: single_pressed()')
         # toggle on/off
-        mainmpdconnection.protocol.single(str(1-int(self.mpd_status['single'])))
+        self.mpdconnection.protocol.single(str(1-int(self.mpd_status['single'])))
 
     def random_pressed(self):
         """Callback for random button pressed."""
         Logger.debug('Application: random_pressed()')
         # toggle on/off
-        mainmpdconnection.protocol.random(str(1-int(self.mpd_status['random'])))
+        self.mpdconnection.protocol.random(str(1-int(self.mpd_status['random'])))
 
     def consume_pressed(self):
         """Callback for consume button pressed."""
         Logger.debug('Application: consume_pressed()')
         # toggle on/off
-        mainmpdconnection.protocol.consume(str(1-int(self.mpd_status['consume'])))
+        self.mpdconnection.protocol.consume(str(1-int(self.mpd_status['consume'])))
 
     def rating_popup(self,instance):
         """Popup for setting song rating."""
@@ -613,9 +614,9 @@ class KmpcInterface(TabbedPanel):
         Logger.debug('Application: rating_set('+rating+')')
         popup.dismiss()
         if rating:
-            mainmpdconnection.protocol.sticker_set('song',song,'rating',rating)
+            self.mpdconnection.protocol.sticker_set('song',song,'rating',rating)
         else:
-            mainmpdconnection.protocol.sticker_delete('song',song,'rating')
+            self.mpdconnection.protocol.sticker_delete('song',song,'rating')
 
     def cover_popup(self,originalyear,year,album,albumartist,instance):
         """Popup for showing a larger version of the album cover."""
@@ -639,16 +640,16 @@ class KmpcInterface(TabbedPanel):
             bl.set_brightness(int(value), smooth=True, duration=1)
 
     def settings_update(self):
-        mainmpdconnection.protocol.currentsong().addCallback(partial(self.update_mpd_currentsong,True)).addErrback(mainmpdconnection.handle_mpd_error)
+        self.mpdconnection.protocol.currentsong().addCallback(partial(self.update_mpd_currentsong,True)).addErrback(self.mpdconnection.handle_mpd_error)
 
     def init_mpd(self,instance):
         # get the initial mpd status
-        mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(mainmpdconnection.handle_mpd_error)
+        self.mpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.mpdconnection.handle_mpd_error)
         # create the once-per-second update of the track slider
         self.track_slider_task=Clock.schedule_interval(self.update_track_slider,1)
         self.track_slider_task.cancel()
         # subscribe to 'kmpc' to check for messages from mpd
-        mainmpdconnection.protocol.subscribe('kmpc')
+        self.mpdconnection.protocol.subscribe('kmpc')
 
     def mpd_idle_handler(self,result):
         # global flag for disabling during sync
@@ -658,23 +659,23 @@ class KmpcInterface(TabbedPanel):
                 Logger.info('mpd_idle_handler: Changed '+format(s))
                 if format(s) == 'playlist':
                     # playlist was changed, ask mpd for playlist info
-                    mainmpdconnection.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
+                    self.mpdconnection.protocol.playlistinfo().addCallback(self.ids.playlist_tab.populate_playlist).addErrback(self.ids.playlist_tab.handle_mpd_error)
                     # force a reload of nextsong if playlist changes
                     self.nextsong = None
-                    mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
+                    self.mpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
                 elif format(s) == 'player':
                     # player was changed, ask mpd for player status
-                    mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
+                    self.mpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
                 elif format(s) == 'sticker':
                     # song rating sticker was changed, ask mpd for current song rating
-                    mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
-                    mainmpdconnection.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
+                    self.mpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
+                    self.mpdconnection.protocol.sticker_get('song',self.currfile,'rating').addCallback(self.update_mpd_sticker_rating).addErrback(self.handle_mpd_no_sticker)
                 elif format(s) == 'options':
                     # some playback option was changed, ask mpd for player status
-                    mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
+                    self.mpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
                 elif format(s) == 'message':
                     # an mpd message was received, ask mpd what it was
-                    mainmpdconnection.protocol.readmessages().addCallback(self.handle_mpd_message).addErrback(self.handle_mpd_error)
+                    self.mpdconnection.protocol.readmessages().addCallback(self.handle_mpd_message).addErrback(self.handle_mpd_error)
                 else:
                     # default if none of the above, ask mpd for player status
-                    mainmpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)
+                    self.mpdconnection.protocol.status().addCallback(self.update_mpd_status).addErrback(self.handle_mpd_error)

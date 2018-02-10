@@ -23,7 +23,6 @@ from kivy.factory import Factory
 
 from kmpc.extra import KmpcHelpers
 from kmpc.widgets import OutlineTabbedPanelItem
-import kmpc.kmpcinterface
 
 Helpers=KmpcHelpers()
 
@@ -33,10 +32,6 @@ class LibraryTabbedPanelItem(OutlineTabbedPanelItem):
     # set some initial variables
     current_view = {'value': 'root', 'base':'/','info':{'type':'uri'}}
     library_selection = {}
-
-    def __init__(self,**kwargs):
-        super(self.__class__,self).__init__(**kwargs)
-        self.app=App.get_running_app().root
 
     def change_view_type(self,value):
         """Callback when user presses one of the Library view buttons."""
@@ -48,7 +43,7 @@ class LibraryTabbedPanelItem(OutlineTabbedPanelItem):
         # probably a more elegant way of doing this
         if value == 'Files':
             self.current_view = {'value': 'root','base':'/','info':{'type':'uri'}}
-            kmpc.kmpcinterface.mainmpdconnection.protocol.lsinfo(self.current_view['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.mpdconnection.protocol.lsinfo(self.current_view['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
             self.ids.files_button.state='down'
             self.ids.albums_button.state='normal'
             self.ids.tracks_button.state='normal'
@@ -56,7 +51,7 @@ class LibraryTabbedPanelItem(OutlineTabbedPanelItem):
             self.ids.delete_button.disabled=True
         elif value == 'Albums':
             self.current_view = {'value': 'All Album Artists','base':'All Album Artists','info':{'type':'rootalbums'}}
-            kmpc.kmpcinterface.mainmpdconnection.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.mpdconnection.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
             self.ids.files_button.state='normal'
             self.ids.albums_button.state='down'
             self.ids.tracks_button.state='normal'
@@ -64,7 +59,7 @@ class LibraryTabbedPanelItem(OutlineTabbedPanelItem):
             self.ids.delete_button.disabled=True
         elif value == 'Tracks':
             self.current_view = {'value': 'All Track Artists','base':'All Track Artists','info':{'type':'roottracks'}}
-            kmpc.kmpcinterface.mainmpdconnection.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.mpdconnection.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
             self.ids.files_button.state='normal'
             self.ids.albums_button.state='normal'
             self.ids.tracks_button.state='down'
@@ -72,7 +67,7 @@ class LibraryTabbedPanelItem(OutlineTabbedPanelItem):
             self.ids.delete_button.disabled=True
         elif value == 'Playlists':
             self.current_view = {'value':'All Playlists','base':'All Playlists','info':{'type':'playlist'}}
-            kmpc.kmpcinterface.mainmpdconnection.protocol.listplaylists().addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.mpdconnection.protocol.listplaylists().addCallback(self.reload_view).addErrback(self.handle_mpd_error)
             self.ids.files_button.state='normal'
             self.ids.albums_button.state='normal'
             self.ids.tracks_button.state='normal'
@@ -173,33 +168,33 @@ class LibraryTabbedPanelItem(OutlineTabbedPanelItem):
         self.current_view = deepcopy(row)
         if row['info']['type'] == 'uri':
             # selected a directory
-            kmpc.kmpcinterface.mainmpdconnection.protocol.lsinfo(row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.mpdconnection.protocol.lsinfo(row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'rootalbums':
             # selected an album artist
-            kmpc.kmpcinterface.mainmpdconnection.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.mpdconnection.protocol.list('albumartistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'albumartistsort':
             # selected an album
-            kmpc.kmpcinterface.mainmpdconnection.protocol.list('album','albumartistsort',row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.mpdconnection.protocol.list('album','albumartistsort',row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'album':
             # selected an album track
-            kmpc.kmpcinterface.mainmpdconnection.protocol.find('album',row['base'],'albumartistsort',row['info']['albumartistsort']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.mpdconnection.protocol.find('album',row['base'],'albumartistsort',row['info']['albumartistsort']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'roottracks':
             # selected an artist
-            kmpc.kmpcinterface.mainmpdconnection.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.mpdconnection.protocol.list('artistsort').addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'artistsort':
             # selected a track
-            kmpc.kmpcinterface.mainmpdconnection.protocol.list('title','artistsort',row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.mpdconnection.protocol.list('title','artistsort',row['base']).addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         elif row['info']['type'] == 'playlist':
             # selected a playlist, go ahead and load it up and play it
-            kmpc.kmpcinterface.mainmpdconnection.protocol.clear()
-            kmpc.kmpcinterface.mainmpdconnection.protocol.load(row['base'])
-            kmpc.kmpcinterface.mainmpdconnection.protocol.play('0')
+            App.get_running_app().root.mpdconnection.protocol.clear()
+            App.get_running_app().root.mpdconnection.protocol.load(row['base'])
+            App.get_running_app().root.mpdconnection.protocol.play('0')
         elif row['info']['type'] == 'file':
             # selected a file, append it to the playlist and play from there
-            kmpc.kmpcinterface.mainmpdconnection.protocol.clear()
+            App.get_running_app().root.mpdconnection.protocol.clear()
             (a,b)=os.path.split(row['base'])
-            kmpc.kmpcinterface.mainmpdconnection.protocol.add(a)
-            kmpc.kmpcinterface.mainmpdconnection.protocol.play(str(int(index)-1))
+            App.get_running_app().root.mpdconnection.protocol.add(a)
+            App.get_running_app().root.mpdconnection.protocol.play(str(int(index)-1))
         else:
             # should never see this
             Logger.warn("Library: long-touch for ["+format(row)+"] not implemented")
@@ -211,13 +206,13 @@ class LibraryTabbedPanelItem(OutlineTabbedPanelItem):
     def browser_add_find(self,result):
         """Callback for appending a bunch of tracks to the playlist."""
         for rrow in result:
-            kmpc.kmpcinterface.mainmpdconnection.protocol.add(rrow['file'])
+            App.get_running_app().root.mpdconnection.protocol.add(rrow['file'])
 
     def browser_add_find_one(self,result):
         """Callback for appending one track to the playlist."""
         # since mpd always returns a list, just do the first one then break
         for rrow in result:
-            kmpc.kmpcinterface.mainmpdconnection.protocol.add(rrow['file'])
+            App.get_running_app().root.mpdconnection.protocol.add(rrow['file'])
             break
 
     def browser_add(self,clearfirst,insert):
@@ -226,35 +221,35 @@ class LibraryTabbedPanelItem(OutlineTabbedPanelItem):
         # if !, clear the playlist
         if clearfirst:
             Logger.info('Library: Clearing playlist')
-            kmpc.kmpcinterface.mainmpdconnection.protocol.clear()
+            App.get_running_app().root.mpdconnection.protocol.clear()
         # loop through the recyclebox and add each selected node
         for index in self.rbl.selected_nodes:
             row = self.rv.data[index]
             mtype=row['info']['type']
             Logger.info("Library: Adding "+mtype+" '"+row['base']+"' to current playlist")
             if mtype == 'uri' or mtype == 'file':
-                if insert and self.app.currsong:
+                if insert and App.get_running_app().root.currsong:
                     # if >, insert the song/directory after the currently playing song
-                    kmpc.kmpcinterface.mainmpdconnection.protocol.addid(row['base'],str(int(self.app.currsong)+1))
+                    App.get_running_app().root.mpdconnection.protocol.addid(row['base'],str(int(App.get_running_app().root.currsong)+1))
                 else:
                     # append the song/directory to the playlist
-                    kmpc.kmpcinterface.mainmpdconnection.protocol.add(row['base'])
+                    App.get_running_app().root.mpdconnection.protocol.add(row['base'])
             elif mtype == 'albumartistsort':
                 # append all tracks by a particular album artist
-                kmpc.kmpcinterface.mainmpdconnection.protocol.find(mtype,row['base']).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
+                App.get_running_app().root.mpdconnection.protocol.find(mtype,row['base']).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
             elif mtype == 'album':
                 # append all tracks on a particular album
-                kmpc.kmpcinterface.mainmpdconnection.protocol.find(mtype,row['base'],'albumartistsort',row['info']['albumartistsort']).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
+                App.get_running_app().root.mpdconnection.protocol.find(mtype,row['base'],'albumartistsort',row['info']['albumartistsort']).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
             elif mtype == 'artistsort':
                 # append all tracks by a particular artist
-                kmpc.kmpcinterface.mainmpdconnection.protocol.find(mtype,row['base']).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
+                App.get_running_app().root.mpdconnection.protocol.find(mtype,row['base']).addCallback(self.browser_add_find).addErrback(self.handle_mpd_error)
             elif mtype == 'track':
                 # append a particular artist's specific track
                 # currently just adds the first match that mpd finds
-                kmpc.kmpcinterface.mainmpdconnection.protocol.find('artistsort',row['info']['artistsort'],'title',row['base']).addCallback(self.browser_add_find_one).addErrback(self.handle_mpd_error)
+                App.get_running_app().root.mpdconnection.protocol.find('artistsort',row['info']['artistsort'],'title',row['base']).addCallback(self.browser_add_find_one).addErrback(self.handle_mpd_error)
             elif mtype == 'playlist':
                 # append a playlist
-                kmpc.kmpcinterface.mainmpdconnection.protocol.load(row['base'])
+                App.get_running_app().root.mpdconnection.protocol.load(row['base'])
             else:
                 # should never see this
                 Logger.warning("Library: "+mtype+' not implemented')
@@ -266,9 +261,9 @@ class LibraryTabbedPanelItem(OutlineTabbedPanelItem):
         for index in self.rbl.selected_nodes:
             plname=self.rv.data[index]['base']
             Logger.info("Library: deleting playlist "+plname)
-            kmpc.kmpcinterface.mainmpdconnection.protocol.rm(plname).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.mpdconnection.protocol.rm(plname).addErrback(self.handle_mpd_error)
             self.current_view = {'value':'All Playlists','base':'All Playlists','info':{'type':'playlist'}}
-            kmpc.kmpcinterface.mainmpdconnection.protocol.listplaylists().addCallback(self.reload_view).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.mpdconnection.protocol.listplaylists().addCallback(self.reload_view).addErrback(self.handle_mpd_error)
         self.rbl.clear_selection()
 
     def popup_generate(self):
@@ -298,7 +293,7 @@ class LibraryTabbedPanelItem(OutlineTabbedPanelItem):
         Logger.info("Library: generating playlist "+p.ids.playlist_name.text)
         # gets all songs with ratings
         if p.ids.ratings_spinner.text!='None':
-            kmpc.kmpcinterface.mainmpdconnection.protocol.sticker_find('song','','rating').addCallback(partial(self.generate_playlist2,p))
+            App.get_running_app().root.mpdconnection.protocol.sticker_find('song','','rating').addCallback(partial(self.generate_playlist2,p))
 
     def generate_playlist2(self,p,result):
         """Callback to filter the list of all songs with ratings."""
@@ -308,7 +303,7 @@ class LibraryTabbedPanelItem(OutlineTabbedPanelItem):
         op=p.ids.operation_spinner.text
         pname=p.ids.playlist_name.text
         cb=[]
-        cb.append(kmpc.kmpcinterface.mainmpdconnection.protocol.playlistclear(pname))
+        cb.append(App.get_running_app().root.mpdconnection.protocol.playlistclear(pname))
         for row in result:
             rating=row['sticker'].split('=')[1]
             uri=row['file']
@@ -316,7 +311,7 @@ class LibraryTabbedPanelItem(OutlineTabbedPanelItem):
                 tlist[uri]=1
         for k in sorted(tlist.keys()):
             Logger.debug("gpl2: "+k)
-            cb.append(kmpc.kmpcinterface.mainmpdconnection.protocol.playlistadd(pname,k))
+            cb.append(App.get_running_app().root.mpdconnection.protocol.playlistadd(pname,k))
         dl=DeferredList(cb,consumeErrors=True)
         dl.addCallback(partial(self.dismiss_generate_popup,p))
 
@@ -332,15 +327,11 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
     selected = BooleanProperty(False)
     selectable = BooleanProperty(True)
 
-    def __init__(self,**kwargs):
-        super(self.__class__,self).__init__(**kwargs)
-        self.app=App.get_running_app().root
-
     def long_touch(self, touch, index, *args):
         """Callback when user long-presses on a row."""
         Logger.debug("Library: long-touch on "+str(index))
-        self.app.ids.library_tab.rbl.clear_selection()
-        self.app.ids.library_tab.handle_long_touch(self.app.ids.library_tab.rv.data[index],index)
+        App.get_running_app().root.ids.library_tab.rbl.clear_selection()
+        App.get_running_app().root.ids.library_tab.handle_long_touch(App.get_running_app().ids.library_tab.rv.data[index],index)
 
     def refresh_view_attrs(self, rv, index, data):
         """Catch and handle the view changes."""
@@ -370,7 +361,7 @@ class LibraryRow(RecycleDataViewBehavior,BoxLayout):
     def apply_selection(self, rv, index, is_selected):
         """Respond to the selection of items in the view."""
         self.selected = is_selected
-        lt=self.app.ids.library_tab
+        lt=App.get_running_app().root.ids.library_tab
         if is_selected:
             lt.library_selection[index] = True
         else:

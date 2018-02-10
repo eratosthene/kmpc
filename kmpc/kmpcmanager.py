@@ -22,6 +22,7 @@ configdir = os.path.join(os.path.expanduser('~'),".kmpc")
 
 # load the interface kv files
 Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','widgets.kv')))
+Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','library.kv')))
 Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','manager.kv')))
 
 class ManagerApp(App):

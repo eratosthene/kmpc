@@ -37,16 +37,16 @@ class ManagerInterface(TabbedPanel):
         musicbrainzngs.set_useragent("kmpcmanager",VERSION_STR,'https://github.com/eratosthene/kmpc')
         self.fanarturl="http://webservice.fanart.tv/v3/music/"
         self.api_key="406b2a5af85c14b819c1c6332354b313"
-        #install twisted reactor to interface with mpd
+        # install twisted reactor to interface with mpd
         install_twisted_reactor()
-        global mainmpdconnection
-        mainmpdconnection=MpdConnection(self.config,self.config.get('sync','synchost'),self.config.get('sync','syncmpdport'),None,[self.init_mpd])
+        # open mpd connection
+        self.mpdconnection=MpdConnection(self.config,self.config.get('sync','synchost'),self.config.get('sync','syncmpdport'),None,[self.init_mpd])
 
     def init_mpd(self,instance):
         self.refresh_artists_from_cache()
 
     def refresh_artists(self):
-        mainmpdconnection.protocol.list('musicbrainz_artistid').addCallback(self.populate_artists).addErrback(mainmpdconnection.handle_mpd_error)
+        self.mpdconnection.protocol.list('musicbrainz_artistid').addCallback(self.populate_artists).addErrback(self.mpdconnection.handle_mpd_error)
 
     def populate_artists(self,result):
         Logger.info("Manager: populate_artists")
