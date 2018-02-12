@@ -235,10 +235,10 @@ class ManagerLibraryTabbedPanelItem(LibraryTabbedPanelItem):
                     del self.tlist[uri]
                 except KeyError:
                     pass
-        Logger.info("generate_sync_list: writing to playlist ["+self.config.get('sync','syncplaylist')+"]")
-        App.get_running_app().root.syncmpdconnection.protocol.playlistclear(self.config.get('sync','syncplaylist')).addErrback(self.handle_mpd_error)
+        Logger.info("generate_sync_list: writing to playlist ["+App.get_running_app().root.config.get('sync','syncplaylist')+"]")
+        App.get_running_app().root.syncmpdconnection.protocol.playlistclear(App.get_running_app().root.config.get('sync','syncplaylist')).addErrback(self.handle_mpd_error)
         for k in sorted(self.tlist.keys()):
-            App.get_running_app().root.syncmpdconnection.protocol.playlistadd(self.config.get('sync','syncplaylist'),k).addErrback(self.handle_mpd_error)
+            App.get_running_app().root.syncmpdconnection.protocol.playlistadd(App.get_running_app().root.config.get('sync','syncplaylist'),k).addErrback(self.handle_mpd_error)
 
     def change_view_type(self,value):
         Logger.info("Library: View changed to "+value)
