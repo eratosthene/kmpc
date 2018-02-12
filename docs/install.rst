@@ -39,6 +39,7 @@ and hope for the best. Next, install the other dependencies::
   pip install Twisted
   pip install mutagen
   pip install musicbrainzngs
+  pip install pillow
 
 If you want to control the backlight on the Pi touchscreen, install this
 dependency as well::

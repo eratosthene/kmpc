@@ -31,6 +31,7 @@ kmpc depends on the following python packages:
 - `Twisted <https://github.com/twisted/twisted>`_
 - `mutagen <https://github.com/quodlibet/mutagen>`_
 - `musicbrainzngs <https://github.com/alastair/python-musicbrainzngs>`_
+- `Pillow <https://github.com/python-pillow/Pillow>`_
 - `rpi-backlight <https://github.com/linusg/rpi-backlight>`_ (if you want to
   control the backlight on a Raspberry Pi touchscreen)
 

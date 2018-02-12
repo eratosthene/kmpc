@@ -162,15 +162,18 @@
             size_hint_y: None
             size_hint_min_y: '48sp'
             orientation: 'horizontal'
-            OutlineButton:
+            OutlineToggleButton:
+                group: 'librarytype'
                 text: 'Files'
                 id: files_button
                 on_press: root.change_view_type(self.text)
-            OutlineButton:
+            OutlineToggleButton:
+                group: 'librarytype'
                 text: 'Albums'
                 id: albums_button
                 on_press: root.change_view_type(self.text)
-            OutlineButton:
+            OutlineToggleButton:
+                group: 'librarytype'
                 text: 'Tracks'
                 id: tracks_button
                 on_press: root.change_view_type(self.text)
