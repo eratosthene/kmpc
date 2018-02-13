@@ -72,7 +72,7 @@ class MPDReconnectingClientFactory(protocol.ReconnectingClientFactory):
 
 
 class Dummy(object):
-    """Wrapper class to handle calls to mpd before the connetion is set up."""
+    """Wrapper class to handle calls to mpd before the connection is set up."""
 
     def __getattr__(self, attr):
         Logger.debug("MpdConnection: no connection when calling "
