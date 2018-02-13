@@ -1,43 +1,56 @@
-# import dependencies
 import os
 import sys
 from pkg_resources import resource_filename
 
-# make sure we are on an updated version of kivy
 import kivy
-kivy.require('1.10.0')
-
-# import all the other kivy stuff
-from kivy.config import Config,ConfigParser
+from kivy.config import Config, ConfigParser
 from kivy.app import App
 from kivy.logger import Logger
 from kivy.lang import Builder
 from kivy.utils import get_color_from_hex
 
-# import our local modules
 from kmpc.version import VERSION_STR
 from kmpc.sync import Sync
 from kmpc.kmpcinterface import KmpcInterface
 
+# make sure we are on updated version of kivy
+kivy.require('1.10.0')
+
 # sets the location of the config folder
-configdir = os.path.join(os.path.expanduser('~'),".kmpc")
+configdir = os.path.join(os.path.expanduser('~'), ".kmpc")
 
 # load the interface kv files
-Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','widgets.kv')))
-Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','library.kv')))
-Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','playlist.kv')))
-Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','system.kv')))
-Builder.load_file(resource_filename(__name__,os.path.join('resources/kv','interface.kv')))
+Builder.load_file(
+        resource_filename(
+                __name__,
+                os.path.join('resources/kv', 'widgets.kv')))
+Builder.load_file(
+        resource_filename(
+                __name__,
+                os.path.join('resources/kv', 'library.kv')))
+Builder.load_file(
+        resource_filename(
+                __name__,
+                os.path.join('resources/kv', 'playlist.kv')))
+Builder.load_file(
+        resource_filename(
+                __name__,
+                os.path.join('resources/kv', 'system.kv')))
+Builder.load_file(
+        resource_filename(
+                __name__,
+                os.path.join('resources/kv', 'interface.kv')))
+
 
 class KmpcApp(App):
     """The overall app class, builds the main interface widget."""
 
-    def __init__(self,args):
+    def __init__(self, args):
         """Override kivy config values with necessary ones"""
-        self.args=args
-        super(self.__class__,self).__init__()
+        self.args = args
+        super(self.__class__, self).__init__()
 
-    def build_config(self,config):
+    def build_config(self, config):
         config.setdefaults('mpd', {
             'mpdhost': '127.0.0.1',
             'mpdport': '6600'
@@ -85,58 +98,98 @@ class KmpcApp(App):
             'listitemcurrent': '#521C4F'
         })
 
-    def get_color(self,c):
-        cc=self.config.get('colors',c)
+    def get_color(self, c):
+        cc = self.config.get('colors', c)
         try:
             # if backdrop or button, alpha channel=1, else 0.5
-            if c in ['backdrop','button']: cc=cc+'FF'
-            else: cc=cc+'80'
-            t=get_color_from_hex(cc)
-        except:
-            Logger.error("Application: color "+cc+" for "+c+" is invalid")
-            t=(1,1,1,1)
+            if c in ['backdrop', 'button']:
+                cc += 'FF'
+            else:
+                cc += '80'
+            t = get_color_from_hex(cc)
+        except Exception:
+            Logger.error("Application: color " + cc
+                         + " for " + c + " is invalid")
+            t = (1, 1, 1, 1)
         return t
 
     def get_application_config(self):
-        return super(self.__class__,self).get_application_config(configdir+'/config.ini')
+        return super(self.__class__, self).
+        get_application_config(configdir + '/config.ini')
 
-    def build_settings(self,settings):
-        settings.add_json_panel('mpd settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_mpd.json')))
-        settings.add_json_panel('path settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_paths.json')))
-        settings.add_json_panel('sync settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_sync.json')))
-        settings.add_json_panel('system settings',self.config,resource_filename(__name__,os.path.join('resources/json','config_system.json')))
-        settings.add_json_panel('song ratings',self.config,resource_filename(__name__,os.path.join('resources/json','config_star.json')))
-        settings.add_json_panel('colors',self.config,resource_filename(__name__,os.path.join('resources/json','config_colors.json')))
+    def build_settings(self, settings):
+        settings.add_json_panel(
+                'mpd settings',
+                self.config,
+                resource_filename(
+                        __name__,
+                        os.path.join('resources/json', 'config_mpd.json')))
+        settings.add_json_panel(
+                'path settings',
+                self.config,
+                resource_filename(
+                        __name__,
+                        os.path.join('resources/json', 'config_paths.json')))
+        settings.add_json_panel(
+                'sync settings',
+                self.config,
+                resource_filename(
+                        __name__,
+                        os.path.join('resources/json', 'config_sync.json')))
+        settings.add_json_panel(
+                'system settings',
+                self.config,
+                resource_filename(
+                        __name__,
+                        os.path.join('resources/json', 'config_system.json')))
+        settings.add_json_panel(
+                'song ratings',
+                self.config,
+                resource_filename(
+                        __name__,
+                        os.path.join('resources/json', 'config_star.json')))
+        settings.add_json_panel(
+                'colors',
+                self.config,
+                resource_filename(
+                        __name__,
+                        os.path.join('resources/json', 'config_colors.json')))
 
     def on_config_change(self, config, section, key, value):
         if config is self.config:
-            Logger.info("Application: config entry has changed: ["+section+"] "+key+"="+value)
-            if callable (self.root.settings_update): self.root.settings_update()
+            Logger.info("Application: config entry has changed: ["
+                        + section + "] " + key + "=" + value)
+            if callable(self.root.settings_update):
+                self.root.settings_update()
 
-    def build(self,*args):
+    def build(self, *args):
         """Instantiates KmpcInterface."""
-        self.version_str=VERSION_STR
+        self.version_str = VERSION_STR
         if not os.path.isdir(configdir):
             os.mkdir(configdir)
         # try to read existing config file
-        self.config=self.load_config()
+        self.config = self.load_config()
         # write out config file in case it doesn't exist yet
         self.config.write()
         if self.args.newconfig:
             sys.exit(0)
         elif self.args.sync:
-            if self.args.sync=='all':
-                if self.config.getboolean('system','exportfirst'):
-                    s=Sync(self.config,['music','fanart','exportratings','importratings'])
+            if self.args.sync == 'all':
+                if self.config.getboolean('system', 'exportfirst'):
+                    s = Sync(self.config, [
+                            'music', 'fanart',
+                            'exportratings', 'importratings'])
                 else:
-                    s=Sync(self.config,['music','fanart','importratings','exportratings'])
+                    s = Sync(self.config, [
+                            'music', 'fanart',
+                            'importratings', 'exportratings'])
             else:
-                s=Sync(self.config,[self.args.sync])
+                s = Sync(self.config, [self.args.sync])
             sys.exit(0)
         else:
             return KmpcInterface(self.config)
 
+
 if __name__ == '__main__':
     # run the app!
     KmpcApp().run()
-
