@@ -114,8 +114,8 @@ class KmpcApp(App):
         return t
 
     def get_application_config(self):
-        return super(self.__class__, self).
-        get_application_config(configdir + '/config.ini')
+        ini = os.path.join(configdir, 'config.ini')
+        return super(self.__class__, self).get_application_config(ini)
 
     def build_settings(self, settings):
         settings.add_json_panel(
