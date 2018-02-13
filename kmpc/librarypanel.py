@@ -271,8 +271,7 @@ class LibraryTabbedPanelItem(OutlineTabbedPanelItem):
 
     def handle_mpd_error(self, result):
         """Callback for handling mpd exceptions."""
-        Logger.error('Library: MPDIdleHandler Callback error: {}'
-                     + format(result))
+        Logger.error('Library: Callback error: '+format(result))
 
     def browser_add_find(self, result):
         """Callback for appending a bunch of tracks to the playlist."""
