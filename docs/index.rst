@@ -18,4 +18,11 @@ Welcome to kmpc's documentation!
    kivypie
    plugins
    changelog
+   modules
 
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

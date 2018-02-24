@@ -11,7 +11,7 @@ name = "pypi"
 
 [packages]
 
-kivy = ">=1.10.0,<1.10.99"
+kivy = { git = 'https://github.com/kivy/kivy.git', ref = 'master', editable = true }
 twisted = "*"
 mutagen = "*"
 musicbrainzngs = "*"
