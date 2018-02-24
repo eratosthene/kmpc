@@ -1,5 +1,6 @@
 # python-mpd2: Python MPD client library
 #
+# Copyright (C) 2018  Chris Graham <eratosthene@gmail.com>
 # Copyright (C) 2008-2010  J. Alexander Treuman <jat@spatialrift.net>
 # Copyright (C) 2012  J. Thalheim <jthalheim@gmail.com>
 # Copyright (C) 2016  Robert Niederreiter <rnix@squarewave.at>
@@ -328,7 +329,8 @@ class MPDClientBase(object):
 
     @mpd_commands(
         'find', 'listplaylistinfo', 'playlistfind', 'playlistid',
-        'playlistinfo', 'playlistsearch', 'plchanges', 'search', 'sticker find')
+        'playlistinfo', 'playlistsearch', 'plchanges', 'search',
+        'sticker find')
     def _parse_songs(self, lines):
         return self._parse_objects(lines, ["file"])
 
@@ -351,6 +353,7 @@ def _create_callback(self, function, wrap_result):
     """
     if not isinstance(function, Callable):
         return None
+
     def command_callback():
         # command result callback expects response from MPD as iterable lines,
         # thus read available lines from socket
@@ -611,7 +614,9 @@ class MPDClient(MPDClientBase):
             self._sock = self._connect_unix(host)
         else:
             if port is None:
-                raise ValueError("port argument must be specified when connecting via tcp")
+                raise ValueError(
+                        "port argument must be specified "
+                        + "when connecting via tcp")
             self._sock = self._connect_tcp(host, port)
         if IS_PYTHON2:
             self._rfile = self._sock.makefile("r")
@@ -631,7 +636,7 @@ class MPDClient(MPDClientBase):
                 newline="\n")
         try:
             self._hello()
-        except:
+        except Exception:
             self.disconnect()
             raise
 

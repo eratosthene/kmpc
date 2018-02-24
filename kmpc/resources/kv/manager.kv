@@ -163,16 +163,19 @@
             size_hint_min_y: '48sp'
             orientation: 'horizontal'
             OutlineToggleButton:
+                allow_no_selection: False
                 group: 'librarytype'
                 text: 'Files'
                 id: files_button
                 on_press: root.change_view_type(self.text)
             OutlineToggleButton:
+                allow_no_selection: False
                 group: 'librarytype'
                 text: 'Albums'
                 id: albums_button
                 on_press: root.change_view_type(self.text)
             OutlineToggleButton:
+                allow_no_selection: False
                 group: 'librarytype'
                 text: 'Tracks'
                 id: tracks_button
