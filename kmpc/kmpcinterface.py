@@ -506,7 +506,7 @@ class KmpcInterface(TabbedPanel):
                                     + format(max_cover_size))
                             pimg.thumbnail((max_cover_size, max_cover_size))
                             data2 = io.BytesIO()
-                            pimg.save(data2, 'PNG')
+                            pimg.convert('RGB').save(data2, 'PNG')
                             data2.seek(0)
                             cimg = CoreImage(data2, ext='png')
                         else:
