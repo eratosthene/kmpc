@@ -1,3 +1,0 @@
-#!/usr/bin/env python
-
-from kmpc.command_line import manager_app; manager_app()
